@@ -14,9 +14,9 @@ class Http
 		$model 	= "{{$mod},{$fun},{$data}}";
 		return self::post($host,$model, array(), 600);
 	}
+
     /**
      * Post数据
-     *
      * @param string $url
      * @param array $data
      * @param array $cookie
@@ -34,7 +34,6 @@ class Http
 
     /**
      * Get数据
-     *
      * @param string $url
      * @param array $cookie
      * @param int $timeout
@@ -51,7 +50,6 @@ class Http
 
     /**
      * 异步连接
-     *
      * @param string $type
      * @param string $host
      * @param string $page
@@ -80,14 +78,13 @@ class Http
         	}
             
         }
-        
         //echo "\$host:$host, \$port:$port, \$errno:$errno, \$errstr:$errstr, \$timeout:$timeout";
-        @$fp = fsockopen($host, $port, $errno, $errstr, $timeout);
+        $fp = fsockopen($host, $port, $errno, $errstr, $timeout);
         if(!$fp)
         {
             return array(false, '提示:无法连接!');
         }
-        $stream = array();
+        $stream   = array();
         $stream[] = "{$type} {$page} HTTP/1.0";
         $stream[] = "Host: {$host}";
         
@@ -107,14 +104,12 @@ class Http
         	$stream[] = "Content-Length: " . strlen($content);
         	 
         	$stream		= implode("\r\n", $stream)."\r\n\r\n".$content;
-        }else 
-       {
-        	$stream		= implode("\r\n", $stream)."\r\n\r\n";
+        }else
+        {
+            $stream		= implode("\r\n", $stream)."\r\n\r\n";
         }
-        
-       
+
         fwrite($fp, $stream);
-        
         stream_set_timeout($fp, $timeout);
         $res  = stream_get_contents($fp);
         $info = stream_get_meta_data($fp);
@@ -124,7 +119,7 @@ class Http
             return array(false, '提示:连接超时');
         }
         else
-       {
+        {
             return array(true, substr(strstr($res, "\r\n\r\n"), 4));
         }
     }
@@ -138,17 +133,14 @@ class Http
     public static function post_curl($url,$data_json)
     {
         $ch = curl_init($url);
-        curl_setopt($ch, CURLOPT_HEADER, 0);
+        curl_setopt($ch, CURLOPT_HEADER,         0);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($ch, CURLOPT_POST,1);
-        curl_setopt($ch, CURLOPT_POSTFIELDS,$data_json);
-        curl_setopt($ch, CURLOPT_HTTPHEADER,array(
-            'Content-Type:application/json',
-            'Content-Length: '.strlen($data_json)
-        ));
-        curl_setopt($ch, CURLOPT_ENCODING, '');
+        curl_setopt($ch, CURLOPT_POST,           1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS,     $data_json);
+        curl_setopt($ch, CURLOPT_HTTPHEADER,    ['Content-Type:application/json','Content-Length: '.strlen($data_json)]);
+        curl_setopt($ch, CURLOPT_ENCODING,       '');
         curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 60);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 60);
+        curl_setopt($ch, CURLOPT_TIMEOUT,        60);
         $response = curl_exec($ch);
         curl_close($ch);
         return $response;
@@ -174,11 +166,10 @@ class Http
             $response =  curl_exec($ch);
             curl_close($ch);
         }
-        //-------请求为空
+        // 请求为空
         if(empty($response))
         {
             trigger_error("ERROR! 可能是服务器无法请求http(s)协议.", E_USER_ERROR);
-            // $this->error->showError("50001");
         }
         return $response;
     }

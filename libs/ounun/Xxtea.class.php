@@ -20,6 +20,7 @@ class Xxtea
 		$key = xxtea_key ( $key );
 		return xxtea_encrypt ( $str, $key );
 	}
+	
 	/**
 	 * 解密
 	 *
@@ -37,6 +38,13 @@ class Xxtea
 		$key = xxtea_key ( $key );
 		return xxtea_decrypt( $str, $key );
 	}
+
+	/**
+	 * 
+	 * @param $str
+	 * @param $key
+	 * @return string
+	 */
 	public static function decode($str, $key)
 	{
 		if ($str == "")

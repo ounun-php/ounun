@@ -18384,7 +18384,6 @@ class WeiSEO
 			$v3 = trim($v2[0]);
 			$v4 = trim($v2[1]);
 			$d[$v3] = $v4;
-			
 		}
 		echo count($f),"<br />\n";
 		echo count($d),"<br />\n<pre>";

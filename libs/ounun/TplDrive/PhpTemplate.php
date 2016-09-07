@@ -11,16 +11,19 @@ class PhpTemplate extends \ounun\_tpl
      * @var string
      */
     protected $_tpl_dir;
+
     /**
      * 模板文件所以目录(当前目录)
      * @var string
      */
     protected $_tpl_dir_cur;
+
     /**
      * 数据缓存
      * @var array
      */
     protected $_data = array();
+
     /**
      * 创建对像
      * @param string $template_dir
@@ -53,7 +56,6 @@ class PhpTemplate extends \ounun\_tpl
             $this->_data[$name] = $value;
         }
     }
-
     /**
      * 追加一个 值
      * @param $name
@@ -131,7 +133,7 @@ class PhpTemplate extends \ounun\_tpl
         {
             extract($vars);
         }
-
+        // ===
         $file_name 		        = $this->_tpl_dir . $tpl_name;
         if(file_exists($file_name))
         {
@@ -145,4 +147,3 @@ class PhpTemplate extends \ounun\_tpl
         exit();
     }
 }
-?>

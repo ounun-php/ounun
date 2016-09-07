@@ -97,6 +97,7 @@ class Session
         $this->_cache->set($session_key,$session_data);
         return $this->_cache->write();
     }
+
     /**
      * 清理session
      * @return bool

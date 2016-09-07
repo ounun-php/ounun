@@ -139,7 +139,6 @@ class Mysqli
         else
         {
            return "'" . $this->_conn->real_escape_string($value) . "'";
-           // return "'" . mysqli_real_escape_string($value, $this->_conn) . "'";
         }
     }
 
@@ -156,8 +155,6 @@ class Mysqli
         {
 			$this->_sql = $this->format($sql, $bind);
 		}
-        //echo '<br />',$this->_sql,$this->_database;
-        // $this->_rs	= mysqli_query($this->_sql, $this->_conn);
         $this->_rs		= $this->_conn->query($this->_sql);
         $this->_query_times++;
         return $this->_rs;

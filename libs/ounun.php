@@ -21,11 +21,9 @@ if(defined('Const_Module'))
     /** 默认操作名称 */
     define('Ounun_Default_Method', 	 'index');
 }
-// echo 'Ounun_Default_Module:'.Ounun_Default_Module."<br />\n";
-// echo 'Ounun_Default_Method:'.Ounun_Default_Method."<br />\n";
+
 /**
  * 得到访客的IP
- *
  * @return string IP
  */
 function ip()
@@ -47,8 +45,12 @@ function ip()
 	}
 	return $hdr_ip;
 }
+
 /**
- * 输出URL
+ * 输出带参数的URL
+ * @param string $url   URL
+ * @param array  $data  数据
+ * @return string URL
  */
 function url($url,$data)
 {
@@ -63,14 +65,20 @@ function url($url,$data)
 
 /**
  * 得到 原生 URL(去问号后的 QUERY_STRING)
+ * @param $uri
+ * @return string URL
  */
 function url_original($uri)
 {
 	$tmp = explode('?', $uri, 2);
 	return $tmp[0];
 }
+
 /**
  * 通过uri得到mod
+ * @param $uri
+ * @param string $root
+ * @return array
  */
 function url_to_mod($uri,$root = '/')
 {
@@ -406,6 +414,20 @@ function sanitize_filename($string)
 }
 
 /**
+ * 获得libs Data数据
+ * @param $data_mod
+ * @param bool $is_app
+ */
+function data($data_mod,$is_app=false)
+{
+    $filename  = ($is_app?Dir_Libs:Dir_Libs_ProJ)."data.{$data_mod}.ini.php";
+    if(file_exists($filename))
+    {
+        return require $filename;
+    }
+    return null;
+}
+/**
  * Encode a string so it is safe to pass through the URL
  *
  * @param string $string to encode
@@ -452,7 +474,6 @@ function short_url_encode($id = 0)
     return $show;
 }
 
-
 /**
  * 字符串 转 编号
  *
@@ -468,7 +489,6 @@ function short_url_decode($string = '')
         $s      = substr($string,0,1);
         $n      = is_numeric($s)?$s:ord($s);
         $p      = $p*62 + (($n >= 97)?( $n - 61) :( $n >= 65 ? $n - 55 : $n )) ;
-        // echo "\$string:{$string} \$p:{$p} \$n:{$n}<br />\n";
         $string = substr($string,1);
     }
     return $p;
@@ -476,13 +496,16 @@ function short_url_decode($string = '')
 
 /**
  * 基类的基类
+ * Class Base
+ * @package ounun
  */
 class Base
 {
-	/**
-	 * 默认方法
-	 */
+    /**
+     * @var 默认方法
+     */
 	public $default_method = Ounun_Default_Method;
+
 	/**
 	 * 没定的方法
 	 * @param String $method
@@ -491,19 +514,18 @@ class Base
 	public function __call($method, $args)
 	{
 		header('HTTP/1.1 404 Not Found');
-		//$default_method = $this->default_method;
-		//$this->$default_method($arg[0], $method);
         error404();
 	}
+
 	/**
 	 * DB 相关
 	 * @param sting $key enum:member,goods,admin,msg,help
 	 */
 	private static $_db = array();
+
 	/**
 	 * 返回数据库连接对像
-	 *
-	 * @param string $key
+	 * @param  string $key
 	 * @return \ounun\Mysqli
 	 */
 	public static function db($key)
@@ -512,14 +534,18 @@ class Base
 		self::$_db[$key]->active();
 		return self::$_db[$key];
 	}
+
 	/**
      * 调试 相关
      * @var \ounun\Debug
      */
     public $debug	= null;
-	/**
-	 * 调试日志
-	 */
+
+    /**
+     * 调试日志
+     * @param $k
+     * @param $log
+     */
 	public function debug_logs($k,$log)
 	{
 		if($this->debug)
@@ -527,6 +553,7 @@ class Base
 			$this->debug->logs($k,$log);
 		}
 	}
+
     /**
      * 停止 调试
      */
@@ -540,7 +567,9 @@ class Base
 }
 
 /**
- * 构造模块基类 *
+ * 构造模块基类
+ * Class ViewBase
+ * @package ounun
  */
 class ViewBase extends Base
 {
@@ -559,6 +588,9 @@ class ViewBase extends Base
 	 */
 	protected $_stpl = null;
 
+    /**
+     * 初始化HTMl模板类
+     */
 	public function Template()
 	{
 		if(null == $this->_stpl)
@@ -567,6 +599,7 @@ class ViewBase extends Base
             $this->_stpl = new Tpl(Ounun_Dir_Tpl);
         }
 	}
+
 	/**
 	 * 赋值
 	 * @param string $name
@@ -576,6 +609,7 @@ class ViewBase extends Base
 	{
 		$this->_stpl->assign($name, $value);
 	}
+
 	/**
 	 * 包含
 	 * @param string $filename
@@ -584,6 +618,7 @@ class ViewBase extends Base
 	{
 		$this->_stpl->import($filename,$args);
 	}
+
     /**
      * 输出
      * @param string $filename
@@ -596,6 +631,12 @@ class ViewBase extends Base
 
 /**
  * 路由
+ * @param $route_dirs   目录路由表
+ * @param $mod          目录数组
+ * @param $route_hosts  主机路由表
+ * @param $host         主机
+ * @param $default_app_dir 默认应用
+ * @return string 应用
  */
 function route($route_dirs,&$mod,$route_hosts,$host,$default_app_dir)
 {

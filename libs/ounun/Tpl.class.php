@@ -2,7 +2,11 @@
 /** 命名空间 */
 namespace ounun;
 
-// 强制要求子类定义这些方法
+/**
+ * 强制要求子类定义这些方法
+ * Class _tpl
+ * @package ounun
+ */
 abstract class _tpl
 {
     /**
@@ -10,49 +14,58 @@ abstract class _tpl
      * @var string
      */
     protected $_tpl_dir;
+    
     /**
      * 模板文件所以目录(当前目录)
      * @var string
      */
     protected $_tpl_dir_cur;
+    
     /**
      * 数据缓存
      * @var array
      */
     protected $_data;
+    
     /**
      * 创建对像
      * @param string $template_dir
      */
     abstract public function __construct($template_dir = null);
+    
     /**
      * 设定一个值
      * @param $name
      * @param null $value
      */
     abstract public function assign($name, $value=null);
+    
     /**
      * 追加一个 值
      * @param $name
      * @param $value
      */
     abstract public function append($name, $value);
+    
     /**
      * 返回一个 模板文件地址(相对目录)
      * @param $tpl_name
      */
     abstract public function file_cur($tpl_name);
+    
     /**
      * 返回一个 模板文件地址(绝对目录,相对root)
      * @param $tpl_name
      */
     abstract public function file($tpl_name);
+    
     /**
      * 导入一个模板文件
      * @param $tpl_name
      * @param array $vars
      */
     abstract public function import($tpl_name, $vars = array());
+    
     /**
      * 最后输出
      * @param $tpl_name
@@ -71,15 +84,21 @@ class Tpl
      * @var _tpl
      */
     private static $_drive = null;
+    
     /**
      * 模板驱动名
      * @var string
      */
     private $_drive_name   = 'PhpTemplate';
-
+    
     /**
      * 创建一个模板对像
-     * @param string drivee
+     * Tpl constructor.
+     * @param $template_dir
+     * @param null $drive
+     * @param string $temp_dir
+     * @param string $cache_lifetime
+     * @param string $template_filename
      */
     public function __construct($template_dir,$drive = null,$temp_dir='',$cache_lifetime='',$template_filename = '')
     {
@@ -99,6 +118,7 @@ class Tpl
             exit();
         }
     }
+    
     /**
      * Assign Template Content
      *
@@ -117,7 +137,6 @@ class Tpl
      * 设定一个值
      * @param $name
      * @param null $value
-     *
      */
     public function assign($name, $value = '')
     {
@@ -137,6 +156,7 @@ class Tpl
     {
         self::$_drive->append($name, $value);
     }
+
     /**
      * 最后输出
      * @param $tpl_name
@@ -146,6 +166,7 @@ class Tpl
     {
         self::$_drive->output($filename,$args);
     }
+    
     /**
      * 返回一个 模板文件地址(绝对目录,相对root)
      * @param $tpl_name
@@ -154,6 +175,7 @@ class Tpl
     {
         return self::$_drive->file($filename);
     }
+    
     /**
      * 返回一个 模板文件地址(相对目录)
      * @param $tpl_name
@@ -162,6 +184,7 @@ class Tpl
     {
         return self::$_drive->file_cur($filename);
     }
+    
     /**
      * 导入一个模板文件
      * @param $tpl_name

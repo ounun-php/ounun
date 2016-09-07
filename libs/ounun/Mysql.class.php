@@ -49,17 +49,17 @@ class Mysql
      * @param array $bind
      * @return string
      */
-    private function format($sql, $bind = null)
+    private function _format($sql, $bind = null)
     {
         if(null !== $bind)
         {
             if(strpos($sql, '?') !== false)
             {
-                return $this->quoteInto($sql, $bind);
+                return $this->_quote_into($sql, $bind);
             }
             else
           {
-                return $this->bindValue($sql, $bind);
+                return $this->_bind_value($sql, $bind);
             }
         }
         else
@@ -75,7 +75,7 @@ class Mysql
      * @param  $bind
      * @return string
      */
-    private function bindValue($sql, $bind)
+    private function _bind_value($sql, $bind)
     {
         $rs  = preg_split('/(\:[A-Za-z0-9_]+)\b/', $sql, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY);
         $rs2 = array();
@@ -100,7 +100,7 @@ class Mysql
      * @param  $bind
      * @return string
      */
-    private function quoteInto($text, $value)
+    private function _quote_into($text, $value)
     {
         return str_replace('?', $this->quote($value), $text);
     }
@@ -137,7 +137,7 @@ class Mysql
     {
         if($sql)
         {
-			$this->_sql = $this->format($sql, $bind);
+			$this->_sql = $this->_format($sql, $bind);
 		}
         //echo '<br />',$this->_sql,$this->_database;
         $this->_rs		= mysql_query($this->_sql, $this->_conn);
@@ -162,7 +162,7 @@ class Mysql
         {
             // Associative array
             $cols 	= array_keys($bind);
-            $sql 	= "INSERT {$param} INTO {$table} " . '(`' . implode('`, `', $cols) . '`) ' . 'VALUES (:' . implode(', :', $cols) . ') ' . $this->format($ext, $bind2).';';
+            $sql 	= "INSERT {$param} INTO {$table} " . '(`' . implode('`, `', $cols) . '`) ' . 'VALUES (:' . implode(', :', $cols) . ') ' . $this->_format($ext, $bind2).';';
             
             $this->conn($sql, $bind);
         }
@@ -173,9 +173,9 @@ class Mysql
             $cols 		= array_keys($bind[0]);
             foreach ($bind as $v)
             {
-                $tmpArray[] = $this->format(' :' . implode(', :', $cols) . ' ', $v);
+                $tmpArray[] = $this->_format(' :' . implode(', :', $cols) . ' ', $v);
             }
-            $sql = "INSERT {$param} INTO {$table} " . '(`' . implode('`, `', $cols) . '`) ' . 'VALUES (' . implode('),(', $tmpArray) . ') ' . $this->format($ext, $bind2).';';
+            $sql = "INSERT {$param} INTO {$table} " . '(`' . implode('`, `', $cols) . '`) ' . 'VALUES (' . implode('),(', $tmpArray) . ') ' . $this->_format($ext, $bind2).';';
             $this->conn($sql);
         }
         $this->_insert_id 	  = mysql_insert_id($this->_conn); //取得上一步 INSERT 操作产生的 ID
@@ -229,7 +229,7 @@ class Mysql
      */
     public function insertImport($table, $sql, $bind, $param = '')
     {
-        $sql = "INSERT {$param} INTO {$table} " . $this->format($sql, $bind);
+        $sql = "INSERT {$param} INTO {$table} " . $this->_format($sql, $bind);
         $this->conn($sql, $bind);
         $this->_insert_id = mysql_insert_id($this->_conn);
         $this->_query_affected = mysql_affected_rows($this->_conn);
@@ -261,7 +261,7 @@ class Mysql
             $cols 	  = array_keys($bind[0]);
             foreach ($bind as $v)
             {
-                $tmpArray[] = $this->format(' :' . implode(', :', $cols) . ' ', $v);
+                $tmpArray[] = $this->_format(' :' . implode(', :', $cols) . ' ', $v);
             }
             $sql = "REPLACE {$param} INTO {$table} " . '(`' . implode('`, `', $cols) . '`) ' . 'VALUES (' . implode('),(', $tmpArray) . ') ;';
             $this->conn($sql);
@@ -281,7 +281,7 @@ class Mysql
      */
     public function replaceImport($table, $sql, $bind, $param = '')
     {
-        $sql = "REPLACE {$param} INTO {$table} " . $this->format($sql, $bind);
+        $sql = "REPLACE {$param} INTO {$table} " . $this->_format($sql, $bind);
         $this->conn($sql, $bind);
         $this->_query_affected = mysql_affected_rows($this->_conn);
         return $this->_query_affected;
@@ -299,7 +299,7 @@ class Mysql
      */
     public function update($table, $data, $where = null, $bind = null, $param = '', $limit = 0)
     {
-        $where && $where = $this->format($where, $bind);
+        $where && $where = $this->_format($where, $bind);
         $set = array();
         foreach ($data as $col=>$value)
         {
@@ -323,7 +323,7 @@ class Mysql
      */
     public function add($table, $data, $where = null, $bind = null, $param = '')
     {
-        $where && $where = $this->format($where, $bind);
+        $where && $where = $this->_format($where, $bind);
         $set = array();
         foreach ($data as $col=>$val)
         {
@@ -346,7 +346,7 @@ class Mysql
      */
     public function cut($table, $data, $where = null, $bind = null, $param = '')
     {
-        $where && $where = $this->format($where, $bind);
+        $where && $where = $this->_format($where, $bind);
         $set = array();
         foreach ($data as $col=>$val)
         {

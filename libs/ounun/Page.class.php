@@ -11,24 +11,25 @@ namespace ounun;
  */
 class Page
 {
-    private $total;
-    private $static_total;
-    private $page 	        = 1;
-    private $page_cnt       = 1;
-    private $rows;
-    private $max 	    	= 7;
+    private $_total;
+    private $_static_total;
+    private $_page 	        = 1;
+    private $_page_cnt      = 1;
+    private $_rows;
+    private $_max 	    	= 7;
 
-    private $rs_str   	    = '总共有{total}条数据,共{pageCnt}页,第{page}页';
-    private $rs_default 	= array('<li>', '</li>');
-    private $rs_now 	  	= array('<li class="now">', '</li>');
-    private $rs_tag 	  	= array('|&lt;','&lt;','&gt;','&gt;|');
-    private $rs_one_page 	= null;
+    private $_rs_str   	    = '总共有{total}条数据,共{pageCnt}页,第{page}页';
+    private $_rs_default 	= array('<li>', '</li>');
+    private $_rs_now 	  	= array('<li class="now">', '</li>');
+    private $_rs_tag 	  	= array('|&lt;','&lt;','&gt;','&gt;|');
+    private $_rs_one_page 	= null;
     //
-    private $db;
-    private $table;
-    private $where;
-    private $url;
-    private $returns;
+    private $_db;
+    private $_table;
+    private $_where;
+    private $_url;
+    private $_returns;
+    
     /**
      * 创建一个分页类
      *
@@ -42,19 +43,20 @@ class Page
     {
         if(is_numeric($db))
         {
-            $this->static_total = $db;
+            $this->_static_total = $db;
             $table && $this->set($table);
         }
         else
         {
             $config && $this->set($config);
-            $this->db    = $db;
-            $this->table = $table;
-            $this->where = $where;
+            $this->_db    = $db;
+            $this->_table = $table;
+            $this->_where = $where;
         }
-        $this->rows = $rows;
-        $this->url  = $url;
+        $this->_rows = $rows;
+        $this->_url  = $url;
     }
+    
     /**
      * 得到分页数据
      *
@@ -64,12 +66,12 @@ class Page
      */
     public function init($page = null,$count = 'count(*)', $config = array())
     {
-        $this->returns || $this->data($page,$count, $config);
-        $returns        = $this->returns;
+        $this->_returns || $this->data($page,$count, $config);
+        $returns        = $this->_returns;
         $returns['str'] = $this->_set_str(array($returns['total'], $returns['pageCnt'], $returns['this']));
-        $default = $this->rs_default;
-        $tag     = $this->rs_tag;
-        $now     = $this->rs_now;
+        $default = $this->_rs_default;
+        $tag     = $this->_rs_tag;
+        $now     = $this->_rs_now;
         foreach ($returns['np'] as &$v)
         {
             if($v['Begin'])
@@ -107,6 +109,7 @@ class Page
         }
         return $returns;
     }
+    
     /**
      * 算出分页数据
      *
@@ -118,14 +121,14 @@ class Page
     {
         $config && $this->set($config);
         $sub      = $returns = array();
-        $sub['t'] = $this->max;
-        $sub['m'] = ceil($this->max / 2);
-        $page     = (int)$page?$page:$this->page;
-        $returns['this']    = $page    = $this->page     = $page < 1?1:$page;
+        $sub['t'] = $this->_max;
+        $sub['m'] = ceil($this->_max / 2);
+        $page     = (int)$page?$page:$this->_page;
+        $returns['this']    = $page    = $this->_page     = $page < 1?1:$page;
         $returns['total']   = $total   = $this->getTotal($count);
-        $returns['pageCnt'] = $pageCnt = $this->page_cnt = ceil($total / $this->rows);
-        $returns['begin']   = $this->rows * ($page - 1);
-        $returns['rows']    = $this->rows;
+        $returns['pageCnt'] = $pageCnt = $this->_page_cnt = ceil($total / $this->_rows);
+        $returns['begin']   = $this->_rows * ($page - 1);
+        $returns['rows']    = $this->_rows;
         if($pageCnt > $sub['t'])
         {
             $sub['C'] = $sub['t'];
@@ -166,8 +169,9 @@ class Page
         $sub['Next'] && $returns['np'][]  = array('Next'=>$page + 1);
         $sub['End']  && $returns['np'][]  = array('End'=>$pageCnt);
         unset($sub);
-        return $this->returns = $returns;
+        return $this->_returns = $returns;
     }
+    
     /**
      * 设定总接口
      *
@@ -188,6 +192,7 @@ class Page
             !is_numeric($key) && $value && $this->$key = $value;
         }
     }
+    
     /**
      * 设死数据总行数
      *
@@ -195,8 +200,9 @@ class Page
      */
     public function setStaticTotal($pageCnt)
     {
-        $this->static_total = $pageCnt;
+        $this->_static_total = $pageCnt;
     }
+    
     /**
      * 设定 字符串 选中或没选中前后的HTML代码
      *
@@ -206,10 +212,11 @@ class Page
      */
     public function setHtml($str = null, $default = null, $now = null)
     {
-        $str && $this->rs_str = $str;
-        is_array($default) && $this->rs_default = $default;
-        is_array($now)     && $this->rs_now     = $now;
+        $str && $this->_rs_str = $str;
+        is_array($default) && $this->_rs_default = $default;
+        is_array($now)     && $this->_rs_now     = $now;
     }
+    
     /**
      * 得到数据总行数
      *
@@ -217,16 +224,17 @@ class Page
      */
     public function getTotal($count)
     {
-        if($this->total)
+        if($this->_total)
         {
-            return $this->total;
-        }elseif($this->static_total)
+            return $this->_total;
+        }elseif($this->_static_total)
         {
-            return $this->static_total;
+            return $this->_static_total;
         }
-        $this->total = (int)$this->_get_total($count);
-        return $this->total;
+        $this->_total = (int)$this->_get_total($count);
+        return $this->_total;
     }
+    
     /**
      * 得到数据总页数
      *
@@ -234,8 +242,9 @@ class Page
      */
     public function getPageCnt()
     {
-        return $this->page_cnt;
+        return $this->_page_cnt;
     }
+    
     /**
      * 设定字符串
      *
@@ -244,8 +253,9 @@ class Page
      */
     private function _set_str($arr)
     {
-        return str_replace(array('{total}', '{pageCnt}', '{page}'), $arr, $this->rs_str);
+        return str_replace(array('{total}', '{pageCnt}', '{page}'), $arr, $this->_rs_str);
     }
+    
     /**
      * 设定URL串
      *
@@ -254,13 +264,14 @@ class Page
      */
     private function _set_url($page)
     {
-        $url     = str_replace('{page}', $page, $this->url);
-        if($this->rs_one_page)
+        $url     = str_replace('{page}', $page, $this->_url);
+        if($this->_rs_one_page)
         {
-            $url = str_replace($this->rs_one_page, '', $url);
+            $url = str_replace($this->_rs_one_page, '', $url);
         }
         return $url;
     }
+    
     /**
      * 从数据库中得到数据总行数
      *
@@ -268,7 +279,7 @@ class Page
      */
     private function _get_total($count)
     {
-        $rs = $this->db->row("select $count as cc from {$this->table} {$this->where['where']}", $this->where['bind']);
+        $rs = $this->_db->row("select $count as cc from {$this->_table} {$this->_where['where']}", $this->_where['bind']);
         if($rs && $rs['cc'])
         {
             return (int)$rs['cc'];

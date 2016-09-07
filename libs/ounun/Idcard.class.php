@@ -8,14 +8,16 @@
 
 namespace ounun;
 
-
+/**
+ * Class Idcard
+ * @package ounun
+ */
 class Idcard
 {
     /**
-     *    身份证
-     *
-     *    @param    string    $id
-     *    @return   boolean
+     * 身份证
+     * @param  string $id
+     * @return bool
      */
     public static function check( $id )
     {
@@ -26,10 +28,9 @@ class Idcard
         {
             return false;
         }
-        if(15==strlen($id)) //检查15位
+        if(15 == strlen($id)) //检查15位
         {
             $regx = '/^(\d{6})+(\d{2})+(\d{2})+(\d{2})+(\d{3})$/';
-
             preg_match($regx, $id, $arr_split);
             //检查生日日期是否正确
             $dtm_birth = "19".$arr_split[2] . '/' . $arr_split[3]. '/' .$arr_split[4];
@@ -42,7 +43,7 @@ class Idcard
                 return true;
             }
         }
-        else           //检查18位
+        else //检查18位
         {
             $regx = '/^(\d{6})+(\d{4})+(\d{2})+(\d{2})+(\d{3})([0-9]|X)$/';
             preg_match($regx, $id, $arr_split);
@@ -76,18 +77,29 @@ class Idcard
                 }
             }
         }
-
     }
 
+    /**
+     * 通过身体份证获得年龄
+     *      过了这年的生日才算多了1周岁
+     *      不过还是有很多人身份证上的不是自己真正的生日，不过就这么算吧。
+     * @param $id
+     * @return float
+     */
     public static function age($id)
     {
-        // 过了这年的生日才算多了1周岁
-        // 不过还是有很多人身份证上的不是自己真正的生日，不过就这么算吧。
+        // 18位身份证号
+        // $id   ='430223198203016917';
 
-        // $id   ='430223198203016917';//18位身份证号
-        $date = strtotime(substr($id,6,8));//获得出生年月日的时间戳
-        $today= strtotime('today');//获得今日的时间戳
-        $diff = floor(($today-$date)/86400/365);//得到两个日期相差的大体年数
+        // 获得出生年月日的时间戳
+        $date = strtotime(substr($id,6,8));
+
+        // 获得今日的时间戳
+        $today= strtotime('today');
+
+        // 得到两个日期相差的大体年数
+        $diff = floor(($today-$date)/86400/365);
+        
         // strtotime加上这个年数后得到那日的时间戳后与今日的时间戳相比
         $age  = strtotime(substr($id,6,8).' +'.$diff.'years')>$today?($diff+1):$diff;
         return $age;

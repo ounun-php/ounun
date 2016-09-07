@@ -1,67 +1,86 @@
 <?php
 namespace ounun;
 
-// 强制要求子类定义这些方法
+/**
+ * 强制要求子类定义这些方法
+ * Class _cache_base
+ * @package ounun
+ */
 abstract class _cache_base
 {
 	/**
 	 * @var string 模块名称 */
 	protected $_mod;
+	
     /**
      * 设定数据keys
      * @param $key       */
 	abstract public function key($key);
+	
     /**
      * 设定数据Value
      * @param $val       */
 	abstract public function val($val);
+	
     /**
      * 读取数据
      * @param $keys
      * @return mixed|null */
 	abstract public function read();
+	
     /**
      * 写入已设定的数据
      * @return bool       */
 	abstract public function write();
+	
     /**
      * 读取数据中$key的值
      * @param $sub_key        */
 	abstract public function get($sub_key);
+	
     /**
      * 设定数据中$sub_key为$sub_val
      * @param $sub_key
      * @param $sub_vals       */
 	abstract public function set($sub_key,$sub_val);
+	
     /**
      * 删除数据
      * @return bool       */
 	abstract public function delete();
+	
     /**
      * 取得 File:文件名  Memcache|Redis:缓存KEY
      * @return string     */
 	abstract public function filename();
+	
 	/**
 	 * 取得 mod:名称
 	 * @return string     */
 	abstract public function mod();
 }
 
+
 class _cache_file extends _cache_base
 {
 	/** @var string 存放路径 */
 	private $_root			= '';
+    
 	/** @var bool false:混合数据 true:字符串 */
 	private $_format_string	= false;
+    
 	/** @var bool false:少量    true:大量 */
 	private $_large_scale	= false;
 
 	/** @var string cache文件名称 */
 	private $_filename		= null;
+    
 	/** @var mix    数据 */
 	private $_data   		= null;
+    
 	/** @var bool false:没读    true:已读 */
 	private $_is_read       = false;
+    
 	/**
 	 * 设定 file Cache配制
 	 * @param string $mod
@@ -99,6 +118,7 @@ class _cache_file extends _cache_base
 			$this->_is_read   = false;
 		}
 	}
+    
     /**
      * 设定数据Value
      * @param $val      */
@@ -107,6 +127,7 @@ class _cache_file extends _cache_base
         $this->_is_read  = true;
 		$this->_data     = $val;
 	}
+    
     /**
      * 读取数据
      * @param $keys
@@ -131,6 +152,7 @@ class _cache_file extends _cache_base
 		}
 		return $this->_data;
 	}
+    
     /**
      * 写入已设定的数据
      * @return bool       */
@@ -158,6 +180,7 @@ class _cache_file extends _cache_base
 			return file_put_contents($this->_filename,'<?php '."return {$str};".'?>');
 		}
 	}
+    
     /**
      * 读取数据中$key的值
      * @param $sub_key        */
@@ -177,6 +200,7 @@ class _cache_file extends _cache_base
 		}
 		return null;
 	}
+    
     /**
      * 设定数据中$sub_key为$sub_val
      * @param $sub_key
@@ -197,6 +221,7 @@ class _cache_file extends _cache_base
         }
 		$this->_data[$sub_key] = $sub_val;
 	}
+    
     /**
      * 删除数据
      * @return bool       */
@@ -217,6 +242,7 @@ class _cache_file extends _cache_base
 		}
 		return true;
 	}
+    
     /**
      * 取得 File:文件名  Memcache|Redis:缓存KEY
      * @return string     */
@@ -224,6 +250,7 @@ class _cache_file extends _cache_base
 	{
 		return $this->_filename;
 	}
+    
 	/**
 	 * 取得 mod:名称
 	 * @return string     */
@@ -237,23 +264,35 @@ class _cache_redis extends _cache_base
 {
     /** @var array Redis服务器配制 */
     private $_redis_config	= array();
+    
     /** @var \Redis */
     private $_redis			= null;
 
     /** @var int */
     private $_expire	    = 0;
+    
     /** @var bool false:混合数据 true:字符串 */
     private $_format_string	= false;
+    
     /** @var bool false:少量    true:大量 */
     private $_large_scale	= false;
 
     /** @var string key */
     private $_key		    = null;
+    
     /** @var mix    数据 */
     private $_data   		= null;
+    
     /** @var bool false:没读    true:已读 */
     private $_is_read       = false;
 
+    /**
+     * _cache_redis constructor.
+     * @param string $mod
+     * @param int $expire
+     * @param bool $large_scale
+     * @param bool $format_string
+     */
     public function __construct($mod='def',$expire=0,$large_scale=false,$format_string=false)
     {
 		$this->_mod   		    = $mod;
@@ -265,6 +304,7 @@ class _cache_redis extends _cache_base
         $this->_large_scale     = $large_scale;
         $this->_format_string   = $format_string;
     }
+    
     /**
      * 设定Redis服务器
      * @param array $servers array(['host','port'],['host','port'],...)
@@ -309,6 +349,7 @@ class _cache_redis extends _cache_base
         }
         $this->_key           = "{$this->_mod}.{$key}";
     }
+    
     /**
      * 设定数据Value
      * @param $val       */
@@ -317,6 +358,7 @@ class _cache_redis extends _cache_base
         $this->_is_read  = true;
         $this->_data     = $val;
     }
+    
     /**
      * 读取数据
      * @param $keys
@@ -339,6 +381,7 @@ class _cache_redis extends _cache_base
         }
         return $this->_data;
     }
+    
     /**
      * 写入已设定的数据
      * @return bool       */
@@ -357,6 +400,7 @@ class _cache_redis extends _cache_base
             return $this->_redis->set($this->_key,$str,$this->_expire);
         }
     }
+    
     /**
      * 读取数据中$key的值
      * @param $sub_key       */
@@ -376,6 +420,7 @@ class _cache_redis extends _cache_base
         }
         return null;
     }
+    
     /**
      * 设定数据中$sub_key为$sub_val
      * @param $sub_key
@@ -396,6 +441,7 @@ class _cache_redis extends _cache_base
         }
         $this->_data[$sub_key] = $sub_val;
     }
+    
     /**
      * 删除数据
      * @return bool       */
@@ -412,6 +458,7 @@ class _cache_redis extends _cache_base
         }
         return $this->_redis->delete($this->_key);
     }
+    
     /**
      * 取得 File:文件名  Memcache|Redis:缓存KEY
      * @return string     */
@@ -419,6 +466,7 @@ class _cache_redis extends _cache_base
     {
         return $this->_key;
     }
+    
 	/**
 	 * 取得 mod:名称
 	 * @return string     */
@@ -432,29 +480,37 @@ class _cache_memcache extends _cache_base
 {
 	/** @var array Memcache服务器配制 */
 	private $_mem_config		= array();
+    
 	/** @var \Memcache */
 	private $_mem				= null;
 
     /** @var int */
     private $_expire	        = 0;
+    
     /** @var bool false:混合数据 true:字符串 */
     private $_format_string	    = false;
+    
     /** @var bool false:少量    true:大量 */
     private $_large_scale	    = false;
+    
 	/** @var int */
 	private $_zip_threshold		= 5000; // 5k
+    
 	/** @var int */
 	private $_zip_min_saving	= 0.3;  // 30%
+    
 	/** @var int */
 	private $_flag	            = MEMCACHE_COMPRESSED;
-
-
+    
 	/** @var string key */
 	private $_key		    = null;
+    
 	/** @var mix    数据 */
 	private $_data   		= null;
+    
 	/** @var bool false:没读    true:已读 */
 	private $_is_read       = false;
+    
 	/**
 	 * 设定Memcache服务器
 	 * @param array $servers array(['host','port','weight'],['host','port','weight'],...)
@@ -473,6 +529,7 @@ class _cache_memcache extends _cache_base
 		$this->_zip_min_saving  = $zip_min_saving;
 		$this->_flag            = $flag;
 	}
+    
 	/**
 	 * 设定Memcache服务器
 	 * @param array $servers array(['host','port','weight'],['host','port','weight'],...)
@@ -502,6 +559,7 @@ class _cache_memcache extends _cache_base
 			trigger_error("ERROR! Memcache::getStats Error!.", E_USER_ERROR);
 		}
 	}
+    
     /**
      * 设定数据keys
      * @param $key       */
@@ -522,6 +580,7 @@ class _cache_memcache extends _cache_base
 		}
 		$this->_key           = "{$this->_mod}.{$key}";
 	}
+    
     /**
      * 设定数据Value
      * @param $val       */
@@ -530,6 +589,7 @@ class _cache_memcache extends _cache_base
         $this->_is_read  = true;
 		$this->_data     = $val;
 	}
+    
     /**
      * 读取数据
      * @param $keys
@@ -545,6 +605,7 @@ class _cache_memcache extends _cache_base
 		$this->_data     = $this->_mem->get($this->_key);
 		return $this->_data;
 	}
+    
     /**
      * 写入已设定的数据
      * @return bool       */
@@ -556,6 +617,7 @@ class _cache_memcache extends _cache_base
 		}
 		return $this->_mem->set($this->_key,$this->_data,$this->_flag,$this->_expire);
 	}
+    
     /**
      * 读取数据中$key的值
      * @param $sub_key        */
@@ -575,6 +637,7 @@ class _cache_memcache extends _cache_base
 		}
 		return null;
 	}
+    
     /**
      * 设定数据中$sub_key为$sub_val
      * @param $sub_key
@@ -595,6 +658,7 @@ class _cache_memcache extends _cache_base
         }
         $this->_data[$sub_key] = $sub_val;
 	}
+    
     /**
      * 删除数据
      * @return bool       */
@@ -611,6 +675,7 @@ class _cache_memcache extends _cache_base
         }
 		return $this->_mem->delete($this->_key);
 	}
+    
     /**
      * 取得 File:文件名  Memcache|Redis:缓存KEY
      * @return string     */
@@ -618,6 +683,7 @@ class _cache_memcache extends _cache_base
 	{
 		return $this->_key;
 	}
+    
 	/**
 	 * 取得 mod:名称
 	 * @return string     */
@@ -633,24 +699,31 @@ class _cache_memcached extends _cache_base
 {
     /** @var array Memcache服务器配制 */
     private $_mem_config		= array();
+    
     /** @var \Memcached */
     private $_mem				= null;
 
     /** @var int */
     private $_expire	        = 0;
+    
     /** @var array */
     private $_auth	            = false;
+    
     /** @var bool false:混合数据 true:字符串 */
     private $_format_string	    = false;
+    
     /** @var bool false:少量    true:大量 */
     private $_large_scale	    = false;
 
     /** @var string key */
     private $_key		    = null;
+    
     /** @var mix    数据 */
     private $_data   		= null;
+    
     /** @var bool false:没读    true:已读 */
     private $_is_read       = false;
+    
     /**
      * 设定Memcache服务器
      * @param array $servers array(['host','port','weight'],['host','port','weight'],...)
@@ -667,6 +740,7 @@ class _cache_memcached extends _cache_base
         $this->_large_scale     = $large_scale;
         $this->_format_string   = $format_string;
     }
+    
     /**
      * 设定Memcache服务器
      * @param array $servers array(['host','port','weight'],['host','port','weight'],...)
@@ -701,6 +775,7 @@ class _cache_memcached extends _cache_base
             trigger_error("ERROR! Memcached::getStats Error!.", E_USER_ERROR);
         }
     }
+    
     /**
      * 设定数据keys
      * @param $key       */
@@ -721,6 +796,7 @@ class _cache_memcached extends _cache_base
         }
         $this->_key           = "{$this->_mod}.{$key}";
     }
+    
     /**
      * 设定数据Value
      * @param $val       */
@@ -729,6 +805,7 @@ class _cache_memcached extends _cache_base
         $this->_is_read  = true;
         $this->_data     = $val;
     }
+    
     /**
      * 读取数据
      * @param $keys
@@ -744,6 +821,7 @@ class _cache_memcached extends _cache_base
         $this->_data     = $this->_mem->get($this->_key);
         return $this->_data;
     }
+    
     /**
      * 写入已设定的数据
      * @return bool       */
@@ -755,6 +833,7 @@ class _cache_memcached extends _cache_base
         }
         return $this->_mem->set($this->_key,$this->_data,$this->_flag,$this->_expire);
     }
+    
     /**
      * 读取数据中$key的值
      * @param $sub_key        */
@@ -774,6 +853,7 @@ class _cache_memcached extends _cache_base
         }
         return null;
     }
+    
     /**
      * 设定数据中$sub_key为$sub_val
      * @param $sub_key
@@ -794,6 +874,7 @@ class _cache_memcached extends _cache_base
         }
         $this->_data[$sub_key] = $sub_val;
     }
+    
     /**
      * 删除数据
      * @return bool       */
@@ -810,6 +891,7 @@ class _cache_memcached extends _cache_base
         }
         return $this->_mem->delete($this->_key);
     }
+    
     /**
      * 取得 File:文件名  Memcache|Redis:缓存KEY
      * @return string     */
@@ -817,6 +899,7 @@ class _cache_memcached extends _cache_base
     {
         return $this->_key;
     }
+    
     /**
      * 取得 mod:名称
      * @return string     */
@@ -837,8 +920,10 @@ class Cache
 
 	/**  @var _cache_base  */
 	private   $_drive		= null;
+    
 	/** @var int 驱动类型  0:[错误,没设定驱动] 1:File 2:Memcache 3:Redis */
 	protected $_type		= 0;
+    
 	/**
 	 * 构造函数
 	 */
@@ -927,6 +1012,7 @@ class Cache
 			$this->config_file($mod,$root,$format_string,$large_scale);
 		}
 	}
+    
 	/**
 	 * 设定 file Cache配制
 	 * @param string $mod
@@ -945,6 +1031,7 @@ class Cache
 			trigger_error("ERROR! Repeat Seting:Cache->config_file().", E_USER_ERROR);
 		}
 	}
+    
 	/**
 	 * 设定Memcache服务器
 	 * @param array $servers array(['host','port','weight'],['host','port','weight'],...)
@@ -968,6 +1055,7 @@ class Cache
 			trigger_error("ERROR! Repeat Seting:Cache->config_memcache().", E_USER_ERROR);
 		}
 	}
+    
     /**
      * 设定Memcache服务器
      * @param array $servers array(['host','port'],['host','port'],...)
@@ -991,6 +1079,7 @@ class Cache
             trigger_error("ERROR! Repeat Seting:Cache->config_redis().", E_USER_ERROR);
         }
     }
+    
     /**
      * 设定Memcached服务器
      * @param array $servers array(['host','port','weight'],['host','port','weight'],...)
@@ -1014,6 +1103,7 @@ class Cache
             trigger_error("ERROR! Repeat Seting:Cache->config_memcached().", E_USER_ERROR);
         }
     }
+    
     /**
      * 设定数据keys
      * @param $keys       */
@@ -1021,6 +1111,7 @@ class Cache
 	{
 		$this->_drive->key($keys);
 	}
+    
     /**
      * 设定数据Value
      * @param $vals       */
@@ -1028,6 +1119,7 @@ class Cache
 	{
 		$this->_drive->val($vals);
 	}
+    
     /**
      * 读取数据
      * @param $keys
@@ -1036,6 +1128,7 @@ class Cache
 	{
 		return $this->_drive->read();
 	}
+    
     /**
      * 写入已设定的数据
      * @return bool       */
@@ -1043,6 +1136,7 @@ class Cache
 	{
 		return $this->_drive->write();
 	}
+    
     /**
      * 读取数据中$key的值
      * @param $sub_key        */
@@ -1050,6 +1144,7 @@ class Cache
 	{
 		return $this->_drive->get($sub_key);
 	}
+    
     /**
      * 设定数据中$sub_key为$sub_val
      * @param $sub_key
@@ -1058,6 +1153,7 @@ class Cache
 	{
 		$this->_drive->set($sub_key,$sub_val);
 	}
+    
     /**
      * 删除数据
      * @return bool       */
@@ -1065,6 +1161,7 @@ class Cache
 	{
 		return $this->_drive->delete();
 	}
+    
     /**
      * 取得 File:文件名  Memcache|Redis:缓存KEY
      * @return string     */
@@ -1072,5 +1169,4 @@ class Cache
 	{
 		return $this->_drive->filename();
 	}
-}
-?>
+} 
