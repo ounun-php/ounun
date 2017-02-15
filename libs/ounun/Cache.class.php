@@ -977,7 +977,7 @@ class Cache
 	public function config($config,$mod=null)
 	{
         $mod                 = $mod?$mod:$config['mod'];
-		$type_list           = array(self::Type_File,self::Type_Memcache,self::Type_Redis);
+		$type_list           = [self::Type_File,self::Type_Memcache,self::Type_Redis];
 		$type                = in_array($config['type'],$type_list)?$config['type']:self::Type_File;
 		if(self::Type_Redis == $type)
 		{

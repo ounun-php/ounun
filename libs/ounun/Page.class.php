@@ -184,12 +184,14 @@ class Page
         {
             foreach ($key as $k=>$v)
             {
-                !is_numeric($k) && $v && $this->$k = $v;
+                $k2 = "_{$k}";
+                !is_numeric($k) && $this->$k2 = $v;
             }
         }
         else
         {
-            !is_numeric($key) && $value && $this->$key = $value;
+            $key2 = "_{$key}";
+            !is_numeric($key) && $this->$key2 = $value;
         }
     }
     
@@ -287,4 +289,3 @@ class Page
         return 0;
     }
 }
-?>

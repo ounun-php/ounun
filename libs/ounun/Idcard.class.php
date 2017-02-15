@@ -104,5 +104,4 @@ class Idcard
         $age  = strtotime(substr($id,6,8).' +'.$diff.'years')>$today?($diff+1):$diff;
         return $age;
     }
-
 }

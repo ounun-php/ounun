@@ -529,6 +529,3 @@ class SaeTOAuthV2
 		return $multipartbody;
 	}
 }
-
-
-

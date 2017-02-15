@@ -2,7 +2,7 @@
 namespace ounun;
 
 /*###########################<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-文件:Mysql.class.php
+文件:Mysqli.class.php
 用途:MYSQL類
 作者:(dreamxyp@gmail.com)[QQ31996798]
 更新:2007.7.10
@@ -13,23 +13,23 @@ class Mysqli
     /**
      * @var \mysqli_result
      */
-    private $_rs;
+    protected $_rs;
     /**
      * @var \mysqli
      */
-    private $_conn; //_connection
-    private $_sql;
-    private $_insert_id;
-    private $_query_times;
-    private $_query_affected;
+    protected $_conn; //_connection
+    protected $_sql;
+    protected $_insert_id;
+    protected $_query_times;
+    protected $_query_affected;
     #db charset
-    private $_charset = 'utf8'; //,'utf8','gbk',latin1;
-    private $_database;
+    protected $_charset = 'utf8'; //,'utf8','gbk',latin1;
+    protected $_database;
 
     /**
      * 创建MYSQL类
-     *
-     * @param Array $cfg
+     * Mysqli constructor.
+     * @param $cfg 配制文件
      */
     public function __construct($cfg)
     {
@@ -46,24 +46,23 @@ class Mysqli
     }
 
     /**
-     * 激活
+     * 激活当前连接
+     * 主要是解决如果多个库在同一个MYSQL实例时会出现不能自动切换
      */
     public function active()
     {
         $this->_conn->select_db($this->_database);
         $this->_conn->set_charset($this->_charset);
-
-    	//mysqli_select_db($this->_database, $this->_conn);
-    	//mysqli_set_charset($this->_charset, $this->_conn);
     }
+
     /**
      * 格式化sql语句
      *
      * @param string $sql
-     * @param array $bind
+     * @param null|array $bind
      * @return string
      */
-    private function format($sql, $bind = null)
+    protected function format(string $sql, $bind = null):string
     {
         if(null !== $bind)
         {
@@ -72,12 +71,12 @@ class Mysqli
                 return $this->quoteInto($sql, $bind);
             }
             else
-          {
+            {
                 return $this->bindValue($sql, $bind);
             }
         }
         else
-       {
+        {
             return $sql;
         }
     }
@@ -89,7 +88,7 @@ class Mysqli
      * @param  $bind
      * @return string
      */
-    private function bindValue($sql, $bind)
+    protected function bindValue($sql, $bind)
     {
         $rs  = preg_split('/(\:[A-Za-z0-9_]+)\b/', $sql, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY);
         $rs2 = array();
@@ -110,11 +109,11 @@ class Mysqli
     /**
      * 格式化问号(?)的SQL语句
      *
-     * @param  $sql
-     * @param  $bind
+     * @param string $text
+     * @param $value
      * @return string
      */
-    private function quoteInto($text, $value)
+    protected function quoteInto(string $text, $value):string
     {
         return str_replace('?', $this->quote($value), $text);
     }
@@ -138,7 +137,7 @@ class Mysqli
         }
         else
         {
-           return "'" . $this->_conn->real_escape_string($value) . "'";
+            return "'" . $this->_conn->real_escape_string($value) . "'";
         }
     }
 
@@ -163,14 +162,14 @@ class Mysqli
     /**
      * 插入一條或多条記錄
      *
-     * @param  $table 表名  String
-     * @param  $bind  数据  Array
-     * @param  $param 可选参数  //[LOW_PRIORITY | DELAYED(仅适用于MyISAM, MEMORY和ARCHIVE表) | HIGH_PRIORITY] [IGNORE]
-     * @param  $ext   扩展  //ON DUPLICATE KEY UPDATE col_name=expr, ...
-     * @param  $bind2 $ext 数据  Array
-     * @return insertId
+     * @param string $table 表名
+     * @param array $bind 数据
+     * @param string $param 可选参数  //[LOW_PRIORITY | DELAYED(仅适用于MyISAM, MEMORY和ARCHIVE表) | HIGH_PRIORITY] [IGNORE]
+     * @param string $ext 扩展  //ON DUPLICATE KEY UPDATE col_name=expr, ...
+     * @param array $bind2 数据
+     * @return int $insert_id
      */
-    public function insert($table, $bind, $param = '', $ext = '', $bind2 = null)
+    public function insert(string $table, array $bind, string $param = '', string $ext = '', array $bind2 = [])
     {
         // Check for associative array
         if(array_keys($bind) !== range(0, count($bind) - 1))
@@ -178,11 +177,11 @@ class Mysqli
             // Associative array
             $cols 	= array_keys($bind);
             $sql 	= "INSERT {$param} INTO {$table} " . '(`' . implode('`, `', $cols) . '`) ' . 'VALUES (:' . implode(', :', $cols) . ') ' . $this->format($ext, $bind2).';';
-            
+
             $this->conn($sql, $bind);
         }
         else
-       {
+        {
             // Indexed array
             $tmpArray 	= array();
             $cols 		= array_keys($bind[0]);
@@ -193,10 +192,10 @@ class Mysqli
             $sql = "INSERT {$param} INTO {$table} " . '(`' . implode('`, `', $cols) . '`) ' . 'VALUES (' . implode('),(', $tmpArray) . ') ' . $this->format($ext, $bind2).';';
             $this->conn($sql);
         }
-        //$this->_insert_id 	  = mysqli_insert_id($this->_conn); //取得上一步 INSERT 操作产生的 ID
+        //$this->_insert_id 	 = mysqli_insert_id($this->_conn); //取得上一步 INSERT 操作产生的 ID
         //$this->_query_affected = mysqli_affected_rows($this->_conn); //取得前一次 MySQL 操作所影响的记录行数
-        $this->_insert_id 	   = $this->_conn->insert_id; //取得上一步 INSERT 操作产生的 ID
-        $this->_query_affected = $this->_conn->affected_rows; //取得前一次 MySQL 操作所影响的记录行数
+        $this->_insert_id 	     = $this->_conn->insert_id; //取得上一步 INSERT 操作产生的 ID
+        $this->_query_affected   = $this->_conn->affected_rows; //取得前一次 MySQL 操作所影响的记录行数
         return $this->_insert_id;
     }
     /**
@@ -452,12 +451,15 @@ class Mysqli
     public function dataArray($sql = null, $bind = null)
     {
         $sql && $this->conn($sql, $bind);
-        $rs	= array();
-        while ( $rss = $this->_rs->fetch_assoc()  )
+        $rs	= [];
+        if($this->_rs)
         {
-            $rs[] = $rss;
+            while ( $rss = $this->_rs->fetch_assoc()  )
+            {
+                $rs[] = $rss;
+            }
+            $this->free();
         }
-        $this->free();
         return $rs;
     }
 
@@ -584,4 +586,3 @@ class Mysqli
     	return $this->_conn ? true :false;
     }
 }
-?>

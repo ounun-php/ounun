@@ -62,4 +62,3 @@ xjJ/E1ioW00oCj+0ZvifQLCUz5uAdQXH1jrIWTKzss+RllqZWFwufQ/DEkHVe3if
         return parent::verify($sourcestr, $signature, self::public_key);
     }
 }
-?>

@@ -2,19 +2,7 @@
 namespace ounun;
 
 class Http
-{	
-	/**
-	 * @param $fun  : 方法
-	 * @param $data : 数据
-	 */	
-	public static function erlang($mod,$fun,$data="[]",$host="127.0.0.1",$port=18443)
-	{
-		$host 	= "http://{$host}:{$port}/";
-		//echo $host;
-		$model 	= "{{$mod},{$fun},{$data}}";
-		return self::post($host,$model, array(), 600);
-	}
-
+{
     /**
      * Post数据
      * @param string $url
@@ -174,4 +162,3 @@ class Http
         return $response;
     }
 }
-?>

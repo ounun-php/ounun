@@ -553,4 +553,3 @@ class Mysql
     	return $this->_conn ? true :false;
     }
 }
-?>

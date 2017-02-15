@@ -109,4 +109,3 @@ class Session
         return $this->_cache->delete();
     }
 }
-?>

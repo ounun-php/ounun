@@ -428,4 +428,4 @@ class QqOAuth2
         curl_close($ch);
         return $ret;
     }
-} 
+}

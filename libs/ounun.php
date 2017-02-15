@@ -26,7 +26,7 @@ if(defined('Const_Module'))
  * 得到访客的IP
  * @return string IP
  */
-function ip()
+function ip():string
 {
 	if(isset($_SERVER['HTTP_CLIENT_IP']))
 	{
@@ -52,15 +52,40 @@ function ip()
  * @param array  $data  数据
  * @return string URL
  */
-function url($url,$data)
+function url(string $url,array $data,array $extra=[]):string
 {
-	$rs = array();
+	$rs = [];
 	if(is_array($data))
 	{
+	    if($extra && is_array($extra))
+        {
+            foreach ($extra as $key=>$value)
+            {
+                if($value)
+                {
+                    $data[$key] = $value;
+                }else
+                {
+                    unset($data[$key]);
+                }
+            }
+        }
 		foreach ($data as $key => $value)
-			$rs[] = $key.'='.urlencode($value);
+        {
+            if('{page}' === $value )
+            {
+                $rs[] = $key.'={page}';
+            }elseif($value || 0 === $value || '0' === $value)
+            {
+                $rs[] = $key.'='.urlencode($value);
+            }
+        }
 	}
-	return $url.(strstr($url,'?')?'&':'?').implode('&',$rs);
+	if($rs)
+    {
+        return $url.(strstr($url,'?')?'&':'?').implode('&',$rs);
+    }
+	return $url;
 }
 
 /**
@@ -68,8 +93,12 @@ function url($url,$data)
  * @param $uri
  * @return string URL
  */
-function url_original($uri)
+function url_original(string $uri =''):string
 {
+    if('' == $uri)
+    {
+        $uri = $_SERVER['REQUEST_URI'];
+    }
 	$tmp = explode('?', $uri, 2);
 	return $tmp[0];
 }
@@ -80,7 +109,7 @@ function url_original($uri)
  * @param string $root
  * @return array
  */
-function url_to_mod($uri,$root = '/')
+function url_to_mod(string $uri,string $root = '/'):array
 {
 	$uri 	= \explode($root,    $uri, 					2);
 	$uri 	= \explode('.', 	 urldecode($uri[1]),	2);
@@ -99,7 +128,7 @@ function url_to_mod($uri,$root = '/')
  * @param bool $ext_req             网址可否带参加数
  * @param null $domain              是否捡查 域名
  */
-function url_check($url_original="",$ext_req=true,$domain=null)
+function url_check(string $url_original="",bool $ext_req=true,string $domain=null)
 {
     debug_header('url_check',$_SERVER['REQUEST_URI']);
     // URL去重
@@ -127,13 +156,14 @@ function url_check($url_original="",$ext_req=true,$domain=null)
         go_url($url_reset,false,301);
     }
 }
+
 /**
  * @param string $url1
  * @param string $url2
  * @param string $note
  * @param bool $top
  */
-function go_note($url1,$url2,$note,$top=false)
+function go_note(string $url1,string $url2,string $note,bool $top=false):void
 {
     $top  = "\t" . ($top?'window.top.':'');
     $note = $note?$note:'点击“确定”继续操作  点击“取消” 中止操作';
@@ -159,7 +189,7 @@ function go_note($url1,$url2,$note,$top=false)
  * @param int $head_code
  * @param int $delay      延时跳转(单位秒)
  */
-function go_url($url,$top=false,$head_code=302,$delay=0)
+function go_url(string $url,bool $top=false,int $head_code=302,int $delay=0):void
 {
     if($top)
     {
@@ -180,23 +210,67 @@ function go_url($url,$top=false,$head_code=302,$delay=0)
     }
     exit();
 }
+
 /**
  * 返回
  */
-function go_back()
+function go_back():void
 {
     echo '<script type="text/javascript">',"\n",
-         'window.history.go(-1);',"\n",
+            'window.history.go(-1);',"\n",
          '</script>',"\n";
     exit();
 }
+
 /**
  * @param $msg
  * @param $url
  */
-function go_msg($msg,$url)
+function go_msg(string $msg,string $url = ''):void
 {
-    exit(msg($msg).'<meta http-equiv="refresh" content="0;url=' . $url . '">');
+    if($url)
+    {
+        exit(msg($msg).'<meta http-equiv="refresh" content="0.5;url=' . $url . '">');
+    }else
+    {
+        echo msg($msg);
+        go_back();
+    }
+}
+
+/**
+ * 获得 exts数据
+ * @param string $exts_string
+ * @return array|mixed
+ */
+function exts_decode(string $exts_string)
+{
+    $exts = [];
+    if($exts_string)
+    {
+        $exts = unserialize($exts_string);
+    }
+    return $exts;
+}
+
+/**
+ * 获得 json字符串数据
+ * @param $data
+ * @return string
+ */
+function json_encode($data):string
+{
+    return \json_encode($data,JSON_UNESCAPED_UNICODE);
+}
+
+/**
+ * 对 json格式的字符串进行解码
+ * @param string $json_string
+ * @return mixed
+ */
+function json_decode(string $json_string)
+{
+    return \json_decode($json_string,true);
 }
 /**
  * 彈出對話框
@@ -205,7 +279,7 @@ function go_msg($msg,$url)
  * @param boolean $outer
  * @return string
  */
-function msg($msg, $outer = true, $meta = true)
+function msg(string $msg, bool $outer = true, $meta = true):string
 {
 	$rs = "\n" . 'alert(' . json_encode($msg) . ');' . "\n";
 	if($outer)
@@ -223,6 +297,7 @@ function msg($msg, $outer = true, $meta = true)
 	}
 	return $rs;
 }
+
 /**
  * HTTP缓存控制
  *
@@ -230,7 +305,7 @@ function msg($msg, $outer = true, $meta = true)
  * @param string 	$etag			ETag
  * @param int 		$LastModified	最后更新时间
  */
-function expires($expires = 0, $etag = '', $LastModified = 0)
+function expires(int $expires = 0,string $etag = '', int $LastModified = 0)
 {
     if($expires)
     {
@@ -258,10 +333,11 @@ function expires($expires = 0, $etag = '', $LastModified = 0)
         header("Pragma: no-cache");
     }
 }
+
 /**
  * error 404
  */
-function error404()
+function error404():void
 {
     if(function_exists('\error404'))
     {
@@ -295,7 +371,7 @@ function error404()
  * @param $v
  * @param bool|false $debug
  */
-function debug_header($k,$v,$debug=false,$funs='',$line='')
+function debug_header(string $k, $v,bool $debug=false,string $funs='',string $line='')
 {
     static $idx = 0;
     if($debug)
@@ -325,10 +401,11 @@ function debug_header($k,$v,$debug=false,$funs='',$line='')
         header("{$idx}-{$key}: {$v}",false);
     }
 }
+
 /**
  * 出错提示错
  */
-function error($error,$close=false)
+function error(string $error,bool $close=false)
 {
     echo '<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />',
     '<script type="text/javascript">',
@@ -342,13 +419,13 @@ function error($error,$close=false)
     }
     exit();
 }
+
 /**
- *
  * @param $delimiters
  * @param $string
  * @return array
  */
-function explodes($delimiters,$string)
+function explodes(string $delimiters,string $string)
 {
     $ready  = \str_replace($delimiters, $delimiters[0], $string);
     $launch = \explode($delimiters[0], $ready);
@@ -362,7 +439,7 @@ function explodes($delimiters,$string)
  * @param string $string to encode
  * @return string
  */
-function safe($string)
+function safe(string $string):string
 {
     return htmlspecialchars($string, ENT_QUOTES, 'utf-8');
 }
@@ -375,40 +452,41 @@ function safe($string)
  * @param bool $spaces TRUE to allow spaces
  * @return string
  */
-function sanitize($string, $spaces = TRUE)
+function sanitize(string $string, bool $spaces = true):string
 {
-    $search = array(
+    $search = [
         '/[^\w\-\. ]+/u',			// Remove non safe characters
         '/\s\s+/',					// Remove extra whitespace
         '/\.\.+/', '/--+/', '/__+/'	// Remove duplicate symbols
-    );
+    ];
 
-    $string = preg_replace($search, array(' ', ' ', '.', '-', '_'), $string);
+    $string = preg_replace($search, [' ', ' ', '.', '-', '_'], $string);
 
     if( ! $spaces)
     {
         $string = preg_replace('/--+/', '-', str_replace(' ', '-', $string));
     }
-
     return trim($string, '-._ ');
 }
+
 /**
  * Create a SEO friendly URL string from a valid UTF-8 string.
  *
  * @param string $string to filter
  * @return string
  */
-function sanitize_url($string)
+function sanitize_url(string $string):string
 {
 	return urlencode(mb_strtolower(sanitize($string, FALSE)));
 }
+
 /**
  * Filter a valid UTF-8 string to be file name safe.
  *
  * @param string $string to filter
  * @return string
  */
-function sanitize_filename($string)
+function sanitize_filename(string $string):string
 {
 	return sanitize($string, FALSE);
 }
@@ -418,7 +496,7 @@ function sanitize_filename($string)
  * @param $data_mod
  * @param bool $is_app
  */
-function data($data_mod,$is_app=false)
+function data(string $data_mod,$is_app=false)
 {
     $filename  = ($is_app?Dir_Libs:Dir_Libs_ProJ)."data.{$data_mod}.ini.php";
     if(file_exists($filename))
@@ -427,13 +505,14 @@ function data($data_mod,$is_app=false)
     }
     return null;
 }
+
 /**
  * Encode a string so it is safe to pass through the URL
  *
  * @param string $string to encode
  * @return string
  */
-function base64_url_encode($string = NULL)
+function base64_url_encode(string $string = null):string
 {
 	return strtr(base64_encode($string), '+/=', '-_~');
 }
@@ -445,11 +524,10 @@ function base64_url_encode($string = NULL)
  * @param string $string to decode
  * @return string
  */
-function base64_url_decode($string = NULL)
+function base64_url_decode(string $string = null):string
 {
     return base64_decode(strtr($string, '-_~', '+/='));
 }
-
 
 /**
  * 编号 转 字符串
@@ -457,7 +535,7 @@ function base64_url_decode($string = NULL)
  * @param string $string to encode
  * @return string
  */
-function short_url_encode($id = 0)
+function short_url_encode(int $id = 0):string
 {
     $show = '';
     while($id>0)
@@ -480,12 +558,11 @@ function short_url_encode($id = 0)
  * @param string $string 字符串
  * @return int
  */
-function short_url_decode($string = '')
+function short_url_decode(string $string = ''):int
 {
     $p  = 0;
     while($string)
     {
-
         $s      = substr($string,0,1);
         $n      = is_numeric($s)?$s:ord($s);
         $p      = $p*62 + (($n >= 97)?( $n - 61) :( $n >= 65 ? $n - 55 : $n )) ;
@@ -495,6 +572,39 @@ function short_url_decode($string = '')
 }
 
 /**
+ * 返回基类
+ * Class Ret
+ * @package ounun
+ */
+class Ret
+{
+    /**
+     * @var bool 返回状态
+     */
+    public $ret        = false;
+    /**
+     * @var int 错误代码
+     */
+    public $error_code = 0;
+    /**
+     * @var null 返回数据
+     */
+    public $data       = null;
+
+    /**
+     * Ret constructor.
+     * @param $return
+     * @param int $error_code
+     * @param null $data
+     */
+    public function __construct(bool $return,int $error_code=0,$data=null)
+    {
+        $this->ret          = $return;
+        $this->error_code   = $error_code;
+        $this->data         = $data;
+    }
+}
+/**
  * 基类的基类
  * Class Base
  * @package ounun
@@ -502,18 +612,19 @@ function short_url_decode($string = '')
 class Base
 {
     /**
-     * @var 默认方法
+     * @var string 默认方法
      */
 	public $default_method = Ounun_Default_Method;
 
 	/**
 	 * 没定的方法
-	 * @param String $method
+	 * @param string $method
 	 * @param String $arg
 	 */
 	public function __call($method, $args)
 	{
 		header('HTTP/1.1 404 Not Found');
+        $this->debug = new \ounun\Debug('logs/error_404_'.date('Ymd').'.txt',false,false,false,true);
         error404();
 	}
 
@@ -521,49 +632,19 @@ class Base
 	 * DB 相关
 	 * @param sting $key enum:member,goods,admin,msg,help
 	 */
-	private static $_db = array();
+	private static $_db = [];
 
 	/**
 	 * 返回数据库连接对像
 	 * @param  string $key
 	 * @return \ounun\Mysqli
 	 */
-	public static function db($key)
+	public static function db(string $key):\ounun\Mysqli
 	{
 		self::$_db[$key] || self::$_db[$key] = new \ounun\Mysqli($GLOBALS['scfg']['db'][$key]);
 		self::$_db[$key]->active();
 		return self::$_db[$key];
 	}
-
-	/**
-     * 调试 相关
-     * @var \ounun\Debug
-     */
-    public $debug	= null;
-
-    /**
-     * 调试日志
-     * @param $k
-     * @param $log
-     */
-	public function debug_logs($k,$log)
-	{
-		if($this->debug)
-		{
-			$this->debug->logs($k,$log);
-		}
-	}
-
-    /**
-     * 停止 调试
-     */
-    public function debug_stop()
-    {
-        if($this->debug)
-        {
-            $this->debug->stop();
-        }
-    }
 }
 
 /**
@@ -577,16 +658,51 @@ class ViewBase extends Base
 	{
         if(!$mod)
 		{
-			$mod = array($this->default_method);
+			$mod = [$this->default_method];
 		}
-        $method = $mod[0];
+        $method  = $mod[0];
 		$this->$method( $mod );
 	}
+
+    /**
+     * 调试 相关
+     * @var \ounun\Debug
+     */
+    public $debug	= null;
+
+    /**
+     * 调试日志
+     * @param $k
+     * @param $log
+     */
+    public function debug_logs(string $k,$log)
+    {
+        if($this->debug)
+        {
+            $this->debug->logs($k,$log);
+        }
+    }
+
+    /**
+     * 停止 调试
+     */
+    public function debug_stop()
+    {
+        if($this->debug)
+        {
+            $this->debug->stop();
+        }
+    }
 	/**
 	 * Template句柄容器
 	 * @var \ounun\Tpl
 	 */
 	protected $_stpl = null;
+
+    /**
+     * 默认赋值(空)
+     */
+    protected function _global_assign(){}
 
     /**
      * 初始化HTMl模板类
@@ -598,9 +714,35 @@ class ViewBase extends Base
             require Ounun_Dir. 'Tpl.class.php';
             $this->_stpl = new Tpl(Ounun_Dir_Tpl);
         }
+        $this->_global_assign();
 	}
 
-	/**
+    /**
+     * 默认 首页
+     * @param array $mod
+     */
+    public function index($mod)
+    {
+        \ounun\error404();
+    }
+
+    /**
+     * 默认 robots.txt文件
+     * @param array $mod
+     */
+    public function robots($mod)
+    {
+        \ounun\url_check('/robots.txt');
+        header('Content-Type: text/plain');
+        if(file_exists(Dir_App.'robots.txt'))
+        {
+            readfile(Dir_App.'robots.txt');
+        }else
+        {
+            exit("User-agent: *\nDisallow:");
+        }
+    }
+    /**
 	 * 赋值
 	 * @param string $name
 	 * @param mix    $value
@@ -693,6 +835,12 @@ function start($mod,$app,$is_route_dir=true)
     /** 模板存放目录 */
     define('Ounun_Dir_Tpl', 	    \Const_Mobile_Edition?\Dir_App . 'tpl.mobile/':\Dir_App . 'tpl.pc/');
 
+    /** 模板存放目录pc */
+    define('Ounun_Dir_Tpl_Pc', 	    \Dir_App . 'tpl.pc/'        );
+
+    /** 模板存放目录mobile */
+    define('Ounun_Dir_Tpl_Mobile',  \Dir_App . 'tpl.mobile/'    );
+
 	// 设定 模块与方法
 	if(is_array($mod) && $mod[0])
 	{
@@ -778,7 +926,3 @@ function start($mod,$app,$is_route_dir=true)
 		trigger_error("ERROR! Can't find Module:'{$module}'.", E_USER_ERROR);
 	}
 }
-
-
-
-

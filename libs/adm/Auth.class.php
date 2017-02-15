@@ -2,11 +2,8 @@
 /** 命名空间 */
 namespace adm;
 
-//$GLOBALS['cp']['session']			  	  = 'cp_hy'; 	//管理id
-//$GLOBALS['cp']['session_pass']		  = $GLOBALS['cp']['session'].'_pass';
-//$GLOBALS['cp']['session_cid']		      = $GLOBALS['cp']['session'].'_cid';
-//$GLOBALS['cp']['session_type']	  	  = $GLOBALS['cp']['session'].'_type';
-//$GLOBALS['cp']['session_hash']		  = $GLOBALS['cp']['session'].'_hash';
+use ounun\Ret;
+
 class Auth
 {
     /**
@@ -21,240 +18,188 @@ class Auth
     private $_session_type = '';
     private $_session_hash = '';
 
-
-
     /** IP限定 */
-    private $_count_ips = 20;
-    private $_count_ip  = 5;
+    private $_max_ips      = 20;
+    private $_max_ip       = 5;
 
     /** table */
-    private $_table_cp    = '`sys_cp`';
-    private $_table_logs  = '`logs_sys_cp`';
+    private $_table_adm         = '';
+    private $_table_logs_login  = '';
+    private $_table_logs_act    = '';
+
     /**
      * 权限列表
      * @var array
      */
     private $_purview           = [];
-    private $_purview_default   = 'update';
-    private $_purview_tree_root = [10,20];
-    private $_purview_tree_coop = [10,20,50];
+    private $_purview_group     = [];
+    private $_purview_default   = 'info';
+    private $_purview_root      = [10,20];
+    private $_purview_coop      = [10,20,50];
+
     /**
      * Mysqli 句柄
      * @var \ounun\Mysqli
      */
     private $_db;
+
     /**
      * Auth constructor.
      */
     public function __construct(\ounun\Mysqli $db,
                                 $purview,
-                                $purview_default   = 'update',
-                                $purview_tree_coop = [10,20],$purview_tree_root=[10,20,50],
-                                $session_key='adm',
-                                $table_cp   = '`sys_cp`',   $table_logs   = '`logs_sys_cp`',
-                                $count_ips  = 20,           $count_ip     = 5)
-    {
-        $this->_db          = $db;
-        // purview
-        $this->_purview             = $purview;
-        $this->_purview_default     = $purview_default;
-        $this->_purview_tree_coop   = $purview_tree_coop;
-        $this->_purview_tree_root   = $purview_tree_root;
-        // table
-        $this->_table_cp    = $table_cp;
-        $this->_table_logs  = $table_logs;
-        // ip
-        $this->_count_ip    = $count_ip;
-        $this->_count_ips   = $count_ips;
-        // session key
-        $this->_session_key = $session_key;
-        $this->__session_set();
-    }
+                                $purview_group,
+                                $purview_default,
+                                $purview_tree_coop,
+                                $purview_tree_root,
 
+                                $session_key,
+                                $table_adm, $table_logs_login, $table_logs_act,
+                                $max_ips = 20, $max_ip = 5)
+    {
+        $this->_db              = $db;
+        // purview
+        $this->_purview         = $purview;
+        $this->_purview_group   = $purview_group;
+        $this->_purview_default = $purview_default;
+        $this->_purview_coop    = $purview_tree_coop;
+        $this->_purview_root    = $purview_tree_root;
+        // table
+        $this->_table_adm       = $table_adm;
+        $this->_table_logs_login   = $table_logs_login;
+        $this->_table_logs_act  = $table_logs_act;
+        // ip
+        $this->_max_ip         = $max_ip;
+        $this->_max_ips        = $max_ips;
+        // session key
+        $this->_session_key    = $session_key;
+        $this->_session_set();
+    }
 
     /**
      * 是否登录
      * @return boolean
      */
-    public function is()
+    public function is():bool
     {
-        $hash = $this->make_hash_rule($this->get_cid(), $this->get_account(), $this->get_pass() );
-        if ($this->get_account()
-            && $this->get_hash() == $hash)
+        $cid      = $this->get_cid();
+        $account  = $this->get_account();
+        $password = $this->get_pass();
+        $hash     = $this->_make_hash($cid,$account,$password);
+        if(!$hash)
+        {
+            return false;
+        }
+        if ($account && $this->get_hash() == $hash)
         {
             return true;
         }
         return false;
     }
-
     /**
      * 登录
      * $field : id,type,cid,account,password,note
      */
-    function login($account,$password,$cid,$code)
+    function login(string $account,string $password,int $cid,string $code):Ret
     {
-        $check  = $this->login_check_ip($cid, $account);
+        $check      = $this->_check_ip($cid, $account);
+        $account_id = 0;
         // 封帐号或IP
-        if(!$check[0])
+        if(!$check->ret)
         {
             $status  = 0;
-            $this->login_logs($status,$cid,$account);
+            $this->_logs_login($status,$account_id,$cid,$account);
             return $check;
         }
         // 正常登录
-        $bind   = ['account'=>$account,'cid'=>$cid];
-        $rs 	= $this->_db->row("select `id`,`type`,`exts`,`cid`,`account`,`password`,`login_times` from {$this->_table_cp} where `account` =:account and `cid` = :cid limit 1;",$bind);
-        $ext    = unserialize($rs['exts']);
-        if($ext && $ext['google'] && $ext['google']['is'])
-        {
-            $ext['google']['is'] = true;
-        }else
-        {
-            $ext['google']['is'] = false;
-        }
-        //echo $db->getSql();
-        //print_r($rs);
-        //exit();
-        //$password   	= $account;
-        //$rs['type'] 	= 10;
-        //$rs['cid']  	= $cid;
-        //$rs['password'] = md5($password);
-        //echo $rs['password'] ,'|',md5($password);
-        //exit($rs['password']);
+        $bind    = ['account'=>$account,'cid'=>$cid];
+        $rs 	 = $this->_db->row("select * from {$this->_table_adm} where `account` =:account and `cid` = :cid limit 1;",$bind);
         if($rs)
         {
-            if( !$ext['google']['is']
-                || ($ext['google']['is'] && $this->login_google($ext, $code))
-            )
+            $ext = $this->user_get_exts($rs,$rs['adm_id']);
+            //echo $this->_db->getSql();
+            //print_r($rs);
+            //exit();
+            if($this->_check_google($ext, $code))
             {
+                // echo "\$rs['password'] :{$rs['password']} == md5(\$password) :".md5($password)."<br />\n";
+                // exit();
                 if( $rs['password'] == md5($password) )
                 {
                     // 清理一下
-                    $this->login_out();
+                    $this->out();
                     $this->set_cookie_cid($cid,true);
                     // 设定session
-                    $hash = $this->__make_hash($cid,$account,$password);
+                    $hash = $this->_make_hash($cid,$account,$password);
                     $this->set_account($account);
-                    $this->set_account_id($rs['id']);
+                    $this->set_account_id($rs['adm_id']);
                     $this->set_cid($cid);
                     $this->set_hash($hash);
                     $this->set_pass($password);
                     $this->set_type($rs['type']);
                     $this->set_google($ext['google']['is']);
                     // 返回
-                    $login_times	= $rs['login_times'] + 1;
-                    $login_last		= time();
-                    $bind	= [
-                        'login_times'=>$login_times,
-                        'login_last' =>$login_last,
-                    ];
-                    $this->_db->update('`sys_cp`', $bind,' `id`= ? ',$rs['id']);
-                    $status  = 1;
-                    $this->login_logs($status,$cid,$account);
-                    return array(true);
+                    $login_times = $rs['login_times'] + 1;
+                    $login_last	 = time();
+                    $bind	     = [ 'login_times'=>$login_times, 'login_last' =>$login_last ];
+                    $this->_db->update($this->_table_adm, $bind,' `id`= ? ',$rs['id']);
+                    $this->_logs_login(true,$account_id,$cid,$account);
+                    return new Ret(true);
                 }
-                else
-                {
-                    $status  = 0;
-                    $this->login_logs($status,$cid,$account);
-                    return array(false,'失败:帐号或密码有误');
-                }
-            }else
-            {
-                $status  = 0;
-                $this->login_logs($status,$cid,$account);
-                return array(false,'失败:谷歌验证有误');
+                $this->_logs_login(false,$account_id,$cid,$account);
+                return new Ret(false,0,'失败:帐号或密码有误');
             }
+            $this->_logs_login(false,$account_id,$cid,$account);
+            return new Ret(false,0,'失败:谷歌验证有误');
         }
-        else
-        {
-            $status  = 0;
-            $this->login_logs($status,$cid,$account);
-            return array(false,'失败:帐号不存在');
-        }
+        $this->_logs_login(false,$account_id,$cid,$account);
+        return new Ret(false,0,'失败:帐号不存在');
     }
-    /**
-     * 记下登录日志
-     * @param \ounun\Mysqli $db
-     * @param int $status 返回状态 0:失败 1:成功
-     * @param int $cid	合作方ID
-     * @param string $account 用户帐号
-     */
-    function login_logs($status, $cid, $account)
-    {
-        $ip		= \ounun\ip();
-        $wry    = new \plugins\qqwry\QQWry('utf-8');
-        $uCity  = $wry->getlocation($ip);
 
-        $time		= time();
-        $ip_segment	= $uCity["beginip"] . "-" . $uCity["endip"];
-        $address	= $uCity["country"];
-        $bind	    = [
-            'time'      =>$time,
-            'status'    =>$status,
-            'cid'       =>$cid,
-            'account'   =>$account,
-            'ip'        =>$ip,
-            'ip_segment'=>$ip_segment,
-            'address'   =>$address,
-        ];
-        $this->_db->insert('`logs_sys_cp`', $bind);
-        // exit();
-    }
     /**
-     * IP检查
-     * @param \ounun\Mysqli $db
-     * @param int $cid
-     * @param string $account
+     * IP检查 是否锁定
+     * @return Ret
      */
-    public function login_check_ip()
+    private function _check_ip():Ret
     {
         $ip		    = \ounun\ip();
         $wry        = new \plugins\qqwry\QQWry('utf-8');
         $uCity      = $wry->getlocation($ip);
         $ip_segment	= $uCity["beginip"] . "-" . $uCity["endip"];
+
         $status	    = 0;
         $time	    = time() - 86400;
-        $rs_ip_segment_counts	= $this->_db->rows('select * from `logs_sys_cp` where `ip_segment` =:ip_segment and `status` =:status and `time` >=:time ;',array('ip_segment'=>$ip_segment,'status'=>$status,'time'=>$time));
-        if ($rs_ip_segment_counts <= Const_Cp_IPs_Count)
+        $bind       = ['ip_segment'=>$ip_segment,'status'=>$status,'time'=>$time];
+        $rs_ip_segment_counts	= $this->_db->rows("select * from {$this->_table_logs_login} where `ip_segment` =:ip_segment and `status` =:status and `time` >=:time ;",$bind);
+        // echo $this->_db->getSql().'<br />';
+        if ($rs_ip_segment_counts <= $this->_max_ips)
         {
-            $rs_ip_counts	= $this->_db->rows('select * from `logs_sys_cp` where `ip` =:ip and `status` =:status and `time` >=:time;',array('ip'=>$ip,'status'=>$status,'time'=>$time));
-            if ($rs_ip_counts <= Const_Cp_IP_Count)
+            $bind           = ['ip'=>$ip,'status'=>$status,'time'=>$time];
+            $rs_ip_counts	= $this->_db->rows("select * from {$this->_table_logs_login} where `ip` =:ip and `status` =:status and `time` >=:time;",$bind);
+            // echo $this->_db->getSql().'<br />';
+            // exit();
+            if ($rs_ip_counts <= $this->_max_ip)
             {
-                return array(true);
+                return new Ret(true);
             }
             else
             {
-                return array(false,'IP地址登录失败超过'.Const_Cp_IP_Count.'次');
+                return new Ret(false,0,'IP地址登录失败超过'.$this->_max_ip.'次');
             }
         }
         else
         {
-            return array(false,'IP地址段登录失败超过'.Const_Cp_IPs_Count.'次');
+            return new Ret(false,0,'IP地址段登录失败超过'.$this->_max_ips.'次');
         }
     }
 
     /**
-     * 退出登录
-     */
-    public function login_out()
-    {
-        $this->set_account('');
-        $this->set_account_id('');
-        $this->set_cid(0);
-        $this->set_hash('');
-        $this->set_pass('');
-        $this->set_type(0);
-        $this->set_google('');
-    }
-
-    /**
      * Google身份验证
-     * @param \ounun\Mysqli $db
-     * @param int $cid
-     * @param string $account
+     * @param $ext
+     * @param $code
+     * @return bool
      */
-    public function login_google($ext, $code)
+    private function _check_google($ext, $code):bool
     {
         if($ext && $ext['google'])
         {
@@ -278,60 +223,368 @@ class Auth
         }
     }
 
+    /**
+     * 记下登录日志
+     * @param bool $status   状态 0:失败 1:成功
+     * @param int $account_id
+     * @param int $cid
+     * @param string $account
+     */
+    private function _logs_login(bool $status,int $account_id, int $cid, string $account)
+    {
+        $ip		= \ounun\ip();
+        $wry    = new \plugins\qqwry\QQWry('utf-8');
+        $uCity  = $wry->getlocation($ip);
+
+        $time		= time();
+        $ip_segment	= $uCity["beginip"] . "-" . $uCity["endip"];
+        $address	= $uCity["country"];
+
+        $status_d   = $status?0:1;
+
+        $bind	    = [
+            'time'      => $time,
+            'status'    => $status_d,
+            'adm_id'    => $account_id,
+            'cid'       => $cid,
+            'account'   => $account,
+            'ip'        => $ip,
+            'ip_segment'=> $ip_segment,
+            'address'   => $address,
+        ];
+        $this->_db->insert($this->_table_logs_login, $bind);
+//        echo $this->_db->getSql();
+//        exit();
+    }
 
     /**
-     * 获得权限目录
-     * @return multitype:
+     * 操作日志
+     * @param bool $status 状态 0:失败 1:成功
+     * @param string $mod  模块
+     * @param string $mod_sub 子模块
+     * @param int $act        操作 0:普通 1:添加 2:修改 3:删除
+     * @param array $exts  扩展数据
      */
-    public function purview_data($type='')
+    public function logs_act(bool $status,string $mod,string $mod_sub,int $act,array $exts)
+    {
+        $ip		    = \ounun\ip();
+        $wry        = new \plugins\qqwry\QQWry('utf-8');
+        $uCity      = $wry->getlocation($ip);
+
+        $account_id = $this->get_account_id();
+        $cid        = $this->get_cid();
+        $account    = $this->get_account();
+        $time		= time();
+        $address	= $uCity["country"];
+
+        $exts       = serialize($exts);
+
+        $bind	    = [
+            'time'      => $time,
+            'status'    => $status,
+            'adm_id'    => $account_id,
+            'cid'       => $cid,
+            'account'   => $account,
+            'ip'        => $ip,
+            'mod'       => $mod,
+            'mod_sub'   => $mod_sub,
+            'act'       => $act,
+            'address'   => $address,
+            'exts'      => $exts,
+        ];
+        $this->_db->insert($this->_table_logs_act, $bind);
+    }
+
+    /**
+     * 添加帐号
+     * @return Ret
+     */
+    public function user_add(int $adm_type,int $adm_cid,string $adm_account,string $password,string $adm_tel,string $adm_note):Ret
+    {
+        // 看是否存在相同的帐号
+        $rs             = $this->_db->row("SELECT `adm_id` FROM {$this->_table_adm} where `cid` = :cid  and `account` = :account limit 0,1;",['cid'=>$adm_cid,'account'=>$adm_account]);
+        if($rs)
+        {
+            return new Ret(false,0,'提示：帐号"'.$adm_account.'"已存在!');
+        }
+        // 添加
+        $adm_type_p     = $this->get_type();
+        $adm_type       = $adm_type > $adm_type_p ? $adm_type : $adm_type_p;
+        $bind	= [
+            'cid'	        => $adm_cid,
+            'account'       => $adm_account,
+            'type'	        => $adm_type,
+            'password'      => md5(md5($password)),
+            'login_times'   => 0,
+            'login_last'    => 0,
+            'tel'           => $adm_tel,
+            'note'	        => $adm_note,
+            'exts'          => ''
+        ];
+        $adm_id = $this->_db->insert($this->_table_adm, $bind);
+        // 记日志
+        $this->logs_act($adm_id?1:0,'sys','adm',1,$bind);
+        if($adm_id)
+        {
+            return new Ret(true,0,"成功:操作成功!");
+        }
+        return new Ret(false,0,'提示：系统忙稍后再试!');
+    }
+
+    /**
+     * 更新帐号
+     * @return Ret
+     */
+    public function user_modify():Ret
+    {
+
+    }
+
+    /**
+     * 帐号删除
+     * @return Ret
+     */
+    public function user_del(int $adm_id):Ret
+    {
+        if($adm_id == $this->get_account_id())
+        {
+            return new Ret(false,0,'提示：不能删除自己[account_id]!');
+        }
+        $rs			 = $this->_db->row("SELECT `cid`,`account` FROM {$this->_table_adm} where `adm_id` = :adm_id limit 0,1;",['adm_id'=>$adm_id]);
+        if($rs['cid'] == $this->get_cid() &&
+           $rs['account'] == $this->get_account() )
+        {
+            return new Ret(false,0,'提示：不能删除自己[account]!');
+        }
+        $bind = ['adm_id'=>$adm_id,'cid'=>$rs['cid'], 'account'=>$rs['account'] ];
+        $rs   = $this->_db->delete($this->_table_adm,'`adm_id`= :adm_id ',$bind);
+        // 记日志
+        $this->logs_act($rs?1:0,'sys','adm',3,$bind);
+        if($rs)
+        {
+            return new Ret(true,0,"成功:操作成功!");
+        }
+        return new Ret(false,0,'提示：系统忙稍后再试!');
+    }
+    /**
+     * 更改密码
+     * @return Ret
+     */
+    public function user_modify_passwd($old_pwd,$new_pwd,$google_code):Ret
+    {
+        if(!$old_pwd)
+        {
+            return new Ret(false,0,'提示：请输入旧密码');
+        }
+        if(!$new_pwd)
+        {
+            return new Ret(false,0,'提示：请输入新密码');
+        }
+        $account_id	    = $this->get_account_id();
+        $rs			    = $this->_db->row("SELECT `adm_id`,`password`,`exts` FROM {$this->_table_adm} where `adm_id` = ? ;",$account_id);
+        $exts           = $this->user_get_exts($rs,$rs['adm_id']);
+        $old_pwd_md5    = md5(md5($old_pwd));
+        $new_pwd_md5	= md5(md5($new_pwd));
+
+
+        if ($old_pwd_md5 != $rs['password'])
+        {
+            return new Ret(false,0,'提示：旧密码错误,请重新输入');
+        }else if(!$this->_check_google($exts,$google_code))
+        {
+            return new Ret(false,0,'提示：请输入正确6位数谷歌(洋葱)验证');
+        }
+        else
+        {
+            //  跳回原来的页面
+            $rs2 = $this->_db->update($this->_table_adm, ['password'=>$new_pwd_md5, ],' `adm_id`= ? ',$account_id);
+            if($rs2)
+            {
+                return new Ret(true, 0,'成功：密码修改成功!');
+            }else
+            {
+                return new Ret(false,0,'提示：系统忙,请稍后再试');
+            }
+        }
+    }
+
+    /**
+     * 获得$exts
+     * @return mixed
+     */
+    public function user_get_exts($rs=null,$account_id=0)
+    {
+        if(0 == $account_id)
+        {
+            $account_id	= $this->get_account_id();
+        }
+        if(!$rs)
+        {
+            $rs		    = $this->_db->row("SELECT `exts` FROM {$this->_table_adm} where `adm_id` = ? ;",$account_id);
+            //echo $this->_db->getSql();
+            //var_dump($rs);
+        }
+        $ext        = unserialize($rs['exts']);
+        // var_dump($ext);
+        if($ext && $ext['google'] && $ext['google']['secret'] && strlen($ext['google']['secret']) == 16)
+        {
+            // skip
+            // $secret = $ext['google']['secret'];
+        }else
+        {
+            $ga     = new \plugins\google\GoogleAuthenticator();
+            $secret = $ga->createSecret();
+
+            $google        = ['is'=>false,'secret'=>$secret];
+            $ext['google'] = $google;
+            $this->_db->update($this->_table_adm,['exts'=>serialize($ext)],' `adm_id` = ? ',$account_id);
+        }
+        return $ext;
+    }
+
+    /**
+     * 设定 Google身份验证
+     */
+    public function user_set_exts_google($google_yn=true,$ext=null,$old_pwd='',$google_code=''):Ret
+    {
+        $account_id	= $this->get_account_id();
+        if(!$ext && $old_pwd != '' && $google_code != '')
+        {
+            $rs		    = $this->_db->row("SELECT `adm_id`,`password`,`exts` FROM {$this->_table_adm} where `adm_id` = ? ;",$account_id);
+            $ext        = $this->user_get_exts($rs,$rs['adm_id']);
+            $oldpwd		= md5(md5($old_pwd));
+            if ($oldpwd != $rs['password'])
+            {
+                return new Ret(false,0,'失败：登录密码有误!');
+            }
+            $ext['google']['is'] = true;
+            if(!$this->_check_google($ext, $google_code) )
+            {
+                return new Ret(false,0,'失败：谷歌验证有误!');
+            }
+        }
+        if(!$ext)
+        {
+            $ext        = $this->user_get_exts();
+        }
+        //
+        if($google_yn)
+        {
+            $ext['google']['is'] = true;
+            $this->set_google(true);
+        }else
+        {
+            $ext['google']       = ['is'=>false,'secret'=>''];
+            $this->set_google(false);
+        }
+        //
+        $rs          = $this->_db->update($this->_table_adm,['exts'=>serialize($ext)],' `adm_id` = ? ',$account_id);
+        if($rs)
+        {
+            return new Ret(true,0, '成功：操作成功!');
+        }else
+        {
+            return new Ret(false,0,'提示:系统忙,请稍后再试');
+        }
+    }
+
+//    /**
+//     * 删除 Google身份验证
+//     * @param $old_pwd
+//     * @param $google_code
+//     */
+//    public function user_del_exts_google($old_pwd,$google_code)
+//    {
+//        return $this->user_set_exts_google(false,null,$old_pwd,$google_code);
+//    }
+
+    /**
+     * 退出登录
+     */
+    public function out()
+    {
+        $this->set_account('');
+        $this->set_account_id(0);
+        $this->set_cid(0);
+        $this->set_hash('');
+        $this->set_pass('');
+        $this->set_type(0);
+        $this->set_google('');
+    }
+
+    /**
+     * 获得Config
+     * @return array
+     */
+    public function config_all():array
+    {
+        return [
+            'adm_purview_default'   => $this->_purview_default,
+            // 'adm_purview_group'     => $this->_purview_group,
+            'adm_account'           => $this->get_account(),
+            'adm_account_id'        => $this->get_account_id(),
+            'adm_cid'               => $this->get_cid(),
+            'adm_cookie_cid'        => $this->get_cookie_cid(),
+            'adm_cookie_cid_login'  => $this->get_cookie_cid_login(),
+            'adm_cookie_sid'        => $this->get_cookie_sid(),
+            'adm_type'              => $this->get_type(),
+            'adm_group_name'        => $this->get_group_name(),
+        ];
+    }
+    /**
+     * 获得权限目录
+     * @param string $type
+     * @return array
+     */
+    public function purview_data(int $type=0):array
     {
         $purview	= array();
-        if (login_is())
+        if ($this->is())
         {
             if(''==$type)
             {
-                $type   = $_SESSION[$GLOBALS['cp']['session_type']];
+                $type   = $this->get_type();
             }
-            foreach ($GLOBALS['cp']['purview'] as $key1 => $data1)
+            foreach ($this->_purview as $key1 => $data1)
             {
                 $purview_sub	= array();
-                foreach ($data1['sub'] as $key2 => $data2)
+                if($data1['sub'])
                 {
-                    if($data2['key'])
+                    foreach ($data1['sub'] as $key2 => $data2)
                     {
-                        if(in_array($type, $data2['key']))
+                        if($data2['key'])
                         {
-                            unset($data2['key']);
-                            $purview_sub[$key2] = $data2;
-                        }
-                    }else
-                    {
-                        $purview_sub2	= array();
-                        foreach ($data2['data'] as $key3 => $data3)
-                        {
-                            if($data3['key'] && in_array($type, $data3['key']) )
+                            if(in_array($type, $data2['key']))
                             {
-                                unset($data3['key']);
-                                $purview_sub2[$key3] = $data3;
+                                unset($data2['key']);
+                                $purview_sub[$key2] = $data2;
                             }
-                        }
-                        if ($purview_sub2)
+                        }else
                         {
-                            $purview_sub[$key2] = array(
-                                'name'	=> $data2['name'],
-                                'data'	=> $purview_sub2,
-                            );
+                            $purview_sub2	= array();
+                            foreach ($data2['data'] as $key3 => $data3)
+                            {
+                                if($data3['key'] && in_array($type, $data3['key']) )
+                                {
+                                    unset($data3['key']);
+                                    $purview_sub2[$key3] = $data3;
+                                }
+                            }
+                            if ($purview_sub2)
+                            {
+                                $purview_sub[$key2] = ['name' => $data2['name'], 'data'	=> $purview_sub2 ];
+                            }
                         }
                     }
                 }
                 //
                 if($purview_sub)
                 {
-                    $purview[$key1] = array(
+                    $purview[$key1] = [
                         'name' 		=> $data1['name'],
                         'default'	=> $data1['default'],
                         'sub'		=> $purview_sub,
-                    );
+                    ];
                 }
             }
         }
@@ -341,16 +594,16 @@ class Auth
     /**
      * 权限检测 多个
      * @param string $key
-     * @return boolean
+     * @return bool
      */
-    public function purview_check_multi($key)
+    public function purview_check_multi(string $key):bool
     {
         $keys = explode('|',$key);
         if($keys && is_array($keys) )
         {
             foreach($keys as $v)
             {
-                if(purview_check($v))
+                if($this->purview_check($v))
                 {
                     return true;
                 }
@@ -358,30 +611,31 @@ class Auth
         }
         return false;
     }
+
     /**
      * 权限检测
      * @param string $key
-     * @return boolean
+     * @return bool
      */
-    function purview_check($key)
+    public function purview_check(string $key):bool
     {
-        $type  = $_SESSION[$GLOBALS['cp']['session_type']];
+        $type  = $this->get_type();
         if(!$type)
         {
             return false;
         }
         if('tree@root' == $key)
         {
-            return in_array($type, $GLOBALS['cp']['purview_tree_root']);
+            return in_array($type, $this->_purview_root);
         }
         elseif('tree@coop' == $key)
         {
-            return in_array($type, $GLOBALS['cp']['purview_tree_coop']);
+            return in_array($type, $this->_purview_coop);
         }
         else
         {
             $key	= explode('@', $key);
-            $data	= $GLOBALS['cp']['purview'][$key[0]];
+            $data	= $this->_purview[$key[0]];
             if($data && $data['sub'])
             {
                 $sub	= 	$data['sub'][$key[1]];
@@ -404,68 +658,49 @@ class Auth
         }
         return false;
     }
-
-
-    /**
-     * 返回UId
-     * @param \ounun\Mysqli $db_game
-     * @param array $args
-     * @return number uid
-     */
-    public function user_info2uid(\ounun\Mysqli $db_game,$cid,$args)
-    {
-        $info_value	  = $args['info_value'];
-        $info_field	  = $args['info_field'];
-        $info_field   = in_array($info_field, array('uname','uid'))?$info_field:'uid';
-        $rs       	  = $db_game->row("select `uid` from `user` where `{$info_field}` = :info_value and `cid` = :cid limit 1;",array('info_value'=>$info_value,'cid'=>$cid) );
-        if($rs && $rs['uid'])
-        {
-            return (int)$rs['uid'];
-        }
-        return 0;
-    }
-
-
     /*
      * 显示权限
      */
-    public function qx_xs($type)
+    public function purview_show(int $type)
     {
-        $purview_uuid = 0;
-        $purview      = purview_data ( $type );
-        $purview_keys = array_keys ( $purview );
+        $rs           = '';
+        $uuid         = 0;
+        $purview      = $this->purview_data ($type );
         foreach ( $purview as $key1 => $data1 )
         {
-            echo '<h4 style="color: blue;">' . $data1 ['name'] . '</h4>';
+            $rs .= '<h4 style="color: blue;">' . $data1 ['name'] . '</h4>';
             foreach ( $data1 ['sub'] as $key2 => $data2 )
             {
                 if ($data2 ['url'])
                 {
-                    echo $data2 ['name'] . ', ';
+                    $rs .= $data2 ['name'] . ', ';
                 } else
                 {
-                    $purview_uuid ++;
-                    $i = 0;
+                    $uuid ++;
+                    $i   = 0;
                     foreach ( $data2 ['data'] as $key3 => $data3 )
                     {
                         $i ++;
                         if (0 == $i % 5)
                         {
-                            echo '<br />';
+                            $rs .= '<br />';
                         }
                         if ($data3 ['name'])
                         {
-                            echo $data3 ['name'] . ', ';
+                            $rs .= $data3 ['name'] . ', ';
                         }
                     }
                 }
             }
         }
+        return $rs;
     }
     /**
      * 得到用户组名
+     * @param int|null $type
+     * @return string
      */
-    public function get_group_name($type=null)
+    public function get_group_name(int $type=0):string
     {
         if (!$type)
         {
@@ -475,98 +710,142 @@ class Auth
                 return false;
             }
         }
-        return $this->_purview[$type];
+        return $this->_purview_group[$type];
+    }
+
+    /**
+     * @return array
+     */
+    public function get_group():array
+    {
+        return $this->_purview_group;
+    }
+    /**
+     * 设定管理员帐号
+     * @param string $account
+     */
+    public function set_account(string $account)
+    {
+        $_SESSION[$this->_session_key] = $account;
     }
 
     /**
      * 得到管理员帐号
+     * @return string
      */
-    public function set_account($account)
+    public function get_account():string
     {
-        $_SESSION[$this->_session_key] = $account;
-    }
-    public function get_account()
-    {
-        return $_SESSION[$this->_session_key];
+        return (string)$_SESSION[$this->_session_key];
     }
 
     /**
      * 得到管理员帐号ID
+     * @param string $account_id
      */
-    public function set_account_id($account_id)
+    public function set_account_id(int $account_id)
     {
         $_SESSION[$this->_session_id] = $account_id;
     }
-    public function get_account_id()
-    {
-        return $_SESSION[$this->_session_id];
-    }
 
     /**
      * 得到管理员帐号ID
+     * @return string
      */
-    public function set_pass($pass)
+    public function get_account_id():int
+    {
+        return (int)$_SESSION[$this->_session_id];
+    }
+
+    /**
+     * @param string $pass
+     */
+    public function set_pass(string $pass)
     {
         $_SESSION[$this->_session_pass] = $pass;
     }
-    public function get_pass()
+
+    /**
+     * @return string
+     */
+    public function get_pass():string
     {
-        return $_SESSION[$this->_session_pass];
+        return (string)$_SESSION[$this->_session_pass];
     }
 
     /**
      * 帐号所属平台
+     * @param int $cid
      */
-    public function set_cid($cid)
+    public function set_cid(int $cid)
     {
         $_SESSION[$this->_session_cid] = $cid;
     }
-    public function get_cid()
+
+    /**
+     * 帐号所属平台
+     * @return int
+     */
+    public function get_cid():int
     {
         return (int)$_SESSION[$this->_session_cid];
     }
 
     /**
      * 帐号权限类型
+     * @param int $type
      */
-    public function set_type($type)
+    public function set_type(int $type)
     {
         $_SESSION[$this->_session_type] = $type;
     }
-    public function get_type()
+
+    /**
+     * 帐号权限类型
+     * @return int
+     */
+    public function get_type():int
     {
-        return $_SESSION[$this->_session_type];
+        return (int)$_SESSION[$this->_session_type];
     }
 
     /**
-     * 得到管理员帐号ID
+     * @param string $hash
      */
-    public function set_hash($hash)
+    public function set_hash(string $hash)
     {
         $_SESSION[$this->_session_hash] = $hash;
     }
-    public function get_hash()
+
+    /**
+     * @return string
+     */
+    public function get_hash():string
     {
         return $_SESSION[$this->_session_hash];
     }
 
     /**
-     * 得到管理员帐号ID
+     * @param string $google_yn
      */
-    function set_google($google_code)
+    public function set_google(bool $google_yn)
     {
-        $_SESSION[$this->_session_g] = $google_code;
-    }
-    function get_google()
-    {
-        return $_SESSION[$this->_session_g];
+        $_SESSION[$this->_session_g] = $google_yn;
     }
 
+    /**
+     * @return string
+     */
+    public function get_google():bool
+    {
+        return (bool)$_SESSION[$this->_session_g];
+    }
 
     /**
      * cookie cid
+     * @param int $cid
+     * @param bool $is_login
      */
-    function set_cookie_cid($cid,$is_login=false)
+    public function set_cookie_cid(int $cid,bool $is_login=false)
     {
         // 登录时设一下
         if($is_login)
@@ -579,24 +858,42 @@ class Auth
             setcookie('cp_cid', $cid, time()+86400);
         }
     }
-    function get_cookie_cid()
+
+    /**
+     * @return int
+     */
+    public function get_cookie_cid():int
     {
         $cid  = $this->get_cid();
         if($cid)
         {
-            return $cid;
+            return (int)$cid;
         }
-        return $_COOKIE['cp_cid'];
+        return (int)$_COOKIE['cp_cid'];
+    }
+
+    /**
+     * @return int
+     */
+    public function get_cookie_cid_login():int
+    {
+        return (int)$_COOKIE['login_cid'];
     }
 
     /**
      * cookie sid
+     * @param int $sid
      */
-    public function set_cookie_sid($sid)
+    public function set_cookie_sid(int $sid):void
     {
         setcookie('cp_sid', $sid, time()+86400);
     }
-    public function get_cookie_sid()
+
+    /**
+     * cookie sid
+     * @return int
+     */
+    public function get_cookie_sid():int
     {
         return (int)$_COOKIE['cp_sid'];
     }
@@ -604,9 +901,8 @@ class Auth
     /**
      * 内部 设定key
      */
-    private function __session_set()
+    private function _session_set()
     {
-        // $this->_session_key = $session_key;
         $this->_session_id     = $this->_session_key.'_id';
         $this->_session_g      = $this->_session_key.'_g';
         $this->_session_pass   = $this->_session_key.'_pass';
@@ -620,11 +916,18 @@ class Auth
      * @param int $cid
      * @param string $account
      * @param string $password
+     * @return string
      */
-    private function __make_hash($cid, $account, $password)
+    private function _make_hash(int $cid,string $account,string $password):string
     {
+        if(!$account)
+        {
+            return '';
+        }
+        if(!$password)
+        {
+            return '';
+        }
         return sha1($account.$cid. $this->_session_key . $password);
     }
 }
-
-

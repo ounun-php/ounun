@@ -4,7 +4,8 @@ namespace ounun;
 class Debug
 {
 	/** 日志数组 */
-	private $_logs 	        = array();
+	private $_logs 	        = [];
+    private $_logs_buffer 	= '';
 
 	/** 输出文件名 */
 	private $_filename      = '';
@@ -96,7 +97,7 @@ class Debug
 		ob_implicit_flush(1);
 		if($this->_is_out_buffer)
         {
-            $this->logs('buffer', $buffer);
+            $this->_logs_buffer = $buffer;
         }
 		$this->write();
 		exit($buffer);
@@ -107,38 +108,44 @@ class Debug
 	 * 析构调试相关
 	 */
 	public function write()
- // public function __destruct()
 	{
-		if(!$this->_logs  || !$this->_filename)
+		if(!$this->_filename)
 		{
 			return ;
 		}
-		/**  */
 		$filename = Dir_Root.$this->_filename;
-		$logs     = array( 'DATE'=> date("Y-m-d H:i:s") );
+        $str      = 'DATE:'.date("Y-m-d H:i:s")."\n";
         if($this->_is_out_url)
         {
-            $logs['URI'] = $_SERVER['REQUEST_URI'];
-            $logs['URL'] = url_original($_SERVER['REQUEST_URI']);
+            $str .= 'URL ://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI']."\n";
         }
 		if($this->_is_out_get && $_GET)
 		{
-			$logs['GET']        = $_GET;
+		    $t = [];
+		    foreach ($_GET as $k => $v)
+            {
+                $t[] = "{$k} => {$v}";
+            }
+            $str .= 'GET :'.implode("\n    ",$t)."\n";
 		}
 		if($this->_is_out_post && $_POST)
 		{
-			$logs['POST']       = $_POST;
+            $str .= 'POST:'.var_export($_POST,true)."\n";
 		}
 		if($this->_logs)
 		{
-			$logs['LOGS'] 		= $this->_logs;
+            $str .= 'LOGS:'.var_export($this->_logs,true)."\n";
 		}
-		$this->_logs            = array();
-		$var      				= var_export($logs,true);
+        if($this->_is_out_buffer && $this->_logs_buffer)
+        {
+            $str .= '--- buffer start ---'."\n".$this->_logs_buffer."\n";
+        }
+		$this->_logs            = [];
+        $this->_logs_buffer     = '';
 		if (file_exists($filename))
 		{
-			$var  = $var . "\n------------------\n" .file_get_contents($filename);
+            $str  = $str . "------------------\n" .file_get_contents($filename);
 		}
-		file_put_contents($filename, $var);
+		file_put_contents($filename, $str);
 	}
 }

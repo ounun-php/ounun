@@ -178,7 +178,10 @@ class ThumbHandler
         $arr  = explode('/',$dst_img);
         $last = array_pop($arr);
         $path = implode('/',$arr);
-        mkdir($path,0777,true);
+        if(!file_exists($path))
+        {
+            mkdir($path,0777,true);
+        }
         $this->dst_img = $dst_img;
     }
 
@@ -953,4 +956,3 @@ class ThumbHandler
         $this->h_src = $new_im;
     }
 }
-?>

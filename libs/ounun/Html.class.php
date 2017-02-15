@@ -1,12 +1,12 @@
 <?php 
 namespace ounun;
 
-
 class _html_cache extends Cache
 {
     private $_cache_time    = -1;
     private $_cache_time_t  = -1;
     private $_cache_size    = -1;
+
     /**
      * 构建函数
      * @param $cfg

@@ -14,58 +14,58 @@ abstract class _tpl
      * @var string
      */
     protected $_tpl_dir;
-    
+
     /**
      * 模板文件所以目录(当前目录)
      * @var string
      */
     protected $_tpl_dir_cur;
-    
+
     /**
      * 数据缓存
      * @var array
      */
     protected $_data;
-    
+
     /**
      * 创建对像
      * @param string $template_dir
      */
     abstract public function __construct($template_dir = null);
-    
+
     /**
      * 设定一个值
      * @param $name
      * @param null $value
      */
     abstract public function assign($name, $value=null);
-    
+
     /**
      * 追加一个 值
      * @param $name
      * @param $value
      */
     abstract public function append($name, $value);
-    
+
     /**
      * 返回一个 模板文件地址(相对目录)
      * @param $tpl_name
      */
     abstract public function file_cur($tpl_name);
-    
+
     /**
      * 返回一个 模板文件地址(绝对目录,相对root)
      * @param $tpl_name
      */
     abstract public function file($tpl_name);
-    
+
     /**
      * 导入一个模板文件
      * @param $tpl_name
      * @param array $vars
      */
     abstract public function import($tpl_name, $vars = array());
-    
+
     /**
      * 最后输出
      * @param $tpl_name
@@ -162,7 +162,7 @@ class Tpl
      * @param $tpl_name
      * @param array $vars
      */
-    public function output($filename,$args=array())
+    public function output($filename,array $args=[])
     {
         self::$_drive->output($filename,$args);
     }
@@ -195,4 +195,3 @@ class Tpl
         self::$_drive->import($filename,$args);
     }    
 }
-?>

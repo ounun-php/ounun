@@ -15,6 +15,12 @@ class Xxtea
 		$key = xxtea_key ( $key );
 		return base64_encode ( xxtea_encrypt ( $str, $key ) );
 	}
+
+    /**
+     * @param $str
+     * @param $key
+     * @return string
+     */
 	public static function encode($str, $key)
 	{
 		$key = xxtea_key ( $key );
@@ -209,4 +215,3 @@ if (!extension_loaded('xxtea'))
 		return ( int ) $n;
 	}
 }
-?>
