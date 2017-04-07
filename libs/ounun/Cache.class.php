@@ -831,7 +831,7 @@ class _cache_memcached extends _cache_base
         {
             trigger_error("ERROR! \$this->_data:null.", E_USER_ERROR);
         }
-        return $this->_mem->set($this->_key,$this->_data,$this->_flag,$this->_expire);
+        return $this->_mem->set($this->_key,$this->_data,$this->_expire);
     }
     
     /**
@@ -977,7 +977,7 @@ class Cache
 	public function config($config,$mod=null)
 	{
         $mod                 = $mod?$mod:$config['mod'];
-		$type_list           = [self::Type_File,self::Type_Memcache,self::Type_Redis];
+		$type_list           = [self::Type_File,self::Type_Memcache,self::Type_Memcached,self::Type_Redis];
 		$type                = in_array($config['type'],$type_list)?$config['type']:self::Type_File;
 		if(self::Type_Redis == $type)
 		{

@@ -33,9 +33,9 @@ class Auth
      */
     private $_purview           = [];
     private $_purview_group     = [];
-    private $_purview_default   = 'info';
     private $_purview_root      = [10,20];
     private $_purview_coop      = [10,20,50];
+    private $_purview_default   = 'info';
 
     /**
      * Mysqli 句柄
@@ -43,9 +43,18 @@ class Auth
      */
     private $_db;
 
-    /**
-     * Auth constructor.
-     */
+    /** @var Auth */
+    private static $_instance;
+    public  static function instance()
+    {
+        if(!self::$_instance)
+        {
+            exit('error:'.__CLASS__.':'.__METHOD__.' not instance');
+        }
+        return self::$_instance;
+    }
+
+    /** Auth constructor. */
     public function __construct(\ounun\Mysqli $db,
                                 $purview,
                                 $purview_group,
@@ -66,7 +75,7 @@ class Auth
         $this->_purview_root    = $purview_tree_root;
         // table
         $this->_table_adm       = $table_adm;
-        $this->_table_logs_login   = $table_logs_login;
+        $this->_table_logs_login= $table_logs_login;
         $this->_table_logs_act  = $table_logs_act;
         // ip
         $this->_max_ip         = $max_ip;
@@ -116,11 +125,12 @@ class Auth
         $rs 	 = $this->_db->row("select * from {$this->_table_adm} where `account` =:account and `cid` = :cid limit 1;",$bind);
         if($rs)
         {
-            $ext = $this->user_get_exts($rs,$rs['adm_id']);
+            $ext       = $this->user_get_exts($rs,$rs['adm_id']);
+            $is_google = $this->_check_google($ext, $code);
             //echo $this->_db->getSql();
             //print_r($rs);
             //exit();
-            if($this->_check_google($ext, $code))
+            if($is_google || $ext['google']['is'] == false )
             {
                 // echo "\$rs['password'] :{$rs['password']} == md5(\$password) :".md5($password)."<br />\n";
                 // exit();
@@ -232,9 +242,9 @@ class Auth
      */
     private function _logs_login(bool $status,int $account_id, int $cid, string $account)
     {
-        $ip		= \ounun\ip();
-        $wry    = new \plugins\qqwry\QQWry('utf-8');
-        $uCity  = $wry->getlocation($ip);
+        $ip		    = \ounun\ip();
+        $wry        = new \plugins\qqwry\QQWry('utf-8');
+        $uCity      = $wry->getlocation($ip);
 
         $time		= time();
         $ip_segment	= $uCity["beginip"] . "-" . $uCity["endip"];
@@ -253,8 +263,8 @@ class Auth
             'address'   => $address,
         ];
         $this->_db->insert($this->_table_logs_login, $bind);
-//        echo $this->_db->getSql();
-//        exit();
+//      echo $this->_db->getSql();
+//      exit();
     }
 
     /**
@@ -339,7 +349,6 @@ class Auth
     {
 
     }
-
     /**
      * 帐号删除
      * @return Ret
@@ -438,6 +447,7 @@ class Auth
             $google        = ['is'=>false,'secret'=>$secret];
             $ext['google'] = $google;
             $this->_db->update($this->_table_adm,['exts'=>serialize($ext)],' `adm_id` = ? ',$account_id);
+            echo $this->_db->getSql();
         }
         return $ext;
     }
@@ -896,6 +906,25 @@ class Auth
     public function get_cookie_sid():int
     {
         return (int)$_COOKIE['cp_sid'];
+    }
+
+
+    /**
+     * cookie game_id
+     * @param int $sid
+     */
+    public function set_cookie_game_id(int $game_id):void
+    {
+        setcookie('cp_game_id', $sid, time()+86400);
+    }
+
+    /**
+     * cookie game_id
+     * @return int
+     */
+    public function get_cookie_game_id():int
+    {
+        return (int)$_COOKIE['cp_game_id'];
     }
 
     /**

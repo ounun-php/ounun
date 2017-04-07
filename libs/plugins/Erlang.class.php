@@ -4,11 +4,12 @@ namespace plugins;
 
 use ounun\Http;
 
-class erlang
+class Erlang
 {
-    private $_key;
-    private $_host;
-    private $_port;
+    protected $_key;
+    protected $_sid; // hub_id
+    protected $_host;
+    protected $_port;
 
     /**
      * erlang constructor.
@@ -16,9 +17,9 @@ class erlang
      * @param string $host
      * @param int $port
      */
-    public function __construct(string $key,string $host,int $port)
+    public function __construct(string $key,int $sid_hub_id,string $host,int $port)
     {
-        $this->set_config($key,$host,$port);
+        $this->set_config($sid_hub_id,$host,$port,$key);
     }
 
     /**
@@ -26,30 +27,24 @@ class erlang
      * @param string $host
      * @param int $port
      */
-    public function set_config(string $key,string $host,int $port)
+    public function set_config(int $sid_hub_id=0,string $host='',int $port=0,string $key='')
     {
-        $this->_key  = $key;
-        $this->_host = $host;
-        $this->_port = $port;
-    }
-    /**
-     * 得到服务器当前在线
-     * @param uint $sid
-     */
-    public function online($sid)
-    {
-        $data	= "[]";
-        return $this->_erlang_call('gm_api','online',$sid,$data);
-    }
-
-    /**
-     * 编译 服务器data数据
-     * @param uint $sid
-     */
-    public function cmd_master_make($sid)
-    {
-        $data    = "[]";
-        return $this->_erlang_call('gc_master','cmd_make',$sid,$data);
+        if($key)
+        {
+            $this->_key  = $key;
+        }
+        if($sid_hub_id)
+        {
+            $this->_sid = $sid_hub_id;
+        }
+        if($host)
+        {
+            $this->_host = $host;
+        }
+        if($port)
+        {
+            $this->_port = $port;
+        }
     }
     /**
      * 统一调用调用
@@ -58,21 +53,20 @@ class erlang
      * @param string $arg_data
      * @return Ambigous <multitype:, multitype:boolean string >
      */
-    protected function _erlang_call($mod,$fun,$sid,$arg_data)
+    protected function _erlang_call($mod,$fun,$arg_data)
     {
         $time = time();
-        $md5  = md5($sid.'_'.$arg_data.'_'.$time.'_'.$this->_key);
-        return \ounun\Http::Erlang($mod,$fun,"{ {$sid},\"{$md5}\",{$time},{$arg_data}}",$this->_host,$this->_port);
+        $md5  = md5($this->_sid.'_'.$arg_data.'_'.$time.'_'.$this->_key);
+        return $this->_port($mod,$fun,"{ {$this->_sid},\"{$md5}\",{$time},{$arg_data}}");
     }
 
     /**
      * @param $fun  : 方法
      * @param $data : 数据
      */
-    protected function _port($mod,$fun,$data="[]",$host="127.0.0.1",$port=18443)
+    protected function _port($mod,$fun,$data="[]")
     {
-        $host 	= "http://{$host}:{$port}/";
-        //echo $host;
+        $host 	= "http://{$this->_host}:{$this->_port}/";
         $model 	= "{{$mod},{$fun},{$data}}";
         return Http::post($host,$model, [], 600);
     }
@@ -81,22 +75,20 @@ class erlang
      * 得到give数据元组
      * @param uint $goods_id 	物品ID
      * @param uint $count    	数量
-     * @param uint $streng	  	强化等级
-     * @param uint $name_color  物品名称的颜色
-     * @param uint $bind		是否绑定(0:不绑定 1:绑定)
-     * @param uint $expiry_type 有效期类型，0:不失效，1：秒，  2：天，请多预留几个以后会增加
-     * @param uint $expiry		有效期，到期后自动消失，并发系统邮件通知
+     * @param uint $args        扩展参数
      */
-    protected function _give_good($goods_id,$count,$streng,$name_color,$bind,$expiry_type,$expiry)
+    protected function give($goods_id,$count,$exts)
     {
-        // {give,2005,1,0,1,1,0,0}
-        return "{give,{$goods_id},{$count},{$streng},{$name_color},{$bind},{$expiry_type},{$expiry}}";
+        // {give,2005,1,[0,1,1,0,0]}
+        return "{g,{$goods_id},{$count},{$exts}}";
     }
-
     /**
-     *
+     * 例子:
+     *   $dir	 = "<<".private_string_binary($dir).">>";
+     *   $cmd	 = "<<".private_string_binary($cmd).">>";
+     *   $data   = "[{$dir},{$cmd}]";
      */
-    protected function _string_binary($string)
+    protected function string_binary($string)
     {
         $i      = 0;
         $number = [];
