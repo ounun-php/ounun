@@ -263,47 +263,51 @@ class Auth
             'address'   => $address,
         ];
         $this->_db->insert($this->_table_logs_login, $bind);
-//      echo $this->_db->getSql();
-//      exit();
     }
 
     /**
      * 操作日志
      * @param bool $status 状态 0:失败 1:成功
-     * @param string $mod  模块
+     * @param string $mod 模块
      * @param string $mod_sub 子模块
-     * @param int $act        操作 0:普通 1:添加 2:修改 3:删除
-     * @param array $exts  扩展数据
+     * @param int $act 操作 0:普通 1:添加 2:修改 3:删除
+     * @param array $exts 扩展数据
      */
-    public function logs_act(bool $status,string $mod,string $mod_sub,int $act,array $exts)
+    public function logs_act(bool $status, int $act, array $exts,string $url='')
     {
-        $ip		    = \ounun\ip();
-        $wry        = new \plugins\qqwry\QQWry('utf-8');
-        $uCity      = $wry->getlocation($ip);
+        if (!$url)
+        {
+            $url=$_SERVER['HTTP_REFERER'];
+        }
+        $ip    = \ounun\ip();
+        $wry   = new \plugins\qqwry\QQWry('utf-8');
+        $uCity = $wry->getlocation($ip);
 
         $account_id = $this->get_account_id();
         $cid        = $this->get_cid();
         $account    = $this->get_account();
-        $time		= time();
-        $address	= $uCity["country"];
+        $time       = time();
+        $address    = $uCity["country"];
 
-        $exts       = serialize($exts);
+        $exts = \ounun\json_encode($exts);
 
-        $bind	    = [
-            'time'      => $time,
-            'status'    => $status,
-            'adm_id'    => $account_id,
-            'cid'       => $cid,
-            'account'   => $account,
-            'ip'        => $ip,
-            'mod'       => $mod,
-            'mod_sub'   => $mod_sub,
-            'act'       => $act,
-            'address'   => $address,
-            'exts'      => $exts,
+        $bind = [
+            'time'    => $time,
+            'status'  => $status,
+            'adm_id'  => $account_id,
+            'cid'     => $cid,
+            'account' => $account,
+            'ip'      => $ip,
+            'mod'     => $GLOBALS['app'],
+            'mod_sub' => $GLOBALS['mod'][0],
+            'url'     => $url,
+            'act'     => $act,
+            'address' => $address,
+            'exts'    => $exts,
         ];
         $this->_db->insert($this->_table_logs_act, $bind);
     }
+
 
     /**
      * 添加帐号

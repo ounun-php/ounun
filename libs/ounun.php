@@ -81,9 +81,18 @@ function url(string $url,array $data,array $extra=[]):string
             }
         }
 	}
+    $url  = trim($url);
 	if($rs)
     {
-        return $url.(strstr($url,'?')?'&':'?').implode('&',$rs);
+        if($url && strlen($url) > 1 )
+        {
+            if (strpos($url, '?') === false)
+            {
+                return $url.'?'.implode('&',$rs);
+            }
+            return $url.'&'.implode('&',$rs);
+        }
+        return implode('&',$rs);
     }
 	return $url;
 }
@@ -337,7 +346,7 @@ function expires(int $expires = 0,string $etag = '', int $LastModified = 0)
 /**
  * error 404
  */
-function error404():void
+function error404($msg=''):void
 {
     if(function_exists('\error404'))
     {
@@ -351,7 +360,7 @@ function error404():void
             </head>
             <body bgcolor="white">
                 <center>
-                    <h1>404 Not Found</h1>
+                    <h1>404 Not Found'.($msg?'('.$msg.')':'').'</h1>
                 </center>
                 <hr>
                 <center><a href="/">返回网站首页</a></center>
@@ -625,7 +634,7 @@ class Base
 	{
 		header('HTTP/1.1 404 Not Found');
         $this->debug = new \ounun\Debug('logs/error_404_'.date('Ymd').'.txt',false,false,false,true);
-        error404();
+        error404("\$method:{$method} \$args:[".implode(',',$args[0])."]");
 	}
 
 	/**
