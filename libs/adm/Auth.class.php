@@ -898,9 +898,9 @@ class Auth
      * cookie sid
      * @param int $sid
      */
-    public function set_cookie_sid(int $sid):void
+    public function set_cookie_sid(int $hub_id)
     {
-        setcookie('cp_sid', $sid, time()+86400);
+        setcookie('cp_sid', $hub_id, time()+86400);
     }
 
     /**
@@ -917,9 +917,9 @@ class Auth
      * cookie game_id
      * @param int $sid
      */
-    public function set_cookie_game_id(int $game_id):void
+    public function set_cookie_game_id(int $game_id)
     {
-        setcookie('cp_game_id', $sid, time()+86400);
+        setcookie('cp_game_id', $game_id, time()+86400);
     }
 
     /**

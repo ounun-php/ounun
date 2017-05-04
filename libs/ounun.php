@@ -52,33 +52,53 @@ function ip():string
  * @param array  $data  数据
  * @return string URL
  */
-function url(string $url,array $data,array $extra=[]):string
+function url(string $url,array $data,array $exts=[],array $skip=[]):string
 {
 	$rs = [];
 	if(is_array($data))
 	{
-	    if($extra && is_array($extra))
+	    if($exts && is_array($exts))
         {
-            foreach ($extra as $key=>$value)
+            foreach ($exts as $key => $value)
+            {
+                $data[$key] = $value;
+            }
+        }
+	    if($skip && is_array($skip))
+        {
+            foreach ($skip as $key=>$value)
             {
                 if($value)
                 {
-                    $data[$key] = $value;
+                    if(is_array($value) && in_array($data[$key],$value,true))
+                    {
+                        unset($data[$key]);
+                    }elseif($value == $data[$key])
+                    {
+                        unset($data[$key]);
+                    }
                 }else
                 {
                     unset($data[$key]);
                 }
             }
         }
+        $rs      = [];
+        $rs_page = '';
 		foreach ($data as $key => $value)
         {
             if('{page}' === $value )
             {
-                $rs[] = $key.'={page}';
-            }elseif($value || 0 === $value || '0' === $value)
+                $rs_page = $key.'={page}';
+            }elseif($value || 0 === $value || '0' === $value )
             {
                 $rs[] = $key.'='.urlencode($value);
             }
+        }
+        // 已保正page 是最后项
+        if($rs_page)
+        {
+            $rs[] = $rs_page;
         }
 	}
     $url  = trim($url);
@@ -756,27 +776,27 @@ class ViewBase extends Base
 	 * @param string $name
 	 * @param mix    $value
 	 */
-	public function assign($name, $value = '')
+	public function assign($name, $val = null)
 	{
-		$this->_stpl->assign($name, $value);
+		$this->_stpl->assign($name, $val);
 	}
 
 	/**
 	 * 包含
 	 * @param string $filename
 	 */
-	public function import($filename,$args=array())
+	public function import($filename,$assign=[])
 	{
-		$this->_stpl->import($filename,$args);
+		$this->_stpl->import($filename,$assign);
 	}
 
     /**
      * 输出
      * @param string $filename
      */
-    public function output($filename,$args=array())
+    public function output($filename,$assign=[])
     {
-        $this->_stpl->output($filename,$args);
+        $this->_stpl->output($filename,$assign);
     }
 }
 

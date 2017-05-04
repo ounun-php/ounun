@@ -17,7 +17,7 @@ class PageBase
     protected $_cfg_tag 	= ['|&lt;','&lt;','&gt;','&gt;|'];// 第一页 上一页 下一页 最后一页
     protected $_cfg_max 	= 7;  // 最多显示几页
     protected $_cfg_rows    = 20; // 一页显示几条数据
-    protected $_cfg_index 	= ''; // 第一页
+    protected $_cfg_index 	= []; // 第一页
 
     //
     protected $_db;
@@ -63,9 +63,7 @@ class PageBase
      * @param string|array $key
      * @param string $value
      */
-    public function set_config($rows=20,$max=7,$index_page='',
-                               $note='总共有{total}条数据,共{total_page}页,第{page}页',
-                               $tag=['|&lt;','&lt;','&gt;','&gt;|'],$now=['<li class="now">', '</li>'],$default=['<li>', '</li>'])
+    public function set_config($rows,$max,$index_page,$note,$tag,$now,$default)
     {
         if($note)
         {
@@ -103,7 +101,7 @@ class PageBase
      * @param array $config
      * @return array
      */
-    public function init($page = 0, $title="",$default_end = false)
+    public function init($page=0,$title="",$default_end = false)
     {
         $page_default    = $this->_cfg_default;
         $page_now        = $this->_cfg_now;
@@ -199,7 +197,7 @@ class PageBase
         $sub_previous    && $rs[]  = ['previous'=>$page - 1];
         for($i = $sub_start; $i < $sub_start + $sub_total; $i++)
         {
-            $rs[]                  = ['def'=>$i];
+            $rs[]                  = ['def' =>$i];
         }
         $sub_next        && $rs[]  = ['next'=>$page + 1];
         $sub_end         && $rs[]  = ['end' =>$this->_total_page];
