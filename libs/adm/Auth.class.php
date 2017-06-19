@@ -83,6 +83,8 @@ class Auth
         // session key
         $this->_session_key    = $session_key;
         $this->_session_set();
+
+        self::$_instance       = $this;
     }
 
     /**
@@ -337,7 +339,7 @@ class Auth
         ];
         $adm_id = $this->_db->insert($this->_table_adm, $bind);
         // 记日志
-        $this->logs_act($adm_id?1:0,'sys','adm',1,$bind);
+        $this->logs_act($adm_id?1:0,1,$bind);
         if($adm_id)
         {
             return new Ret(true,0,"成功:操作成功!");
@@ -372,7 +374,7 @@ class Auth
         $bind = ['adm_id'=>$adm_id,'cid'=>$rs['cid'], 'account'=>$rs['account'] ];
         $rs   = $this->_db->delete($this->_table_adm,'`adm_id`= :adm_id ',$bind);
         // 记日志
-        $this->logs_act($rs?1:0,'sys','adm',3,$bind);
+        $this->logs_act($rs?1:0,3,$bind);
         if($rs)
         {
             return new Ret(true,0,"成功:操作成功!");
@@ -451,7 +453,7 @@ class Auth
             $google        = ['is'=>false,'secret'=>$secret];
             $ext['google'] = $google;
             $this->_db->update($this->_table_adm,['exts'=>serialize($ext)],' `adm_id` = ? ',$account_id);
-            echo $this->_db->getSql();
+            // echo $this->_db->getSql();
         }
         return $ext;
     }
@@ -912,6 +914,24 @@ class Auth
         return (int)$_COOKIE['cp_sid'];
     }
 
+
+    /**
+     * cookie sid
+     * @param int $sid
+     */
+    public function set_cookie_group(int $group_id)
+    {
+        setcookie('cp_group', $group_id, time()+86400);
+    }
+
+    /**
+     * cookie sid
+     * @return int
+     */
+    public function get_cookie_group():int
+    {
+        return (int)$_COOKIE['cp_group'];
+    }
 
     /**
      * cookie game_id

@@ -34,7 +34,6 @@ class PageBase
     
     /**
      * 创建一个分页类
-     *
      * @param resource $db
      * @param string $table
      * @param string $url
@@ -96,7 +95,6 @@ class PageBase
     }
     /**
      * 得到分页数据
-     *
      * @param int $page
      * @param array $config
      * @return array
@@ -204,7 +202,6 @@ class PageBase
         return $rs;
     }
 
-    
     /**
      * 得到数据总行数
      * @return int
@@ -221,10 +218,9 @@ class PageBase
     
     /**
      * 得到数据总页数
-     *
      * @return int
      */
-    public function total_page()
+    public function total_page():int
     {
         return $this->_total_page;
     }
@@ -232,7 +228,7 @@ class PageBase
     /**
      * @return int
      */
-    public function limit_rows()
+    public function limit_rows():int
     {
         return $this->_cfg_rows;
     }
@@ -240,7 +236,7 @@ class PageBase
     /**
      * @return int
      */
-    public function limit_start()
+    public function limit_start():int
     {
         $start = ($this->_page-1)*$this->_cfg_rows;
         return $start<0?0:$start;
@@ -248,7 +244,6 @@ class PageBase
 
     /**
      * 设定字符串
-     *
      * @param array $arr
      * @return string
      */
@@ -259,7 +254,6 @@ class PageBase
     
     /**
      * 设定URL串
-     *
      * @param int $page
      * @return string
      */
@@ -275,7 +269,6 @@ class PageBase
     
     /**
      * 从数据库中得到数据总行数
-     *
      * @return int
      */
     protected function _get_total():int

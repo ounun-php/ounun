@@ -7,9 +7,27 @@ use ounun\Http;
 class Erlang
 {
     protected $_key;
-    protected $_sid; // hub_id
+    protected $_hub_id = 0; // hub_id
     protected $_host;
     protected $_port;
+
+    /**
+     * 例子:
+     *   $dir	 = "<<".private_string_binary($dir).">>";
+     *   $cmd	 = "<<".private_string_binary($cmd).">>";
+     *   $data   = "[{$dir},{$cmd}]";
+     */
+    public static function string2binary($string)
+    {
+        $i      = 0;
+        $number = [];
+        while (isset($string{$i}))
+        {
+            $number[] = ord($string{$i});
+            $i++;
+        }
+        return "<<" . implode(',', $number). ">>";
+    }
 
     /**
      * erlang constructor.
@@ -35,17 +53,19 @@ class Erlang
         }
         if($sid_hub_id)
         {
-            $this->_sid = $sid_hub_id;
+            $this->_hub_id = $sid_hub_id;
         }
         if($host)
         {
             $this->_host = $host;
+            // $this->_host = '127.0.0.1';
         }
         if($port)
         {
             $this->_port = $port;
         }
     }
+    
     /**
      * 统一调用调用
      * @param uint   $sid
@@ -53,11 +73,38 @@ class Erlang
      * @param string $arg_data
      * @return Ambigous <multitype:, multitype:boolean string >
      */
-    protected function _erlang_call($mod,$fun,$arg_data)
+    protected function _erlang_call(string $node_type,string $mod,string $fun, string $arg_data)
     {
         $time = time();
-        $md5  = md5($this->_sid.'_'.$arg_data.'_'.$time.'_'.$this->_key);
-        return $this->_port($mod,$fun,"{ {$this->_sid},\"{$md5}\",{$time},{$arg_data}}");
+        $fun  = substr($fun, 0,3) == 'gm_' ? substr($fun,3):$fun;
+        $mod  = substr($mod,-4,4)== '_api'? substr($mod,0,-4):$mod;
+        $md5  = md5("{$this->_hub_id}_{$node_type}_{$mod}_{$fun}_{$arg_data}_{$time}_{$this->_key}");
+        // echo "{$this->_hub_id}_{$node_type}_{$mod}_{$fun}_{$arg_data}_{$time}_{$this->_key}<br />\n";
+        return $this->_port($mod,$fun,"{ {$this->_hub_id},{$node_type},\"{$md5}\",{$time},{$arg_data}}");
+    }
+
+    /**
+     * 统一调用调用  返回:Ret
+     * @param string $node_type
+     * @param string $mod
+     * @param string $fun
+     * @param string $arg_data
+     * @return \ounun\Ret
+     */
+    protected function _erlang_call_result(string $node_type,string $mod,string $fun, string $arg_data):\ounun\Ret
+    {
+        $rs   = $this->_erlang_call($node_type,$mod, $fun,  $arg_data);
+        if($rs[0])
+        {
+            // echo $rs[1]."<br />\n";
+            $data = \ounun\json_decode($rs[1]);
+            if($data['ret'])
+            {
+                return new \ounun\Ret($data['ret'],0,$data['data']);
+            }
+            return new \ounun\Ret(false,0,$data['msg']);
+        }
+        return new \ounun\Ret(false,0,$rs[1]);
     }
 
     /**
@@ -71,33 +118,6 @@ class Erlang
         return Http::post($host,$model, [], 600);
     }
 
-    /**
-     * 得到give数据元组
-     * @param uint $goods_id 	物品ID
-     * @param uint $count    	数量
-     * @param uint $args        扩展参数
-     */
-    protected function give($goods_id,$count,$exts)
-    {
-        // {give,2005,1,[0,1,1,0,0]}
-        return "{g,{$goods_id},{$count},{$exts}}";
-    }
-    /**
-     * 例子:
-     *   $dir	 = "<<".private_string_binary($dir).">>";
-     *   $cmd	 = "<<".private_string_binary($cmd).">>";
-     *   $data   = "[{$dir},{$cmd}]";
-     */
-    protected function string_binary($string)
-    {
-        $i      = 0;
-        $number = [];
-        while (isset($string{$i}))
-        {
-            $number[] = ord($string{$i});
-            $i++;
-        }
-        return implode(',', $number);
-    }
+
 }
 

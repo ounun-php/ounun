@@ -66,7 +66,7 @@ class Http
         	}
             
         }
-        //echo "\$host:$host, \$port:$port, \$errno:$errno, \$errstr:$errstr, \$timeout:$timeout";
+        // echo "\$host:$host, \$port:$port, \$errno:$errno, \$errstr:$errstr, \$timeout:$timeout";
         $fp = fsockopen($host, $port, $errno, $errstr, $timeout);
         if(!$fp)
         {

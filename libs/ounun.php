@@ -3,8 +3,7 @@
 namespace ounun;
 
 /** ounun根目录 */
-define('Ounun_Dir', 		 	    \Dir_Lib . 'ounun/');
-
+define('Ounun_Dir', 		 	     \Dir_Lib . 'ounun/');
 
 if(defined('Const_Module'))
 {
@@ -89,7 +88,13 @@ function url(string $url,array $data,array $exts=[],array $skip=[]):string
         {
             if('{page}' === $value )
             {
-                $rs_page = $key.'={page}';
+                $rs_page = $key . '={page}';
+            }elseif(is_array($value))
+            {
+                foreach ($value as $k2 => $v2)
+                {
+                    $rs[] = $key.'['.$k2.']='.urlencode($v2);
+                }
             }elseif($value || 0 === $value || '0' === $value )
             {
                 $rs[] = $key.'='.urlencode($value);
@@ -668,9 +673,13 @@ class Base
 	 * @param  string $key
 	 * @return \ounun\Mysqli
 	 */
-	public static function db(string $key):\ounun\Mysqli
+	public static function db(string $key,$db_cfg = null):\ounun\Mysqli
 	{
-		self::$_db[$key] || self::$_db[$key] = new \ounun\Mysqli($GLOBALS['scfg']['db'][$key]);
+	    if(null == $db_cfg)
+        {
+            $db_cfg = $GLOBALS['scfg']['db'][$key];
+        }
+		self::$_db[$key] || self::$_db[$key] = new \ounun\Mysqli($db_cfg);
 		self::$_db[$key]->active();
 		return self::$_db[$key];
 	}
@@ -727,6 +736,11 @@ class ViewBase extends Base
 	 * @var \ounun\Tpl
 	 */
 	protected $_stpl = null;
+    /**
+     * 模板驱动
+     * @var string null | PhpTemplate | SmartyTemplate
+     */
+	protected $_stpl_drive = null;
 
     /**
      * 默认赋值(空)
@@ -741,7 +755,7 @@ class ViewBase extends Base
 		if(null == $this->_stpl)
         {
             require Ounun_Dir. 'Tpl.class.php';
-            $this->_stpl = new Tpl(Ounun_Dir_Tpl);
+            $this->_stpl        = new Tpl(Ounun_Dir_Tpl,$this->_stpl_drive);
         }
         $this->_global_assign();
 	}
@@ -773,8 +787,8 @@ class ViewBase extends Base
     }
     /**
 	 * 赋值
-	 * @param string $name
-	 * @param mix    $value
+	 * @param mix|string $name
+	 * @param mix $value
 	 */
 	public function assign($name, $val = null)
 	{
@@ -802,11 +816,11 @@ class ViewBase extends Base
 
 /**
  * 路由
- * @param $route_dirs   目录路由表
- * @param $mod          目录数组
- * @param $route_hosts  主机路由表
- * @param $host         主机
- * @param $default_app_dir 默认应用
+ * @param $route_dirs    array  目录路由表
+ * @param $mod           array  目录数组
+ * @param $route_hosts   array  主机路由表
+ * @param $host            string 主机
+ * @param $default_app_dir string 默认应用
  * @return string 应用
  */
 function route($route_dirs,&$mod,$route_hosts,$host,$default_app_dir)
@@ -823,50 +837,62 @@ function route($route_dirs,&$mod,$route_hosts,$host,$default_app_dir)
 }
 
 /**
+ * 自动加载的类
+ * @param $class_name
+ */
+function autoload($class_name)
+{
+    $class_name = ltrim($class_name, '\\');
+    $lists 	    = explode('\\', $class_name);
+    if('libs' == $lists[0])
+    {
+        array_shift($lists);
+        $file_name  = implode('/', $lists).'.class.php';
+        $file_name  = \Dir_Libs_ProJ  . $file_name;
+    }elseif('app' == $lists[0] && 'libs' == $lists[1] )
+    {
+        array_shift($lists);
+        array_shift($lists);
+        $file_name  = implode('/', $lists).'.class.php';
+        $file_name  =\Dir_Libs  . $file_name;
+    }else
+    {
+        $file_name  = implode('/', $lists).'.class.php';
+        $file_name  = \Dir_Lib  . $file_name;
+    }
+    if(file_exists($file_name))
+    {
+        require $file_name;
+    }
+}
+
+/**
  * 世界从这里开始
  * @param aaray  $mod
  * @param string $app
- * @param bool|true $is_route_dir $app这个参数是应用ID还是应用所在目录
  */
-function start($mod,$app,$is_route_dir=true)
+function start($mod,$app)
 {
     /** 重定义头 */
     header('X-Powered-By: Ounun.org');
-
-    if($is_route_dir)
+    /** 应用名称 */
+    define('App_Name',           	$app);
+    /** 应用目录 */
+    define('Dir_App',           	\Dir_Root. 'app.'.$app.'/');
+    /** Libs目录 **/
+    define('Dir_Libs',        	    \Dir_App . 'libs/');
+    /** 模块所在目录 */
+    define('Ounun_Dir_Module', 	    \Dir_App . 'module/');
+    /** 加载libs/scfg.{$app}.ini.php文件 */
+    $filename   = Dir_Libs . "scfg.{$app}.ini.php";
+    if(file_exists($filename))
     {
-        /** 应用名称 */
-        define('App_Name',           	crc32($app));
-        /** 应用目录 */
-        define('Dir_App',           	$app);
-        /** Libs目录 **/
-        define('Dir_Libs',        	    \Dir_App . 'libs/');
-        /** 模块所在目录 */
-        define('Ounun_Dir_Module', 	    \Dir_App . 'module/');
-    }else
-    {
-        /** 应用名称 */
-        define('App_Name',           	$app);
-        /** 应用目录 */
-        define('Dir_App',           	\Dir_Root. 'app.'.$app.'/');
-        /** Libs目录 **/
-        define('Dir_Libs',        	    \Dir_App . 'libs/');
-        /** 模块所在目录 */
-        define('Ounun_Dir_Module', 	    \Dir_App . 'module/');
-        /** 加载libs/scfg.{$app}.ini.php文件 */
-        $filename   = Dir_Libs . "scfg.{$app}.ini.php";
-        if(file_exists($filename))
-        {
-            require $filename;
-        }
-    } // end if($is_route_dir)
-
+        require $filename;
+    }
     /** 模板存放目录 */
     define('Ounun_Dir_Tpl', 	    \Const_Mobile_Edition?\Dir_App . 'tpl.mobile/':\Dir_App . 'tpl.pc/');
-
     /** 模板存放目录pc */
     define('Ounun_Dir_Tpl_Pc', 	    \Dir_App . 'tpl.pc/'        );
-
     /** 模板存放目录mobile */
     define('Ounun_Dir_Tpl_Mobile',  \Dir_App . 'tpl.mobile/'    );
 
@@ -955,3 +981,7 @@ function start($mod,$app,$is_route_dir=true)
 		trigger_error("ERROR! Can't find Module:'{$module}'.", E_USER_ERROR);
 	}
 }
+
+
+/** 注册自动加载 */
+spl_autoload_register('\\ounun\\autoload');

@@ -201,9 +201,9 @@ class Mysqli
     /**
      * 插入一條或更新一条
      *
-     * @param  $table   表名  String
-     * @param  $primary 数据  Array
-     * @param  $bind    数据  Array
+     * @param  表名 $table    String
+     * @param  数据 $primary  Array
+     * @param  数据 $bind     Array
      * @return queryAffected
      */
     public function insertUpdate($table, $primary, $bind,$operate='update')

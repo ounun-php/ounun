@@ -770,10 +770,10 @@ class _cache_memcached extends _cache_base
         {
             trigger_error("ERROR! Memcached::Arguments Error!.", E_USER_ERROR);
         }
-        if(!$this->_mem->getStats())
-        {
-            trigger_error("ERROR! Memcached::getStats Error!.", E_USER_ERROR);
-        }
+//        if(!$this->_mem->getStats())
+//        {
+//            trigger_error("ERROR! Memcached::getStats Error!.", E_USER_ERROR);
+//        }
     }
     
     /**

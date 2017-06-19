@@ -11,7 +11,6 @@ class PhpTemplate extends \ounun\_tpl
      * @var string
      */
     protected $_tpl_dir;
-
     /**
      * 模板文件所以目录(当前目录)
      * @var string
