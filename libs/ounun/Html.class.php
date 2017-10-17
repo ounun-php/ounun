@@ -7,11 +7,13 @@ class _html_cache extends Cache
     private $_cache_time_t  = -1;
     private $_cache_size    = -1;
 
+    private $_debug         = false;
+
     /**
      * 构建函数
      * @param $cfg
      */
-    public function __construct($cfg)
+    public function __construct($cfg,$debug=false)
     {
         parent::__construct();
         $type_list           = array(self::Type_File,self::Type_Memcache,self::Type_Redis);
@@ -32,6 +34,7 @@ class _html_cache extends Cache
             $cfg['format_string']   = true;
             $cfg['large_scale']     = true;
         }
+        $this->_debug = $debug;
         $this->config($cfg);
     }
 
@@ -50,11 +53,11 @@ class _html_cache extends Cache
         if(self::Type_File == $this->_type)
         {
             $filename = $this->filename();
-            debug_header('filename',$filename,true,__FUNCTION__,__LINE__);
+            debug_header('filename',$filename,$this->_debug,__FUNCTION__,__LINE__);
             if(file_exists($filename) )
             {
                 $this->_cache_time = filemtime($filename);
-                debug_header('cache_time',$this->_cache_time,true,__FUNCTION__,__LINE__);
+                debug_header('cache_time',$this->_cache_time,$this->_debug,__FUNCTION__,__LINE__);
             }
         }else
         {
@@ -77,11 +80,11 @@ class _html_cache extends Cache
         if(self::Type_File == $this->_type)
         {
             $filename = $this->filename().'.t';
-            debug_header('file',$filename,true,__FUNCTION__,__LINE__);
+            debug_header('file',$filename,$this->_debug,__FUNCTION__,__LINE__);
             if(file_exists($filename) )
             {
                 $this->_cache_time_t = filemtime($filename);
-                debug_header('time',$this->_cache_time_t,true,__FUNCTION__,__LINE__);
+                debug_header('time',$this->_cache_time_t,$this->_debug,__FUNCTION__,__LINE__);
             }
         }else
         {
@@ -98,7 +101,7 @@ class _html_cache extends Cache
         if(self::Type_File == $this->_type)
         {
             $filename = $this->filename().'.t';
-            debug_header('file',$filename,true,__FUNCTION__,__LINE__);
+            debug_header('file',$filename,$this->_debug,__FUNCTION__,__LINE__);
             if(file_exists($filename) )
             {
                 touch($filename);
@@ -130,11 +133,11 @@ class _html_cache extends Cache
         if(self::Type_File == $this->_type)
         {
             $filename = $this->filename();
-            debug_header('file',$filename,true,__FUNCTION__,__LINE__);
+            debug_header('file',$filename,$this->_debug,__FUNCTION__,__LINE__);
             if(file_exists($filename) )
             {
                 $this->_cache_size = filesize($filename);
-                debug_header('size',$this->_cache_size,true,__FUNCTION__,__LINE__);
+                debug_header('size',$this->_cache_size,$this->_debug,__FUNCTION__,__LINE__);
             }
             $this->_cache_size     = 0;
         }else
@@ -154,7 +157,7 @@ class _html_cache extends Cache
             $this->val($html);
             $this->write();
             $filename = $this->filename().'.t';
-            debug_header('delfile',$filename,true,__FUNCTION__,__LINE__);
+            debug_header('delfile',$filename,$this->_debug,__FUNCTION__,__LINE__);
             if(file_exists($filename) )
             {
                 unlink($filename);
@@ -208,7 +211,8 @@ class _html_cache extends Cache
         $this->_cache_time    = -1;
         $this->_cache_time_t  = -1;
         $this->_cache_size    = -1;
-        return $this->delete();
+        return parent::delete();
+        // return $this->delete();
     }
 }
 /*

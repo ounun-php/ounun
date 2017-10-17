@@ -88,8 +88,8 @@ class ThumbHandler
     private $mask_font       = 2;// 水印字体
 
     private $mask_position = 0;// 水印位置
-    private $mask_img_pct = 50;// 图片合并程度,值越大，合并程序越低
-    private $mask_txt_pct = 50;// 文字合并程度,值越小，合并程序越低
+    private $mask_img_pct  = 50;// 图片合并程度,值越大，合并程序越低
+    private $mask_txt_pct  = 50;// 文字合并程度,值越小，合并程序越低
 
     private $img_border_size = 0;// 图片边框尺寸
     private $img_border_color;// 图片边框颜色
@@ -100,13 +100,13 @@ class ThumbHandler
     private $img_type;  // 文件类型
 
     // 文件类型定义,并指出了输出图片的函数
-    private $all_type = array(
-        "jpg"  => array("output"=>"imagejpeg"),
-        "gif"  => array("output"=>"imagegif"),
-        "png"  => array("output"=>"imagepng"),
-        "wbmp" => array("output"=>"image2wbmp"),
-        "jpeg" => array("output"=>"imagejpeg")
-    );
+    private $all_type = [
+        "jpg"  => ["output"=>"imagejpeg"],
+        "gif"  => ["output"=>"imagegif"],
+        "png"  => ["output"=>"imagepng"],
+        "wbmp" => ["output"=>"image2wbmp"],
+        "jpeg" => ["output"=>"imagejpeg"]
+    ];
 
     /**
      * 构造函数
@@ -121,7 +121,7 @@ class ThumbHandler
     /**
      * 取得图片的宽
      */
-    public function getImgWidth($src)
+    public function get_width($src)
     {
         return imagesx($src);
     }
@@ -129,14 +129,13 @@ class ThumbHandler
     /**
      * 取得图片的高
      */
-    public function getImgHeight($src)
+    public function get_height($src)
     {
         return imagesy($src);
     }
 
     /**
      * 设置图片生成路径
-     *
      * @param    string    $src_img   图片生成路径
      */
     public function setSrcImg($src_img, $img_type=null)
@@ -164,8 +163,8 @@ class ThumbHandler
             die("图片源为空");
         }
         $this->h_src = ImageCreateFromString($src);
-        $this->src_w = $this->getImgWidth( $this->h_src);
-        $this->src_h = $this->getImgHeight($this->h_src);
+        $this->src_w = $this->get_width( $this->h_src);
+        $this->src_h = $this->get_height($this->h_src);
     }
 
     /**
@@ -578,8 +577,8 @@ class ThumbHandler
             die("水印图片为空");
         }
         $this->h_mask = ImageCreateFromString($src);
-        $this->mask_w = $this->getImgWidth($this->h_mask);
-        $this->mask_h = $this->getImgHeight($this->h_mask);
+        $this->mask_w = $this->get_width($this->h_mask);
+        $this->mask_h = $this->get_height($this->h_mask);
     }
 
     /**
@@ -927,8 +926,8 @@ class ThumbHandler
      */
     private function _flipV($src)
     {
-        $src_x = $this->getImgWidth($src);
-        $src_y = $this->getImgHeight($src);
+        $src_x = $this->get_width($src);
+        $src_y = $this->get_height($src);
 
         $new_im = imagecreatetruecolor($src_x, $src_y);
         for ($y = 0; $y < $src_y; $y++)
@@ -945,8 +944,8 @@ class ThumbHandler
      */
     private function _flipH($src)
     {
-        $src_x = $this->getImgWidth($src);
-        $src_y = $this->getImgHeight($src);
+        $src_x = $this->get_width($src);
+        $src_y = $this->get_height($src);
 
         $new_im = imagecreatetruecolor($src_x, $src_y);
         for ($x = 0; $x < $src_x; $x++)

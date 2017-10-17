@@ -408,7 +408,7 @@ function error404($msg=''):void
 function debug_header(string $k, $v,bool $debug=false,string $funs='',string $line='')
 {
     static $idx = 0;
-    if($debug)
+    if($debug && !headers_sent() )
     {
         $idx++;
         if($line)
@@ -908,7 +908,7 @@ function start($mod,$app)
                 array_shift($mod);
             }else
             {
-                $mod	  = array(Ounun_Default_Method);
+                $mod	  = [Ounun_Default_Method];
             }
         }
         else
@@ -925,7 +925,7 @@ function start($mod,$app)
                         array_shift($mod);
                     }else
                     {
-                        $mod	   = array(Ounun_Default_Method);
+                        $mod	   = [Ounun_Default_Method];
                     }
                 }else
                 {
@@ -948,7 +948,7 @@ function start($mod,$app)
                 if(file_exists($filename))
                 {
                     $module		= $mod[0].'\\'.Ounun_Default_Module;
-                    $mod	    = array(Ounun_Default_Method);
+                    $mod	    = [Ounun_Default_Method];
                     // array_shift($mod);
                 }else
                 {
@@ -963,7 +963,7 @@ function start($mod,$app)
 	else
 	{
 	    // 默认模块 与 默认方法
-		$mod				= array(Ounun_Default_Method);
+		$mod				= [Ounun_Default_Method];
 		$module				= Ounun_Default_Module;
 		$filename 			= Ounun_Dir_Module . $module . '.class.php';
 	}
@@ -981,7 +981,6 @@ function start($mod,$app)
 		trigger_error("ERROR! Can't find Module:'{$module}'.", E_USER_ERROR);
 	}
 }
-
 
 /** 注册自动加载 */
 spl_autoload_register('\\ounun\\autoload');

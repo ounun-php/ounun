@@ -38,7 +38,7 @@ class Shell
         $cmd_file= "chmod +x {$filename}\n{$sudo}{$filename}";
         echo "\$cmd_file:{$cmd_file}\n";
         $this->_sh($msg,$cmd_file);
-        unlink($filename);
+        // unlink($filename);
     }
 
     protected function _sh($msg,$cmd)

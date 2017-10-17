@@ -103,8 +103,8 @@ class _cache_file extends _cache_base
 	{
 		if($this->_large_scale)
 		{
-			$key   	  = md5($key);
-			$key   	  = "{$key[0]}/{$key[1]}/".substr($key,2);
+			$key   	          = md5($key);
+			$key   	          = "{$key[0]}{$key[1]}/{$key[2]}{$key[3]}/".substr($key,4);
 		}
 		if($this->_format_string)
 		{
@@ -293,11 +293,12 @@ class _cache_redis extends _cache_base
      * @param bool $large_scale
      * @param bool $format_string
      */
-    public function __construct($mod='def',$expire=0,$large_scale=false,$format_string=false)
+    public function __construct($mod='def',$expire=0,$large_scale=false,$format_string=false,$auth=null)
     {
 		$this->_mod   		    = $mod;
         $this->_redis_config	= array();
         $this->_redis	        = null;
+        $this->_auth            = $auth;
 
         /** @var int */
         $this->_expire	        = $expire;
@@ -323,6 +324,10 @@ class _cache_redis extends _cache_base
         if($host && $port)
         {
             $this->_redis->connect($host,$port);
+            if($this->_auth && $this->_auth['password'])
+            {
+                $this->_redis->auth($this->_auth['password']);
+            }
         }else
         {
             trigger_error("ERROR! Redis::Arguments Error!.", E_USER_ERROR);
@@ -336,7 +341,7 @@ class _cache_redis extends _cache_base
     {
         if($this->_large_scale)
         {
-            $key   	  = md5($key);
+            $key   	          = md5($key);
         }
         if($this->_format_string)
         {
@@ -567,7 +572,7 @@ class _cache_memcache extends _cache_base
 	{
 		if($this->_large_scale)
 		{
-			$key   	      = md5($key);
+			$key   	          = md5($key);
 		}
 		if($this->_format_string)
 		{
@@ -983,9 +988,10 @@ class Cache
 		{
 			$sfg             = $config['sfg'];
 			$expire          = $config['expire'];
+            $auth            = $config['auth'];
 			$format_string   = $config['format_string'];
 			$large_scale     = $config['large_scale'];
-			$this->config_redis($sfg,$mod,$expire,$large_scale,$format_string);
+			$this->config_redis($sfg,$mod,$expire,$large_scale,$format_string,$auth);
 		}elseif(self::Type_Memcache == $type)
 		{
 			$sfg             = $config['sfg'];
@@ -1061,12 +1067,12 @@ class Cache
      * @param array $servers array(['host','port'],['host','port'],...)
      * @return bool
      */
-    public function config_redis(array $servers,$mod='def',$expire=0,$format_string=false,$large_scale=false)
+    public function config_redis(array $servers,$mod='def',$expire=0,$format_string=false,$large_scale=false,$auth=false)
     {
         if(0 == $this->_type)
         {
             $this->_type	= self::Type_Redis;
-            $this->_drive	= new _cache_redis($mod,$expire,$large_scale,$format_string);
+            $this->_drive	= new _cache_redis($mod,$expire,$large_scale,$format_string,$auth);
             if(is_array($servers))
             {
                 foreach($servers as $v)

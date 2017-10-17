@@ -107,6 +107,7 @@ class Auth
         }
         return false;
     }
+    
     /**
      * 登录
      * $field : id,type,cid,account,password,note
@@ -252,7 +253,7 @@ class Auth
         $ip_segment	= $uCity["beginip"] . "-" . $uCity["endip"];
         $address	= $uCity["country"];
 
-        $status_d   = $status?0:1;
+        $status_d   = $status?1:0;
 
         $bind	    = [
             'time'      => $time,
@@ -949,6 +950,22 @@ class Auth
     public function get_cookie_game_id():int
     {
         return (int)$_COOKIE['cp_game_id'];
+    }
+
+    /*
+    * cookie hall_id  hyz  2017-9-27
+    * */
+    public function set_cookie_hall_id(int $hall_id)
+    {
+        setcookie('cp_hall_id', $hall_id, time()+86400);
+    }
+
+    /*
+     * cookie hall_id  hyz 2017-9-27
+     * */
+    public function get_cookie_hall_id()
+    {
+        return (int)$_COOKIE['cp_hall_id'];
     }
 
     /**

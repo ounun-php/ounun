@@ -169,14 +169,14 @@ class Mysqli
      * @param array $bind2 数据
      * @return int $insert_id
      */
-    public function insert(string $table, array $bind, string $param = '', string $ext = '', array $bind2 = [])
+    public function insert(string $table, array $bind, string $params = '', string $ext = '', array $bind2 = [])
     {
         // Check for associative array
         if(array_keys($bind) !== range(0, count($bind) - 1))
         {
             // Associative array
             $cols 	= array_keys($bind);
-            $sql 	= "INSERT {$param} INTO {$table} " . '(`' . implode('`, `', $cols) . '`) ' . 'VALUES (:' . implode(', :', $cols) . ') ' . $this->format($ext, $bind2).';';
+            $sql 	= "INSERT {$params} INTO {$table} " . '(`' . implode('`, `', $cols) . '`) ' . 'VALUES (:' . implode(', :', $cols) . ') ' . $this->format($ext, $bind2).';';
 
             $this->conn($sql, $bind);
         }
@@ -189,7 +189,7 @@ class Mysqli
             {
                 $tmpArray[] = $this->format(' :' . implode(', :', $cols) . ' ', $v);
             }
-            $sql = "INSERT {$param} INTO {$table} " . '(`' . implode('`, `', $cols) . '`) ' . 'VALUES (' . implode('),(', $tmpArray) . ') ' . $this->format($ext, $bind2).';';
+            $sql = "INSERT {$params} INTO {$table} " . '(`' . implode('`, `', $cols) . '`) ' . 'VALUES (' . implode('),(', $tmpArray) . ') ' . $this->format($ext, $bind2).';';
             $this->conn($sql);
         }
         //$this->_insert_id 	 = mysqli_insert_id($this->_conn); //取得上一步 INSERT 操作产生的 ID
