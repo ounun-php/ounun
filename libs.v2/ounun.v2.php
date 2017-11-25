@@ -1,12 +1,13 @@
 <?php
 /** 命名空间 */
 namespace ounun;
+
 /** ounun根目录 */
-define('Ounun_Dir', 		 realpath(__DIR__) .'/');;
+define('Ounun_Dir', 		 realpath(__DIR__) .'/');
 /** 默认模块名称 */
-define('Ounun_Def_Mod', 	 'system');
+define('Ounun_Def_Mod', 	'system');
 /** 默认操作名称 */
-define('Ounun_Def_Met', 	 'index');
+define('Ounun_Def_Met', 	'index');
 
 /**
  * 得到访客的IP
@@ -165,17 +166,22 @@ function url_check(string $url_original="",bool $ext_req=true,string $domain=nul
             $url_reset  = "{$url_reset}?{$url[1]}";
         }
     }
+    // echo("\$url_reset:{$url_reset} \$url_original:{$url_original}\n");
+    // exit("\$domain:{$domain}\n");
     // 域名
     if($domain && $domain != $_SERVER['HTTP_HOST'])
     {
         $domain     = $_SERVER['HTTP_HOST'];
         $url_reset  = $url_reset?$url_reset:$_SERVER['REQUEST_URI'];
-        $url_reset  = "http://{$domain}{$url_reset}";
+        $url_reset  = "//{$domain}{$url_reset}";
+        // exit("\$url_reset:{$url_reset} \$domain:{$domain}\n");
         go_url($url_reset,false,301);
     }else if($url_reset)
     {
+        // exit("\$url_reset:{$url_reset}\n");
         go_url($url_reset,false,301);
     }
+    // exit("\$domain:{$domain}\n");
 }
 
 /**
@@ -259,8 +265,6 @@ function go_msg(string $msg,string $url = ''):void
     }
 }
 
-
-
 /**
  * 获得 json字符串数据
  * @param $data
@@ -321,7 +325,6 @@ function base64_url_encode(string $string = null):string
 {
     return strtr(base64_encode($string), '+/=', '-_~');
 }
-
 
 /**
  * 解码一个 URL传递的字符串
@@ -401,7 +404,6 @@ function msg(string $msg, bool $outer = true, $meta = true):string
 	}
 	return $rs;
 }
-
 
 /**
  * 出错提示错
@@ -504,8 +506,6 @@ function error404($msg=''):void
             <!-- a padding to disable MSIE and Chrome friendly error page -->');
 }
 
-
-
 /**
  * @param $delimiters
  * @param $string
@@ -578,10 +578,6 @@ function sanitize_filename(string $string):string
 	return sanitize($string, FALSE);
 }
 
-
-
-
-
 /**
  * 返回基类
  * Class Ret
@@ -622,11 +618,6 @@ class ret
  */
 class base
 {
-    /**
-     * @var string 默认方法
-     */
-	public $default_method = Ounun_Def_Met;
-
 	/**
 	 * 没定的方法
 	 * @param string $method
@@ -635,7 +626,7 @@ class base
 	public function __call($method, $args)
 	{
 		header('HTTP/1.1 404 Not Found');
-        $this->debug = new \ounun\Debug('logs/error_404_'.date('Ymd').'.txt',false,false,false,true);
+        $this->debug = new \debug(\Dir_Root.'logs/error_404_'.date('Ymd').'.txt',false,false,false,true);
         error404("\$method:{$method} \$args:[".implode(',',$args[0])."]");
 	}
 
@@ -648,15 +639,15 @@ class base
 	/**
 	 * 返回数据库连接对像
 	 * @param  string $key
-	 * @return \ounun\Mysqli
+	 * @return \ounun\mysqli
 	 */
-	public static function db(string $key,$db_cfg = null):\ounun\Mysqli
+	public static function db(string $key,$db_cfg = null):\ounun\mysqli
 	{
 	    if(null == $db_cfg)
         {
             $db_cfg = $GLOBALS['scfg']['db'][$key];
         }
-		self::$_db[$key] || self::$_db[$key] = new \ounun\Mysqli($db_cfg);
+		self::$_db[$key] || self::$_db[$key] = new \ounun\mysqli($db_cfg);
 		self::$_db[$key]->active();
 		return self::$_db[$key];
 	}
@@ -673,7 +664,7 @@ class view extends base
 	{
         if(!$mod)
 		{
-			$mod = [$this->default_method];
+			$mod = [cfg::Def_Met];
 		}
         $method  = $mod[0];
 		$this->$method( $mod );
@@ -681,7 +672,7 @@ class view extends base
 
     /**
      * 调试 相关
-     * @var \ounun\Debug
+     * @var \debug
      */
     public $debug	= null;
 
@@ -709,21 +700,6 @@ class view extends base
         }
     }
 
-    /**
-     * 头文件
-     * @param string $k
-     * @param $v
-     * @param bool $debug
-     * @param string $funs
-     * @param string $line
-     */
-    public function debug_header(string $k, $v,bool $debug=false,string $funs='',string $line='')
-    {
-        if($this->debug)
-        {
-            $this->debug->header($k,$v,$debug,$funs,$line);
-        }
-    }
 	/**
 	 * Template句柄容器
 	 * @var \ounun\Tpl
@@ -731,7 +707,7 @@ class view extends base
 	protected $_stpl = null;
     /**
      * 模板驱动
-     * @var string null | PhpTemplate | SmartyTemplate
+     * @var string null | php | smarty
      */
 	protected $_stpl_drive = null;
 
@@ -747,8 +723,8 @@ class view extends base
 	{
 		if(null == $this->_stpl)
         {
-            require Ounun_Dir. 'tpl.class.php';
-            $this->_stpl        = new tpl(Ounun_Dir_Tpl,$this->_stpl_drive);
+            require Ounun_Dir. 'ounun/tpl.class.php';
+            $this->_stpl  = new tpl(Ounun_Dir_Tpl,$this->_stpl_drive,Ounun_Dir_Tpl_Pc);
         }
         $this->_global_assign();
 	}
@@ -837,25 +813,30 @@ function autoload($class_name)
 {
     $class_name = ltrim($class_name, '\\');
     $lists 	    = explode('\\', $class_name);
-    if('libs' == $lists[0])
+    if('app' == $lists[0])
     {
-        array_shift($lists);
-        $file_name  = implode('/', $lists).'.class.php';
-        $file_name  = \Dir_Libs_ProJ  . $file_name;
-    }elseif('app' == $lists[0] && 'libs' == $lists[1] )
-    {
-        array_shift($lists);
         array_shift($lists);
         $file_name  = implode('/', $lists).'.class.php';
         $file_name  =\Dir_Libs  . $file_name;
+        if(file_exists($file_name))
+        {
+            require $file_name;
+        }
     }else
     {
-        $file_name  = implode('/', $lists).'.class.php';
-        $file_name  = \Dir_Lib  . $file_name;
-    }
-    if(file_exists($file_name))
-    {
-        require $file_name;
+        $file_name0   = implode('/', $lists) . '.class.php';
+        $file_name    = \Dir_Libs_ProJ . $file_name0;
+        if (file_exists($file_name))
+        {
+            require $file_name;
+        } else
+        {
+            $file_name = \Dir_Lib . $file_name0;
+            if (file_exists($file_name))
+            {
+                require $file_name;
+            }
+        }
     }
 }
 
@@ -876,18 +857,18 @@ function start($mod,$app)
     define('Dir_Libs',        	    \Dir_App . 'libs/');
     /** 模块所在目录 */
     define('Ounun_Dir_Module', 	    \Dir_App . 'module/');
-    /** 加载libs/scfg.{$app}.ini.php文件 */
-    $filename   = Dir_Libs . "scfg.{$app}.ini.php";
-    if(file_exists($filename))
-    {
-        require $filename;
-    }
     /** 模板存放目录 */
     define('Ounun_Dir_Tpl', 	    \Const_Mobile_Edition?\Dir_App . 'tpl.mobile/':\Dir_App . 'tpl.pc/');
     /** 模板存放目录pc */
     define('Ounun_Dir_Tpl_Pc', 	    \Dir_App . 'tpl.pc/'        );
     /** 模板存放目录mobile */
     define('Ounun_Dir_Tpl_Mobile',  \Dir_App . 'tpl.mobile/'    );
+    /** 加载libs/scfg.{$app}.ini.php文件 */
+    $filename   = Dir_Libs . "scfg.{$app}.ini.php";
+    if(file_exists($filename))
+    {
+        require $filename;
+    }
 
 	// 设定 模块与方法
 	if(is_array($mod) && $mod[0])
@@ -957,8 +938,8 @@ function start($mod,$app)
 	{
 	    // 默认模块 与 默认方法
 		$mod				= [Ounun_Def_Met];
-		$module				= Ounun_Def_Mod;
-		$filename 			= Ounun_Dir_Module . $module . '.class.php';
+		$module				=  Ounun_Def_Mod;
+		$filename 			=  Ounun_Dir_Module . $module . '.class.php';
 	}
 	// 包括模块文件
 	require $filename;

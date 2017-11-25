@@ -1,7 +1,7 @@
 <?php 
 namespace ounun;
 
-class _html_cache extends Cache
+class _html_cache extends cache
 {
     private $_cache_time    = -1;
     private $_cache_time_t  = -1;
@@ -53,11 +53,11 @@ class _html_cache extends Cache
         if(self::Type_File == $this->_type)
         {
             $filename = $this->filename();
-            debug_header('filename',$filename,$this->_debug,__FUNCTION__,__LINE__);
+            \debug::header('filename',$filename,$this->_debug,__FUNCTION__,__LINE__);
             if(file_exists($filename) )
             {
                 $this->_cache_time = filemtime($filename);
-                debug_header('cache_time',$this->_cache_time,$this->_debug,__FUNCTION__,__LINE__);
+                \debug::header('cache_time',$this->_cache_time,$this->_debug,__FUNCTION__,__LINE__);
             }
         }else
         {
@@ -80,11 +80,11 @@ class _html_cache extends Cache
         if(self::Type_File == $this->_type)
         {
             $filename = $this->filename().'.t';
-            debug_header('file',$filename,$this->_debug,__FUNCTION__,__LINE__);
+            \debug::header('file',$filename,$this->_debug,__FUNCTION__,__LINE__);
             if(file_exists($filename) )
             {
                 $this->_cache_time_t = filemtime($filename);
-                debug_header('time',$this->_cache_time_t,$this->_debug,__FUNCTION__,__LINE__);
+                \debug::header('time',$this->_cache_time_t,$this->_debug,__FUNCTION__,__LINE__);
             }
         }else
         {
@@ -101,7 +101,7 @@ class _html_cache extends Cache
         if(self::Type_File == $this->_type)
         {
             $filename = $this->filename().'.t';
-            debug_header('file',$filename,$this->_debug,__FUNCTION__,__LINE__);
+            \debug::header('file',$filename,$this->_debug,__FUNCTION__,__LINE__);
             if(file_exists($filename) )
             {
                 touch($filename);
@@ -133,11 +133,11 @@ class _html_cache extends Cache
         if(self::Type_File == $this->_type)
         {
             $filename = $this->filename();
-            debug_header('file',$filename,$this->_debug,__FUNCTION__,__LINE__);
+            \debug::header('file',$filename,$this->_debug,__FUNCTION__,__LINE__);
             if(file_exists($filename) )
             {
                 $this->_cache_size = filesize($filename);
-                debug_header('size',$this->_cache_size,$this->_debug,__FUNCTION__,__LINE__);
+                \debug::header('size',$this->_cache_size,$this->_debug,__FUNCTION__,__LINE__);
             }
             $this->_cache_size     = 0;
         }else
@@ -157,7 +157,7 @@ class _html_cache extends Cache
             $this->val($html);
             $this->write();
             $filename = $this->filename().'.t';
-            debug_header('delfile',$filename,$this->_debug,__FUNCTION__,__LINE__);
+            \debug::header('delfile',$filename,$this->_debug,__FUNCTION__,__LINE__);
             if(file_exists($filename) )
             {
                 unlink($filename);
@@ -212,7 +212,6 @@ class _html_cache extends Cache
         $this->_cache_time_t  = -1;
         $this->_cache_size    = -1;
         return parent::delete();
-        // return $this->delete();
     }
 }
 /*
@@ -234,12 +233,17 @@ class html
     private $_now_time;
 
     // 下面 高级应用
+    /** @var bool  */
     private $_stop			 	= false;
+    /** @var bool  */
     private $_trim			 	= false;
+    /** @var bool  */
     private $_debug		        = false;
+    /** @var bool  */
     private $_gzip	            = true;
+    /** @var int  */
     private $_cache_time		= 0;
-    /** @var _html_cache */
+    /** @var null|_html_cache  */
     private $_cache             = null;
     /**
      * 创建缓存对像
@@ -248,7 +252,7 @@ class html
      * @param int 	 $expire
      * @param string $key
      */
-    public function __construct($app,$app_ver,$cache_config,$key='',$expire=3600,$trim=true,$debug=false)
+    public function __construct(string $app,$app_ver,$cache_config,string $key='',int $expire=3600,bool $trim=true,bool $debug=true)
     {
         // 初始化参数
         $this->_app          = $app;
@@ -276,7 +280,7 @@ class html
      * [1/1] 判断->执行缓存->输出
      * @param   booleam $outpt  ( 是否输出 )
      */
-    public function run($output = true)
+    public function run(bool $output = true)
     {
     	$is_cache  = $this->run_cache_check();
     	if($is_cache)
@@ -298,18 +302,18 @@ class html
     {
         $this->_cache_time  = $this->_cache->cache_time();
         //exit("\$this->_cache_time:{$this->_cache_time }");
-        debug_header('time',  $this->_cache_time,$this->_debug,__FUNCTION__,__LINE__);
-        debug_header('expire',$this->_expire,    $this->_debug,__FUNCTION__,__LINE__);
+        \debug::header('time',  $this->_cache_time,$this->_debug,__FUNCTION__,__LINE__);
+        \debug::header('expire',$this->_expire,    $this->_debug,__FUNCTION__,__LINE__);
         if( $this->_cache_time + $this->_expire > $this->_now_time )
         {
-            debug_header('xypc',$this->_cache->filename(),true,__FUNCTION__,__LINE__);
+            \debug::header('xypc',$this->_cache->filename(),true,__FUNCTION__,__LINE__);
             return true;
         }
         $cache_time_t       = $this->_cache->cache_time_tmp();
-        debug_header('time_t',$cache_time_t,$this->_debug,__FUNCTION__,__LINE__);
+        \debug::header('time_t',$cache_time_t,$this->_debug,__FUNCTION__,__LINE__);
     	if($cache_time_t + self::Cache_Time_Interval > $this->_now_time)
     	{
-            debug_header('xypc_t',$this->_cache->filename().'.t time:'.$cache_time_t,true,__FUNCTION__,__LINE__);
+            \debug::header('xypc_t',$this->_cache->filename().'.t time:'.$cache_time_t,true,__FUNCTION__,__LINE__);
             return true;
     	}
         $this->_cache_time = 0;
@@ -319,9 +323,9 @@ class html
      * [2/3] 执行缓存程序
      * @param   booleam $outpt  ( 是否输出 )
      */
-    public function run_execute($output)
+    public function run_execute(bool $output)
     {
-        debug_header('xypm',$this->_cache->filename(),$this->_debug,__FUNCTION__,__LINE__);
+        \debug::header('xypm',$this->_cache->filename(),$this->_debug,__FUNCTION__,__LINE__);
         //
     	$this->_stop = false;
         $this->_cache->cache_set_time_tmp();
@@ -355,12 +359,12 @@ class html
     	header('HTTP/1.1 404 Not Found');
     	exit;
     }
-    /*
+
+    /**
      * 创建缓存
-     * @param   booleam $status ( 状态 )
-     * @param   booleam $outpt  ( 是否输出 )
+     * @param $output 是否有输出
      */
-    public function callback($output)
+    public function callback(bool $output)
     {
     	if($this->_stop)
         {
@@ -372,14 +376,15 @@ class html
         ob_clean();
         ob_implicit_flush(1);
         // 写文件
-        debug_header('xypm_size',$filesize,$this->_debug,__FUNCTION__,__LINE__);
+        \debug::header('xypm_size',$filesize,$this->_debug,__FUNCTION__,__LINE__);
         if($filesize > self::Cache_Mini_Size)
         {
-            debug_header('xypm_ok',$this->_cache->filename(),$this->_debug,__FUNCTION__,__LINE__);
+            \debug::header('xypm_ok',$this->_cache->filename(),$this->_debug,__FUNCTION__,__LINE__);
             if($this->_trim)
             {
-                $buffer = preg_replace(array('/<!--.*?-->/','/[^:\-\"]\/\/[^\S].*?\n/', '/\/\*.*?\*\//', '/[\n\r\t]*?/', '/\s{2,}/','/>\s?</','/<!--.*?-->/'),
-                                       array('','', '', '', ' ','><',''), $buffer);
+                $buffer = preg_replace(['/<!--.*?-->/','/[^:\-\"]\/\/[^\S].*?\n/', '/\/\*.*?\*\//', '/[\n\r\t]*?/', '/\s{2,}/','/>\s?</','/<!--.*?-->/','/\"\s?>/'],
+                                       [''            ,''                        , ''             , ''            , ' '       ,'><'     ,''            ,'">'],
+                                       $buffer);
             }
             $buffer     = gzencode($buffer, 9);
             $this->_cache->cache_html($buffer);
@@ -390,7 +395,7 @@ class html
             }
         }else
         {
-            debug_header('xypm_noc','nocache',$this->_debug,__FUNCTION__,__LINE__);
+            \debug::header('xypm_noc','nocache',$this->_debug,__FUNCTION__,__LINE__);
             if($output)
             {
                 header('Content-Length: '. $filesize);
@@ -409,7 +414,7 @@ class html
      * 看是否存在cache
      * @return int 小于0:无Cache 大于0:创建Cache时间
      */
-    public function cache_time()
+    public function cache_time():int
     {
         return $this->_cache_time;
     }
@@ -417,7 +422,7 @@ class html
      * 停止Cache
      * @param $output
      */
-    public function stop($output)
+    public function stop(bool $output)
     {
         $this->_stop = true;
         if($output)

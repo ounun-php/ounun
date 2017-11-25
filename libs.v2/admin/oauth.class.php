@@ -2,12 +2,12 @@
 /** 命名空间 */
 namespace admin;
 
-class auth
+class oauth
 {
     /**
      * session key
      * @var string
-     */
+     **/
     private $_session_key  = '';
     private $_session_id   = '';
     private $_session_g    = '';
@@ -76,13 +76,13 @@ class auth
         $this->_table_logs_login= $table_logs_login;
         $this->_table_logs_act  = $table_logs_act;
         // ip
-        $this->_max_ip         = $max_ip;
-        $this->_max_ips        = $max_ips;
+        $this->_max_ip          = $max_ip;
+        $this->_max_ips         = $max_ips;
         // session key
-        $this->_session_key    = $session_key;
+        $this->_session_key     = $session_key;
         $this->_session_set();
 
-        self::$_instance       = $this;
+        self::$_instance        = $this;
     }
 
     /**
@@ -110,7 +110,7 @@ class auth
      * 登录
      * $field : id,type,cid,account,password,note
      */
-    function login(string $account,string $password,int $cid,string $code):Ret
+    public function login(string $account,string $password,int $cid,string $code):ret
     {
         $check      = $this->_check_ip($cid, $account);
         $account_id = 0;
@@ -155,27 +155,27 @@ class auth
                     $bind	     = [ 'login_times'=>$login_times, 'login_last' =>$login_last ];
                     $this->_db->update($this->_table_adm, $bind,' `id`= ? ',$rs['id']);
                     $this->_logs_login(true,$account_id,$cid,$account);
-                    return new Ret(true);
+                    return new ret(true);
                 }
                 $this->_logs_login(false,$account_id,$cid,$account);
-                return new Ret(false,0,'失败:帐号或密码有误');
+                return new ret(false,0,'失败:帐号或密码有误');
             }
             $this->_logs_login(false,$account_id,$cid,$account);
-            return new Ret(false,0,'失败:谷歌验证有误');
+            return new ret(false,0,'失败:谷歌验证有误');
         }
         $this->_logs_login(false,$account_id,$cid,$account);
-        return new Ret(false,0,'失败:帐号不存在');
+        return new ret(false,0,'失败:帐号不存在');
     }
 
     /**
      * IP检查 是否锁定
-     * @return Ret
+     * @return ret
      */
-    private function _check_ip():Ret
+    private function _check_ip():ret
     {
         $ip		    = \ounun\ip();
-        $wry        = new \plugins\qqwry\QQWry('utf-8');
-        $uCity      = $wry->getlocation($ip);
+        $wry        = new \plugins\qqwry\ip('utf-8');
+        $uCity      = $wry->location($ip);
         $ip_segment	= $uCity["beginip"] . "-" . $uCity["endip"];
 
         $status	    = 0;
@@ -191,16 +191,16 @@ class auth
             // exit();
             if ($rs_ip_counts <= $this->_max_ip)
             {
-                return new Ret(true);
+                return new ret(true);
             }
             else
             {
-                return new Ret(false,0,'IP地址登录失败超过'.$this->_max_ip.'次');
+                return new ret(false,0,'IP地址登录失败超过'.$this->_max_ip.'次');
             }
         }
         else
         {
-            return new Ret(false,0,'IP地址段登录失败超过'.$this->_max_ips.'次');
+            return new ret(false,0,'IP地址段登录失败超过'.$this->_max_ips.'次');
         }
     }
 
@@ -218,8 +218,8 @@ class auth
             {
                 if($ext['google']['is'])
                 {
-                    $ga     = new \plugins\google\GoogleAuthenticator();
-                    return $ga->verifyCode($ext['google']['secret'],$code);
+                    $ga = new \plugins\google\auth_code();
+                    return $ga->verify_code($ext['google']['secret'],$code);
                 }else
                 {
                     return true;
@@ -244,8 +244,8 @@ class auth
     private function _logs_login(bool $status,int $account_id, int $cid, string $account)
     {
         $ip		    = \ounun\ip();
-        $wry        = new \plugins\qqwry\QQWry('utf-8');
-        $uCity      = $wry->getlocation($ip);
+        $wry        = new \plugins\qqwry\ip('utf-8');
+        $uCity      = $wry->location($ip);
 
         $time		= time();
         $ip_segment	= $uCity["beginip"] . "-" . $uCity["endip"];
@@ -281,8 +281,8 @@ class auth
             $url=$_SERVER['HTTP_REFERER'];
         }
         $ip    = \ounun\ip();
-        $wry   = new \plugins\qqwry\QQWry('utf-8');
-        $uCity = $wry->getlocation($ip);
+        $wry   = new \plugins\qqwry\ip('utf-8');
+        $uCity = $wry->location($ip);
 
         $account_id = $this->get_account_id();
         $cid        = $this->get_cid();
@@ -312,15 +312,15 @@ class auth
 
     /**
      * 添加帐号
-     * @return Ret
+     * @return ret
      */
-    public function user_add(int $adm_type,int $adm_cid,string $adm_account,string $password,string $adm_tel,string $adm_note):Ret
+    public function user_add(int $adm_type,int $adm_cid,string $adm_account,string $password,string $adm_tel,string $adm_note):ret
     {
         // 看是否存在相同的帐号
         $rs             = $this->_db->row("SELECT `adm_id` FROM {$this->_table_adm} where `cid` = :cid  and `account` = :account limit 0,1;",['cid'=>$adm_cid,'account'=>$adm_account]);
         if($rs)
         {
-            return new Ret(false,0,'提示：帐号"'.$adm_account.'"已存在!');
+            return new ret(false,0,'提示：帐号"'.$adm_account.'"已存在!');
         }
         // 添加
         $adm_type_p     = $this->get_type();
@@ -341,34 +341,34 @@ class auth
         $this->logs_act($adm_id?1:0,1,$bind);
         if($adm_id)
         {
-            return new Ret(true,0,"成功:操作成功!");
+            return new ret(true,0,"成功:操作成功!");
         }
-        return new Ret(false,0,'提示：系统忙稍后再试!');
+        return new ret(false,0,'提示：系统忙稍后再试!');
     }
 
     /**
      * 更新帐号
-     * @return Ret
+     * @return ret
      */
-    public function user_modify():Ret
+    public function user_modify():ret
     {
 
     }
     /**
      * 帐号删除
-     * @return Ret
+     * @return ret
      */
-    public function user_del(int $adm_id):Ret
+    public function user_del(int $adm_id):ret
     {
         if($adm_id == $this->get_account_id())
         {
-            return new Ret(false,0,'提示：不能删除自己[account_id]!');
+            return new ret(false,0,'提示：不能删除自己[account_id]!');
         }
         $rs			 = $this->_db->row("SELECT `cid`,`account` FROM {$this->_table_adm} where `adm_id` = :adm_id limit 0,1;",['adm_id'=>$adm_id]);
         if($rs['cid'] == $this->get_cid() &&
            $rs['account'] == $this->get_account() )
         {
-            return new Ret(false,0,'提示：不能删除自己[account]!');
+            return new ret(false,0,'提示：不能删除自己[account]!');
         }
         $bind = ['adm_id'=>$adm_id,'cid'=>$rs['cid'], 'account'=>$rs['account'] ];
         $rs   = $this->_db->delete($this->_table_adm,'`adm_id`= :adm_id ',$bind);
@@ -376,23 +376,23 @@ class auth
         $this->logs_act($rs?1:0,3,$bind);
         if($rs)
         {
-            return new Ret(true,0,"成功:操作成功!");
+            return new ret(true,0,"成功:操作成功!");
         }
-        return new Ret(false,0,'提示：系统忙稍后再试!');
+        return new ret(false,0,'提示：系统忙稍后再试!');
     }
     /**
      * 更改密码
-     * @return Ret
+     * @return ret
      */
-    public function user_modify_passwd($old_pwd,$new_pwd,$google_code):Ret
+    public function user_modify_passwd($old_pwd,$new_pwd,$google_code):ret
     {
         if(!$old_pwd)
         {
-            return new Ret(false,0,'提示：请输入旧密码');
+            return new ret(false,0,'提示：请输入旧密码');
         }
         if(!$new_pwd)
         {
-            return new Ret(false,0,'提示：请输入新密码');
+            return new ret(false,0,'提示：请输入新密码');
         }
         $account_id	    = $this->get_account_id();
         $rs			    = $this->_db->row("SELECT `adm_id`,`password`,`exts` FROM {$this->_table_adm} where `adm_id` = ? ;",$account_id);
@@ -403,10 +403,10 @@ class auth
 
         if ($old_pwd_md5 != $rs['password'])
         {
-            return new Ret(false,0,'提示：旧密码错误,请重新输入');
+            return new ret(false,0,'提示：旧密码错误,请重新输入');
         }else if(!$this->_check_google($exts,$google_code))
         {
-            return new Ret(false,0,'提示：请输入正确6位数谷歌(洋葱)验证');
+            return new ret(false,0,'提示：请输入正确6位数谷歌(洋葱)验证');
         }
         else
         {
@@ -414,10 +414,10 @@ class auth
             $rs2 = $this->_db->update($this->_table_adm, ['password'=>$new_pwd_md5, ],' `adm_id`= ? ',$account_id);
             if($rs2)
             {
-                return new Ret(true, 0,'成功：密码修改成功!');
+                return new ret(true, 0,'成功：密码修改成功!');
             }else
             {
-                return new Ret(false,0,'提示：系统忙,请稍后再试');
+                return new ret(false,0,'提示：系统忙,请稍后再试');
             }
         }
     }
@@ -460,7 +460,7 @@ class auth
     /**
      * 设定 Google身份验证
      */
-    public function user_set_exts_google($google_yn=true,$ext=null,$old_pwd='',$google_code=''):Ret
+    public function user_set_exts_google($google_yn=true,$ext=null,$old_pwd='',$google_code=''):ret
     {
         $account_id	= $this->get_account_id();
         if(!$ext && $old_pwd != '' && $google_code != '')
@@ -470,12 +470,12 @@ class auth
             $oldpwd		= md5(md5($old_pwd));
             if ($oldpwd != $rs['password'])
             {
-                return new Ret(false,0,'失败：登录密码有误!');
+                return new ret(false,0,'失败：登录密码有误!');
             }
             $ext['google']['is'] = true;
             if(!$this->_check_google($ext, $google_code) )
             {
-                return new Ret(false,0,'失败：谷歌验证有误!');
+                return new ret(false,0,'失败：谷歌验证有误!');
             }
         }
         if(!$ext)
@@ -496,10 +496,10 @@ class auth
         $rs          = $this->_db->update($this->_table_adm,['exts'=>serialize($ext)],' `adm_id` = ? ',$account_id);
         if($rs)
         {
-            return new Ret(true,0, '成功：操作成功!');
+            return new ret(true,0, '成功：操作成功!');
         }else
         {
-            return new Ret(false,0,'提示:系统忙,请稍后再试');
+            return new ret(false,0,'提示:系统忙,请稍后再试');
         }
     }
 

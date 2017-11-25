@@ -10,41 +10,41 @@ class Auth
      * session key
      * @var string
      */
-    private $_session_key  = '';
-    private $_session_id   = '';
-    private $_session_g    = '';
-    private $_session_pass = '';
-    private $_session_cid  = '';
-    private $_session_type = '';
-    private $_session_hash = '';
+    protected $_session_key  = '';
+    protected $_session_id   = '';
+    protected $_session_g    = '';
+    protected $_session_pass = '';
+    protected $_session_cid  = '';
+    protected $_session_type = '';
+    protected $_session_hash = '';
 
     /** IP限定 */
-    private $_max_ips      = 20;
-    private $_max_ip       = 5;
+    protected $_max_ips      = 20;
+    protected $_max_ip       = 5;
 
     /** table */
-    private $_table_adm         = '';
-    private $_table_logs_login  = '';
-    private $_table_logs_act    = '';
+    protected $_table_adm         = '';
+    protected $_table_logs_login  = '';
+    protected $_table_logs_act    = '';
 
     /**
      * 权限列表
      * @var array
      */
-    private $_purview           = [];
-    private $_purview_group     = [];
-    private $_purview_root      = [10,20];
-    private $_purview_coop      = [10,20,50];
-    private $_purview_default   = 'info';
+    protected $_purview           = [];
+    protected $_purview_group     = [];
+    protected $_purview_root      = [10,20];
+    protected $_purview_coop      = [10,20,50];
+    protected $_purview_default   = 'info';
 
     /**
      * Mysqli 句柄
      * @var \ounun\Mysqli
      */
-    private $_db;
+    protected $_db;
 
     /** @var Auth */
-    private static $_instance;
+    protected static $_instance;
     public  static function instance()
     {
         if(!self::$_instance)
@@ -915,7 +915,6 @@ class Auth
         return (int)$_COOKIE['cp_sid'];
     }
 
-
     /**
      * cookie sid
      * @param int $sid
@@ -1000,4 +999,5 @@ class Auth
         }
         return sha1($account.$cid. $this->_session_key . $password);
     }
+
 }

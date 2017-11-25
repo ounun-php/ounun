@@ -11,15 +11,22 @@ namespace ounun;
  */
 class page
 {
-    protected $_cfg_note   	= '总共有{total}条数据,共{total_page}页,第{page}页'; // 提示串
-    protected $_cfg_default = ['<li>', '</li>'];              // 默认页
-    protected $_cfg_now 	= ['<li class="now">', '</li>'];  // 当前页面时
-    protected $_cfg_tag 	= ['|&lt;','&lt;','&gt;','&gt;|'];// 第一页 上一页 下一页 最后一页
-    protected $_cfg_max 	= 7;  // 最多显示几页
-    protected $_cfg_rows    = 20; // 一页显示几条数据
-    protected $_cfg_index 	= []; // 第一页
+    /** @var string  提示串  */
+    protected $_cfg_note   	= '总共有{total}条数据,共{total_page}页,第{page}页';
+    /** @var array   默认页  */
+    protected $_cfg_default = ['<li>', '</li>'];
+    /** @var array   当前页面时 */
+    protected $_cfg_now 	= ['<li class="now">', '</li>'];
+    /** @var array   第一页 上一页 下一页 最后一页 */
+    protected $_cfg_tag 	= ['|&lt;','&lt;','&gt;','&gt;|'];
+    /** @var int     最多显示几页     */
+    protected $_cfg_max 	= 7;
+    /** @var int     一页显示几条数据  */
+    protected $_cfg_rows    = 20;
+    /** @var array   第一页          */
+    protected $_cfg_index 	= [];
 
-    //
+    /** @var \ounun\mysqli  */
     protected $_db;
     protected $_table;
     protected $_url;
@@ -31,16 +38,19 @@ class page
     protected $_total;
     protected $_total_page    = 1;
     protected $_page 	      = 1;
-    
+
     /**
      * 创建一个分页类
-     * @param resource $db
+     * page constructor.
+     * @param mysqli $db
      * @param string $table
      * @param string $url
-     * @param string $where
+     * @param string $where_str
+     * @param array $where_bind
+     * @param string $sql_count
      * @param array $config
      */
-    public function __construct($db, $table, $url, $where_str = '', $where_bind = [], $sql_count = 'count(*)',  $config    = [])
+    public function __construct(\ounun\mysqli $db,string $table,string $url,string $where_str = '',array $where_bind = [],string $sql_count = 'count(*)',  array $config = [])
     {
         $this->_db    = $db;
         $this->_table = $table;
@@ -51,9 +61,7 @@ class page
 
         if($config)
         {
-            $this->set_config($config['rows'],$config['max'],
-                              $config['index_page'],$config['note'],
-                              $config['tag'],$config['now'],$config['default']);
+            $this->set_config($config);
         }
     }
 
@@ -62,35 +70,42 @@ class page
      * @param string|array $key
      * @param string $value
      */
-    public function set_config($rows,$max,$index_page,$note,$tag,$now,$default)
+    public function set_config(array $config)
     {
-        if($note)
+        // 提示串
+        if($config['note'])
         {
-            $this->_cfg_note   	= $note;        // 提示串
+            $this->_cfg_note   	= $config['note'];
         }
-        if($default)
+        // 默认页
+        if($config['default'])
         {
-            $this->_cfg_default = $default;     // 默认页
+            $this->_cfg_default = $config['default'];
         }
-        if($now)
+        // 当前页面时
+        if($config['now'])
         {
-            $this->_cfg_now 	= $now;         // 当前页面时
+            $this->_cfg_now 	= $config['now'];
         }
-        if($tag)
+        // 第一页 上一页 下一页 最后一页
+        if($config['tag'])
         {
-            $this->_cfg_tag 	= $tag;         // 第一页 上一页 下一页 最后一页
+            $this->_cfg_tag 	= $config['tag'];
         }
-        if($max)
+        // 最多显示几页
+        if($config['max'])
         {
-            $this->_cfg_max 	= $max;         // 最多显示几页
+            $this->_cfg_max 	= $config['max'];
         }
-        if($rows)
+        // 一页显示几条数据
+        if($config['rows'])
         {
-            $this->_cfg_rows    = $rows;        // 一页显示几条数据
+            $this->_cfg_rows    = $config['rows'];
         }
-        if($index_page)
+        // 第一页
+        if($config['index'])
         {
-            $this->_cfg_index 	= $index_page;  // 第一页
+            $this->_cfg_index 	= $config['index'];
         }
     }
     /**
@@ -99,7 +114,7 @@ class page
      * @param array $config
      * @return array
      */
-    public function init($page=0,$title="",$default_end = false)
+    public function init(int $page=0,string $title="",bool $default_end = false):array
     {
         $page_default    = $this->_cfg_default;
         $page_now        = $this->_cfg_now;
@@ -140,7 +155,10 @@ class page
                 }
             }
         }
-        return ['note'=>$rs_note,'page'=>$rs_page];
+        return [
+                    'note'=>$rs_note,
+                    'page'=>$rs_page
+               ];
     }
     
     /**
@@ -150,7 +168,7 @@ class page
      * @param array $config
      * @return array
      */
-    public function data($page = 0,$default_end=false)
+    public function data(int $page = 0,bool $default_end=false):array
     {
         $m                 = ceil($this->_cfg_max / 2);
         $this->_total      = $this->total();
@@ -247,7 +265,7 @@ class page
      * @param array $arr
      * @return string
      */
-    private function _set_note($total, $total_page, $page)
+    private function _set_note(int $total,int $total_page,int $page):string
     {
         return str_replace(['{total}','{total_page}', '{page}'], [$total,$total_page,$page], $this->_cfg_note);
     }
@@ -257,7 +275,7 @@ class page
      * @param int $page
      * @return string
      */
-    protected function _set_url($page)
+    protected function _set_url(int $page):string
     {
         $url     = str_replace('{page}', $page, $this->_url);
         if($this->_cfg_index)

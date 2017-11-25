@@ -9,11 +9,18 @@ namespace ounun;
  */
 abstract class _tpl
 {
+
     /**
      * 模板文件所以目录
      * @var string
      */
     protected $_tpl_dir;
+
+    /**
+     * 模板文件所以目录(移动)
+     * @var string
+     */
+    protected $_tpl_dir_backup;
 
     /**
      * 模板文件所以目录(当前目录)
@@ -29,9 +36,9 @@ abstract class _tpl
 
     /**
      * 创建对像
-     * @param string $template_dir
+     * @param string $tpl_dir
      */
-    abstract public function __construct($template_dir = null);
+    abstract public function __construct($tpl_dir = null);
 
     /**
      * 设定一个值
@@ -58,6 +65,12 @@ abstract class _tpl
      * @param $tpl_name
      */
     abstract public function file($tpl_name);
+
+    /**
+     * 返回一个 模板文件地址(兼容)
+     * @param $tpl_name
+     */
+    abstract public function file_comp($tpl_name);
 
     /**
      * 导入一个模板文件
@@ -89,32 +102,38 @@ class tpl
      * 模板驱动名
      * @var string
      */
-    private $_drive_name   = 'PhpTemplate';
+    private $_drive_name   = 'php';
 
     /**
      * 创建一个模板对像
      * Tpl constructor.
-     * @param $template_dir
+     * @param $tpl_dir
      * @param null $drive
      * @param string $temp_dir
      * @param string $cache_lifetime
-     * @param string $template_filename
+     * @param string $tpl_filename
      */
-    public function __construct($template_dir,$drive = null,$temp_dir='',$cache_lifetime='',$template_filename = '')
+    public function __construct($tpl_dir, $drive = null, $tpl_backup_dir = '', $temp_dir = '', $cache_lifetime = '', $tpl_filename = '')
     {
         if(null == $drive)
         {
             $drive = $this->_drive_name;
         }
-        $filename 		 = Ounun_Dir. "TplDrive/{$drive}.php";
+        $filename  = Ounun_Dir. "ounun/tpl_drive/{$drive}.class.php";
         if(file_exists($filename))
         {
             require $filename;
-            self::$_drive = new $drive($template_dir,$temp_dir,$cache_lifetime,$template_filename);
+            if('php' == $drive)
+            {
+                self::$_drive = new \ounun\tpl_drive\php($tpl_dir,$tpl_backup_dir);
+            }else
+            {
+                self::$_drive = new $drive($tpl_dir,$temp_dir,$cache_lifetime,$tpl_filename);
+            }
         }
         else
-       {
-            trigger_error("出错:找不到{$drive}模板驱动", E_USER_ERROR);
+        {
+            trigger_error("Error:Not found \"{$drive}\" template drive", E_USER_ERROR);
             exit();
         }
     }
@@ -158,16 +177,6 @@ class tpl
     }
 
     /**
-     * 最后输出
-     * @param $tpl_name
-     * @param array $vars
-     */
-    public function output($filename,array $args=[])
-    {
-        self::$_drive->output($filename,$args);
-    }
-
-    /**
      * 返回一个 模板文件地址(绝对目录,相对root)
      * @param $tpl_name
      */
@@ -193,5 +202,15 @@ class tpl
     public static function import($filename,$args=array())
     {
         self::$_drive->import($filename,$args);
+    }
+
+    /**
+     * 最后输出
+     * @param $tpl_name
+     * @param array $vars
+     */
+    public function output($filename,array $args=[])
+    {
+        self::$_drive->output($filename,$args);
     }
 }

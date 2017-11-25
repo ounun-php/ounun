@@ -13,6 +13,13 @@ class php extends \ounun\_tpl
      * @var string
      */
     protected $_tpl_dir;
+
+    /**
+     * 模板文件所以目录(移动)
+     * @var string
+     */
+    protected $_tpl_dir_backup;
+
     /**
      * 模板文件所以目录(当前目录)
      * @var string
@@ -27,13 +34,17 @@ class php extends \ounun\_tpl
 
     /**
      * 创建对像
-     * @param string $template_dir
+     * @param string $tpl_dir
      */
-    public function __construct($template_dir = null)
+    public function __construct($tpl_dir = null, $tpl_dir_backup = null)
     {
-        if($template_dir)
+        if($tpl_dir)
         {
-            $this->_tpl_dir = $template_dir;
+            $this->_tpl_dir = $tpl_dir;
+        }
+        if($tpl_dir_backup)
+        {
+            $this->_tpl_dir_backup = $tpl_dir_backup;
         }
         $this->_tpl_dir_cur = null;
     }
@@ -73,6 +84,16 @@ class php extends \ounun\_tpl
         }
     }
 
+
+    /**
+     * 返回一个 模板文件地址(绝对目录,相对root)
+     * @param $tpl_name
+     */
+    public function file($tpl_name)
+    {
+        return $this->_tpl_dir . $tpl_name;
+    }
+
     /**
      * 返回一个 模板文件地址(相对目录)
      * @param $tpl_name
@@ -83,12 +104,38 @@ class php extends \ounun\_tpl
     }
 
     /**
-     * 返回一个 模板文件地址(绝对目录,相对root)
+     * 返回一个 模板文件地址(兼容)
      * @param $tpl_name
      */
-    public function file($tpl_name)
+    public function file_comp($tpl_name)
     {
-        return $this->_tpl_dir . $tpl_name;
+        // 相对
+        if($this->_tpl_dir_cur)
+        {
+            $filename = $this->_tpl_dir_cur . $tpl_name;
+            if(file_exists($filename))
+            {
+                return $filename;
+            }
+        }
+        // 绝对
+        $filename = $this->_tpl_dir . $tpl_name;
+        if( file_exists($filename) )
+        {
+            $this->_tpl_dir_cur    = realpath(dirname($filename)) .'/';
+            return $filename;
+        }
+        // 备份
+        if($this->_tpl_dir_backup )
+        {
+            $filename = $this->_tpl_dir_backup . $tpl_name;
+            if( file_exists($filename) )
+            {
+                $this->_tpl_dir_cur = realpath(dirname($filename)) .'/';
+                return $filename;
+            }
+        }
+        return null;
     }
 
     /**
@@ -104,21 +151,13 @@ class php extends \ounun\_tpl
             extract($vars);
         }
 
-        $file_name    = $this->_tpl_dir_cur . $tpl_name;
-        if(file_exists($file_name))
+        $filename  = $this->file_comp($tpl_name);
+        if($filename)
         {
-            require $file_name;
+            require $filename;
         }else
         {
-            $file_name = $this->_tpl_dir . $tpl_name;
-            if(file_exists($file_name))
-            {
-                require $file_name;
-            }
-            else
-            {
-                trigger_error('<strong style="color:#F30">Can\'t find Template:'.$tpl_name.'</strong>', E_USER_ERROR);
-            }
+            trigger_error('<strong style="color:#F30">Can\'t find Template:'.$tpl_name.'</strong>', E_USER_ERROR);
         }
     }
 
@@ -129,22 +168,7 @@ class php extends \ounun\_tpl
      */
     public function output($tpl_name, $vars = array())
     {
-        extract($this->_data);
-        if($vars)
-        {
-            extract($vars);
-        }
-        // ===
-        $file_name 		        = $this->_tpl_dir . $tpl_name;
-        if(file_exists($file_name))
-        {
-            $this->_tpl_dir_cur = realpath(dirname($file_name)) .'/';
-            require $file_name;
-        }
-        else
-        {
-            trigger_error('<strong style="color:#F30">Can\'t find Template:'.$tpl_name.'</strong>', E_USER_ERROR);
-        }
+        $this->import($tpl_name,$vars);
         exit();
     }
 }

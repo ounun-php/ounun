@@ -1,5 +1,4 @@
 <?php
-namespace ounun;
 
 class debug
 {
@@ -21,9 +20,6 @@ class debug
 
     /** 是否输出 url */
     private $_is_out_url    = true;
-
-    /** header idx */
-    private $_header_idx    = 0;
 
     /**
      * 构造函数
@@ -51,11 +47,11 @@ class debug
 
     /**
      * 调试日志
-     * @param $k
-     * @param $log          日志内容
-     * @param $is_replace   是否替换
+     * @param string $k
+     * @param mixed  $log          日志内容
+     * @param bool   $is_replace   是否替换
      */
-	public function logs($k,$log,$is_replace = true)
+	public function logs(string $k,$log,$is_replace = true)
 	{
 		if($k && $log)
 		{
@@ -83,18 +79,14 @@ class debug
 		}
 	}
 
-	/**
-	 * 停止调试
-	 */
+	/** 停止调试 */
 	public function stop()
 	{
-		$this->_logs 		= array();
+		$this->_logs 		= [];
 		$this->_filename	= '';
 	}
 
-	/**
-	 * 内部内调
-	 */
+	/** 内部内调 */
 	public function callback()
 	{
 		$buffer     = ob_get_contents();
@@ -109,9 +101,7 @@ class debug
 	}
 
 
-	/**
-	 * 析构调试相关
-	 */
+	/** 析构调试相关 */
 	public function write()
 	{
 		if(!$this->_filename)
@@ -154,18 +144,22 @@ class debug
 		file_put_contents($filename, $str);
 	}
 
+
+    /** header idx */
+    private static $_header_idx    = 0;
+
     /**
      * 在header输出头数据
-     * @param $k
-     * @param $v
-     * @param bool|false $debug
+     * @param string $k
+     * @param mixed  $v
+     * @param bool   $debug
      */
-    public function header(string $k, $v,bool $debug=false,string $funs='',string $line='')
+    public  static function header(string $k, $v,bool $debug=false,string $funs='',string $line='')
     {
         // static $idx = 0;
         if($debug && !headers_sent() )
         {
-            $this->_header_idx++;
+            self::$_header_idx++;
             if($line)
             {
                 $key[]     = $line;
@@ -186,7 +180,7 @@ class debug
                 }
             }
             $key       = implode('-',$key);
-            $idx       = str_pad($this->_header_idx,4,'0',STR_PAD_LEFT);
+            $idx       = str_pad(self::$_header_idx,4,'0',STR_PAD_LEFT);
             header("{$idx}-{$key}: {$v}",false);
         }
     }

@@ -1,8 +1,9 @@
 <?php
-namespace video;
+namespace seo;
 
-class seo
+class video
 {
+
     protected $_url;
     protected $_http_host;
     protected $_requst_uri;
@@ -18,7 +19,6 @@ class seo
     protected $_seo_description;
     protected $_seo_h1;
 
-
     /**
      * _p constructor.
      * @param $key
@@ -27,16 +27,20 @@ class seo
      * @param int $data_id
      * @param int $category_id
      */
-    public function __construct($key)
+    public function __construct($key='')
     {
         $this->_url         = '//'.$this->_http_host.$this->_requst_uri;
         $this->_http_host   = $_SERVER['HTTP_HOST'];
         $this->_requst_uri  = $_SERVER['REQUEST_URI'];
 
-
         $this->_tag         = explode('.',$this->_http_host,2)[0];
-        $this->_key         = $key?"{$this->_http_host}.{$key}":$this->_http_host;
-        $this->_domain      = util::domain($this->_http_host);
+        $this->_domain      = cfg_domain::domain($this->_http_host);
+
+        $this->_data        = [];
+        if($key)
+        {
+            $this->set_key($key);
+        }
     }
 
     /**
@@ -45,12 +49,21 @@ class seo
      * @param $keywords
      * @param $description
      */
-    public function set_tkd($title,$keywords,$description,$h1)
+    public function set_tkd($title,$keywords,$description,$h1='')
     {
         $this->_seo_title       = $title;
         $this->_seo_keywords    = $keywords;
         $this->_seo_description = $description;
         $this->_seo_h1          = $h1;
+    }
+
+    /**
+     * 设定key
+     * @param $key
+     */
+    public function set_key($key)
+    {
+        $this->_key         = $key?"{$this->_http_host}.{$key}":$this->_http_host;
     }
 
     /**
@@ -64,17 +77,14 @@ class seo
             return $this->_data[$key];
         }
         return [
-            'url'          => $this->_url,
-            'm_host'       => "m-".$this->_http_host,
-            'p_host'       => $this->_http_host,
-            'requst_uri'   => $this->_requst_uri,
+            'url'         => $this->_url,
+            'http_host'   => $this->_http_host,
+            'requst_uri'  => $this->_requst_uri,
 
-            'tag'          => $this->_tag,
-            'key'          => $this->_key,
-            'domain'       => $this->_domain,
-
-            'data'         => $this->_data,
-        ];
+            'tag'         => $this->_tag,
+            'key'         => $this->_key,
+            'domain'      => $this->_domain,
+        ] + $this->_data;
     }
 
     /**

@@ -57,8 +57,14 @@ class util
      */
     public static function msubstr(string $str,int $length,int $start=0,bool $suffix=false):string
     {
-        $str = preg_replace('/<[^>]+>/','',preg_replace('/[\r\n\t ]{1,}/',' ',self::nb($str)));
-        return self::msubstr2($str,$length,$start,'utf-8',$suffix);
+        if($length)
+        {
+            $str = preg_replace('/<[^>]+>/','',preg_replace('/[\r\n\t ]{1,}/',' ',self::nb($str)));
+            return self::msubstr2($str,$length,$start,'utf-8',$suffix);
+        }else
+        {
+            return $str;
+        }
     }
 
     /**
@@ -287,7 +293,7 @@ class util
         {
             if (is_array($value))
             {
-                arrays2array($value);
+                self::arrays2array($value);
             } else
             {
                 $result_array[] = $value;
@@ -306,28 +312,6 @@ class util
     {
         $day_time = time() - $day_nums * 3600 * 24;
         return strtotime(date("Y-m-d 00:00:00", $day_time));
-    }
-
-    /**
-     * @param int $time
-     * @param string $color
-     * @param int $now
-     * @param int $interval
-     * @return string
-     */
-    public static function color_have(int $time,string $color='red',int $now=0,int $interval=86400):string
-    {
-        if(0 == $now)
-        {
-            $now = time();
-        }
-        if( $now-$time >$interval)
-        {
-            return '';
-        }else
-        {
-            return "color: {$color}";
-        }
     }
 
     /**
@@ -373,7 +357,7 @@ class util
     public static function letter_first($s0)
     {
         $firstchar_ord = ord(strtoupper($s0{0}));
-        if (($firstchar_ord>=65 and $firstchar_ord<=91)or($firstchar_ord>=48 and $firstchar_ord<=57))
+        if (($firstchar_ord>=65 && $firstchar_ord<=91) || ($firstchar_ord>=48 && $firstchar_ord<=57))
         {
             return $s0{0};
         }
@@ -402,7 +386,7 @@ class util
         if($asc>=-12556 and $asc<=-11848)return "X";
         if($asc>=-11847 and $asc<=-11056)return "Y";
         if($asc>=-11055 and $asc<=-10247)return "Z";
-        return "#";//null
+        return "1";//null
     }
 
     /**
@@ -415,5 +399,27 @@ class util
         preg_match_all('/<img(.*?)src="(.*?)(?=")/si',$content,$imgarr);///(?<=img.src=").*?(?=")/si
         preg_match_all('/(?<=src=").*?(?=")/si',implode('" ',$imgarr[0]).'" ',$imgarr);
         return $imgarr[0];
+    }
+
+    /*
+     * 参数：
+     * $str_cut 需要截断的字符串
+     * $length  允许字符串显示的最大长度
+     * 程序功能：截取全角和半角（汉字和英文）混合的字符串以避免乱码
+     */
+    static public function substr_cn($str_cn, $length)
+    {
+        if (strlen($str_cn) > $length)
+        {
+            for ($i = 0; $i < $length; $i++)
+            {
+                if (ord($str_cn[$i]) > 128)
+                {
+                    $i++;
+                }
+            }
+            $str_cn = substr($str_cn, 0, $i) . "..";
+        }
+        return $str_cn;
     }
 }

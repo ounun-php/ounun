@@ -10,28 +10,31 @@ namespace ounun;
 class mysqli
 {
     #class cache
-    /**
-     * @var \mysqli_result
-     */
+    /** @var \mysqli_result */
     protected $_rs;
-    /**
-     * @var \mysqli
-     */
-    protected $_conn; //_connection
-    protected $_sql;
-    protected $_insert_id;
-    protected $_query_times;
-    protected $_query_affected;
-    #db charset
+    /** @var \mysqli  connection */
+    protected $_conn;
+
+    /** @var string */
+    protected $_sql = '';
+    /** @var int */
+    protected $_insert_id      = 0;
+    /** @var int */
+    protected $_query_times    = 0;
+    /** @var int */
+    protected $_query_affected = 0;
+    /** @var string db charset */
     protected $_charset = 'utf8'; //,'utf8','gbk',latin1;
+
+    /** @var string */
     protected $_database;
 
     /**
      * 创建MYSQL类
-     * Mysqli constructor.
-     * @param $cfg 配制文件
+     * mysqli constructor.
+     * @param array $cfg
      */
-    public function __construct($cfg)
+    public function __construct(array $cfg)
     {
         if($cfg['charset'])
         {
@@ -39,7 +42,7 @@ class mysqli
         }
         $host            = explode(':',$cfg['host']);
         $post            = (int)$host[1];
-        $host            = $host[0];
+        $host            =      $host[0];
         $this->_database = $cfg['database'];
         $this->_conn 	 = new \mysqli($host,$cfg['username'],$cfg['password'],$this->_database,$post);
         $this->_conn->set_charset($this->_charset);
@@ -64,7 +67,7 @@ class mysqli
      */
     protected function format(string $sql, $bind = null):string
     {
-        if(null !== $bind)
+        if($bind)
         {
             if(strpos($sql, '?') !== false)
             {
@@ -88,10 +91,10 @@ class mysqli
      * @param  $bind
      * @return string
      */
-    protected function bindValue($sql, $bind)
+    protected function bindValue(string $sql, $bind):string
     {
         $rs  = preg_split('/(\:[A-Za-z0-9_]+)\b/', $sql, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY);
-        $rs2 = array();
+        $rs2 = [];
         foreach ($rs as $v)
         {
         	if($v[0] == ':')
@@ -128,7 +131,7 @@ class mysqli
     {
         if(is_array($value))
         {
-            $vals = array();
+            $vals = [];
             foreach ($value as $val)
             {
                 $vals[] = $this->quote($val);
@@ -144,15 +147,15 @@ class mysqli
     /**
      * 发送一条 MySQL 查询
      *
-     * @param  $sql
-     * @param  $bind
-     * @return resource
+     * @param string $sql
+     * @param null $bind
+     * @return bool|\mysqli_result
      */
-    public function conn($sql, $bind = null)
+    public function conn(string $sql = '', $bind = null)
     {
         if($sql)
         {
-			$this->_sql = $this->format($sql, $bind);
+			$this->_sql = $this->format( $sql, $bind);
 		}
         $this->_rs		= $this->_conn->query($this->_sql);
         $this->_query_times++;
@@ -169,7 +172,7 @@ class mysqli
      * @param array $bind2 数据
      * @return int $insert_id
      */
-    public function insert(string $table, array $bind, string $params = '', string $ext = '', array $bind2 = [])
+    public function insert(string $table, array $bind, string $params = '', string $ext = '', array $bind2 = []):int
     {
         // Check for associative array
         if(array_keys($bind) !== range(0, count($bind) - 1))
@@ -183,7 +186,7 @@ class mysqli
         else
         {
             // Indexed array
-            $tmpArray 	= array();
+            $tmpArray 	= [];
             $cols 		= array_keys($bind[0]);
             foreach ($bind as $v)
             {
@@ -192,23 +195,24 @@ class mysqli
             $sql = "INSERT {$params} INTO {$table} " . '(`' . implode('`, `', $cols) . '`) ' . 'VALUES (' . implode('),(', $tmpArray) . ') ' . $this->format($ext, $bind2).';';
             $this->conn($sql);
         }
-        //$this->_insert_id 	 = mysqli_insert_id($this->_conn); //取得上一步 INSERT 操作产生的 ID
-        //$this->_query_affected = mysqli_affected_rows($this->_conn); //取得前一次 MySQL 操作所影响的记录行数
+        
         $this->_insert_id 	     = $this->_conn->insert_id; //取得上一步 INSERT 操作产生的 ID
         $this->_query_affected   = $this->_conn->affected_rows; //取得前一次 MySQL 操作所影响的记录行数
         return $this->_insert_id;
     }
+
     /**
      * 插入一條或更新一条
      *
-     * @param  表名 $table    String
-     * @param  数据 $primary  Array
-     * @param  数据 $bind     Array
-     * @return queryAffected
+     * @param string $table  表名
+     * @param array $primary 数据
+     * @param array $bind    数据
+     * @param string $operate
+     * @return int
      */
-    public function insertUpdate($table, $primary, $bind,$operate='update')
+    public function insertUpdate(string $table,array $primary, array $bind, string $operate='update'):int
     {
-        $update= array();
+        $update= [];
         foreach ($bind as $col=>$val)
         {
         	if($operate =='add')
@@ -230,8 +234,6 @@ class mysqli
         $sql  = "INSERT  INTO {$table} " . '(`' . implode('`, `', $cols) . '`) ' . 'VALUES (:' . implode(', :', $cols) . ')  ON DUPLICATE KEY UPDATE '.implode(' , ',$update).';';
         $this->conn($sql,$primary);
         
-        //$this->_insert_id = mysqli_insert_id($this->_conn); //取得上一步 INSERT 操作产生的 ID
-        //$this->_query_affected = mysqli_affected_rows($this->_conn); //取得前一次 MySQL 操作所影响的记录行数
         $this->_insert_id 	   = $this->_conn->insert_id; //取得上一步 INSERT 操作产生的 ID
         $this->_query_affected = $this->_conn->affected_rows; //取得前一次 MySQL 操作所影响的记录行数
         return $this->_insert_id;
@@ -245,14 +247,13 @@ class mysqli
      * @param string $param 可选参数  //[LOW_PRIORITY | DELAYED(仅适用于MyISAM, MEMORY和ARCHIVE表) | HIGH_PRIORITY] [IGNORE]
      * @return insertId
      */
-    public function insertImport($table, $sql, $bind, $param = '')
+    public function insertImport(string $table,array $sql,array $bind,string $param = ''):int
     {
         $sql = "INSERT {$param} INTO {$table} " . $this->format($sql, $bind);
         $this->conn($sql, $bind);
-       // $this->_insert_id = mysqli_insert_id($this->_conn);
-       // $this->_query_affected = mysqli_affected_rows($this->_conn);
-        $this->_insert_id 	   = $this->_conn->insert_id; //取得上一步 INSERT 操作产生的 ID
-        $this->_query_affected = $this->_conn->affected_rows; //取得前一次 MySQL 操作所影响的记录行数
+        
+        $this->_insert_id 	   = $this->_conn->insert_id;     // 取得上一步 INSERT 操作产生的 ID
+        $this->_query_affected = $this->_conn->affected_rows; // 取得前一次 MySQL 操作所影响的记录行数
         return $this->_insert_id;
     }
 
@@ -264,20 +265,20 @@ class mysqli
      * @param string $param   可选参数  //[LOW_PRIORITY | DELAYED(仅适用于MyISAM, MEMORY和ARCHIVE表)]
      * @return insertId
      */
-    public function replace($table, $bind, $param = '')
+    public function replace(string $table,array $bind,string $param = ''):int
     {
         // Check for associative array
         if(array_keys($bind) !== range(0, count($bind) - 1))
         {
             // Associative array
             $cols = array_keys($bind);
-            $sql = "REPLACE {$param} INTO {$table} " . '(`' . implode('`, `', $cols) . '`) ' . 'VALUES (:' . implode(', :', $cols) . ') ;';
+            $sql  = "REPLACE {$param} INTO {$table} " . '(`' . implode('`, `', $cols) . '`) ' . 'VALUES (:' . implode(', :', $cols) . ') ;';
             $this->conn($sql, $bind);
         }
         else
        {
             // Indexed array
-            $tmpArray = array();
+            $tmpArray = [];
             $cols 	  = array_keys($bind[0]);
             foreach ($bind as $v)
             {
@@ -285,8 +286,7 @@ class mysqli
             }
             $sql = "REPLACE {$param} INTO {$table} " . '(`' . implode('`, `', $cols) . '`) ' . 'VALUES (' . implode('),(', $tmpArray) . ') ;';
             $this->conn($sql);
-        }
-        //$this->_query_affected = mysqli_affected_rows($this->_conn);
+        } 
         $this->_query_affected = $this->_conn->affected_rows; //取得前一次 MySQL 操作所影响的记录行数
         return $this->_query_affected;
     }
@@ -300,11 +300,11 @@ class mysqli
      * @param string $param 可选参数  //[LOW_PRIORITY | DELAYED(仅适用于MyISAM, MEMORY和ARCHIVE表)]
      * @return insertId
      */
-    public function replaceImport($table, $sql, $bind, $param = '')
+    public function replaceImport(string $table,string $sql ='', $bind = null,string $param = ''):int
     {
         $sql = "REPLACE {$param} INTO {$table} " . $this->format($sql, $bind);
-        $this->conn($sql, $bind);
-        //$this->_query_affected = mysqli_affected_rows($this->_conn);
+        $this->conn($sql, $bind); 
+
         $this->_query_affected = $this->_conn->affected_rows; //取得前一次 MySQL 操作所影响的记录行数
         return $this->_query_affected;
     }
@@ -319,7 +319,7 @@ class mysqli
      * @param string $param 可选参数 [LOW_PRIORITY] [IGNORE]
      * @return queryAffected
      */
-    public function update($table, $data, $where = null, $bind = null, $param = '', $limit = 0)
+    public function update(string $table, array $data, string $where = '', $bind = null,string $param = '',int $limit = 0):int
     {
         $where && $where = $this->format($where, $bind);
         $set = array();
@@ -327,9 +327,9 @@ class mysqli
         {
             $set[] = "`$col` = ".$this->quote($value);
         }
-        $sql = "UPDATE {$param} {$table} " . 'SET ' . implode(', ', $set) . (($where)?" WHERE {$where}":'') . ($limit?' LIMIT ' . ((int)$limit):'');
-        $this->conn($sql);
-        //$this->_query_affected = mysqli_affected_rows($this->_conn);
+        $sql = "UPDATE {$param} {$table} " . 'SET ' . implode(', ', $set) . (($where)?" WHERE {$where}":'') . ($limit?' LIMIT ' . $limit:'');
+        $this->conn($sql); 
+
         $this->_query_affected = $this->_conn->affected_rows; //取得前一次 MySQL 操作所影响的记录行数
         return $this->_query_affected;
     }
@@ -344,7 +344,7 @@ class mysqli
      * @param string $param  可选参数 [LOW_PRIORITY] [IGNORE]
      * @return queryAffected
      */
-    public function add($table, $data, $where = null, $bind = null, $param = '')
+    public function add(string $table,array $data,string $where = '', $bind = null,string $param = ''):int
     {
         $where && $where = $this->format($where, $bind);
         $set = array();
@@ -354,10 +354,11 @@ class mysqli
         }
         $sql = "UPDATE {$param} {$table} " . 'SET ' . implode(', ', $set) . (($where)?" WHERE {$where}":'');
         $this->conn($sql, $bind);
-        //$this->_query_affected = mysqli_affected_rows($this->_conn);
+
         $this->_query_affected = $this->_conn->affected_rows; //取得前一次 MySQL 操作所影响的记录行数
         return $this->_query_affected;
     }
+
     /**
      * 數椐递减
      *
@@ -368,7 +369,7 @@ class mysqli
      * @param string $param 可选参数 [LOW_PRIORITY] [IGNORE]
      * @return queryAffected
      */
-    public function cut($table, $data, $where = null, $bind = null, $param = '')
+    public function cut(string $table, array $data, string $where = '', $bind = null,string $param = ''):int
     {
         $where && $where = $this->format($where, $bind);
         $set = array();
@@ -378,10 +379,11 @@ class mysqli
         }
         $sql = "UPDATE {$param} {$table} " . 'SET ' . implode(', ', $set) . (($where)?" WHERE {$where}":'');
         $this->conn($sql, $bind);
-        //$this->_query_affected = mysqli_affected_rows($this->_conn);
+
         $this->_query_affected = $this->_conn->affected_rows; //取得前一次 MySQL 操作所影响的记录行数
         return $this->_query_affected;
     }
+
     /**
      * 删除记录
      *
@@ -391,11 +393,11 @@ class mysqli
      * @param string $param 可选参数 [LOW_PRIORITY] [QUICK] [IGNORE]
      * @return queryAffected
      */
-    public function delete($table, $where = null, $bind = null, $param = '')
+    public function delete(string $table,string $where = '', $bind = null,string $param = ''):int
     {
         $sql = "DELETE {$param} FROM {$table} " . (($where)?" WHERE $where":'');
         $this->conn($sql, $bind);
-        //$this->_query_affected = mysqli_affected_rows($this->_conn);
+
         $this->_query_affected = $this->_conn->affected_rows; //取得前一次 MySQL 操作所影响的记录行数
         return $this->_query_affected;
     }
@@ -407,15 +409,13 @@ class mysqli
      * @param array  $bind 条件数组
      * @return int
      */
-    public function rows($sql = null, $bind = null)
+    public function rows(string $sql = '', $bind = null):int
     {
         $sql && $this->conn($sql, $bind);
         if($this->_rs)
         {
-            // return mysqli_num_rows($this->_rs);
             return $this->_rs->num_rows;
-        }
-        else
+        }else
         {
             return 0;
         }
@@ -428,17 +428,18 @@ class mysqli
      * @param array  $bind 条件数组
      * @return array
      */
-    public function row($sql = null, $bind = null)
+    public function row(string $sql = '', $bind = null):array
     {
         $sql && $this->conn($sql, $bind);
         if($this->_rs)
         {
-            return $this->_rs->fetch_assoc();
+            $rs =  $this->_rs->fetch_assoc();
+            if($rs)
+            {
+                return $rs;
+            }
         }
-        else
-        {
-        	return false;
-        }
+        return [];
     }
 
     /**
@@ -448,7 +449,7 @@ class mysqli
      * @param array $bind 条件数组
      * @return array
      */
-    public function dataArray($sql = null, $bind = null)
+    public function data_array(string $sql = '', $bind = null):array
     {
         $sql && $this->conn($sql, $bind);
         $rs	= [];
@@ -471,10 +472,10 @@ class mysqli
      * @param string $keyField 可选 指定行
      * @return array
      */
-    public function fetchAssoc($sql = null, $bind = null, $keyField = null)
+    public function fetch_assoc(string $sql = '', $bind = null,string $keyField = ''):array
     {
         $sql && $this->conn($sql, $bind);
-        $rs = array();
+        $rs = [];
         if($keyField)
         {
         	while ($rss = $this->_rs->fetch_assoc() )
@@ -502,12 +503,11 @@ class mysqli
      * @param string $value
      * @return boolean 有返回true 沒有為false
      */
-    public function rowRepeat($table, $field, $value)
+    public function row_repeat($table, $field, $value)
     {
         if($table && $field && $value)
         {
             $row = $this->row("select count(`{$field}`) as cc from {$table} where `{$field}` = ? ", $value);
-            // debug('rowRepeat|$row[\'cc\']:', $row['cc']);
             return $row['cc']?true:false;
         }
         return false;
@@ -518,7 +518,7 @@ class mysqli
      *
      * @return int
      */
-    public function insertID()
+    public function insert_id()
     {
         return $this->_insert_id;
     }
@@ -528,7 +528,7 @@ class mysqli
      *
      * @return int
      */
-    public function queryTimes()
+    public function query_times()
     {
         return $this->_query_times;
     }
@@ -538,7 +538,7 @@ class mysqli
      *
      * @return string
      */
-    public function getSql()
+    public function sql():string
     {
         return $this->_sql;
     }
@@ -548,15 +548,16 @@ class mysqli
      *
      * @return int
      */
-    public function affected()
+    public function affected():int
     {
         return $this->_query_affected;
     }
 
     /**
      * 清空内存
-     *
-     * @return boolean
+     */
+    /**
+     * 清空内存
      */
     public function free()
     {
@@ -564,7 +565,7 @@ class mysqli
         {
             return $this->_rs->free_result();
         }
-        return false;
+        return ;
     }
 
     /**
@@ -581,7 +582,7 @@ class mysqli
     /**
      * 關閉打開的連接     *
      */
-    public function isConnect()
+    public function is_connect():bool
     {
     	return $this->_conn ? true :false;
     }

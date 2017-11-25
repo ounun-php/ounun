@@ -10,9 +10,9 @@ class parse
      * @param $l string 目标内容左边标识点
      * @param $r string 目标内容右边标识点
      */
-    static public function left($c, $l, $r)
+    static public function left(string $content, string $left, string $right)
     {
-        return explode($r,explode($l,$c,2)[1],2)[0];
+        return explode($right,explode($left,$content,2)[1],2)[0];
     }
 
     /**
@@ -21,9 +21,9 @@ class parse
      * @param $r string 目标内容右边标识点
      * @param $l string 目标内容左边标识点
      */
-    static public function right($c, $r, $l)
+    static public function right(string $content, string $right, string $left)
     {
-        return explode($l,explode($r,$c,2)[0],2)[1];
+        return explode($left,explode($right,$content,2)[0],2)[1];
     }
 
     /**
@@ -32,19 +32,19 @@ class parse
      * @param $l string 目标内容左边标识点
      * @param $r string 目标内容右边标识点
      */
-    static public function left_right($c, $l, $r)
+    static public function left_right(string $content, string $left, string $right)
     {
-        $pos = strpos($c,$l);
+        $pos = strpos($content,$left);
         if($pos !== false)
         {
-            $c   = substr($c,$pos+strlen($l));
+            $content   = substr($content,$pos+strlen($left));
         }
-        $pos = strrpos($c,$r);
+        $pos = strrpos($content,$right);
         if($pos === false)
         {
-            return $c;
+            return $content;
         }
-        return substr($c,0,$pos);
+        return substr($content,0,$pos);
     }
 
     /**
@@ -54,13 +54,13 @@ class parse
      * @param $l string 目标内容左边标识点
      * @param $r string 目标内容右边标识点
      */
-    static public function list_left($c, $m, $l, $r)
+    static public function list_left(string $content, string $middle, string $left, string $right)
     {
         $rs = [];
-        $c2 = explode($m,$c);
+        $c2 = explode($middle,$content);
         foreach ($c2 as $v2)
         {
-            $rs[] = self::left($v2,$l,$r);
+            $rs[] = self::left($v2,$left,$right);
         }
         return $rs;
     }
@@ -72,13 +72,13 @@ class parse
      * @param $r string 目标内容右边标识点
      * @param $l string 目标内容左边标识点
      */
-    static public function list_right($c, $m, $r, $l)
+    static public function list_right(string $content, string $middle, string $right, string $left)
     {
         $rs = [];
-        $c2 = explode($m,$c);
+        $c2 = explode($middle,$content);
         foreach ($c2 as $v2)
         {
-            $rs[] = self::right($v2,$r,$l);
+            $rs[] = self::right($v2,$right,$left);
         }
         return $rs;
     }

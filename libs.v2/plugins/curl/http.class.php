@@ -11,13 +11,13 @@ class http
      * @param int $timeout
      * @return array
      */
-    static public function async_post($url, $data = array(), $cookie = array(), $timeout = 3)
+    static public function stream_post(string $url, $data = array(), $cookie = array(), $timeout = 3)
     {
         $info = parse_url($url);
         $host = $info['host'];
         $page = $info['path'] . ($info['query']?'?' . $info['query']:'');
         $port = $info['port']?$info['port']:80;
-        return self::async('POST', $host, $page, $port, $data, $cookie, $timeout);
+        return self::stream('POST', $host, $page, $port, $data, $cookie, $timeout);
     }
 
     /**
@@ -27,13 +27,13 @@ class http
      * @param int $timeout
      * @return array
      */
-    static public function async_get($url, $cookie, $timeout = 3)
+    static public function stream_get($url, $cookie, $timeout = 3)
     {
         $info = parse_url($url);
         $host = $info['host'];
         $page = $info['path'] . ($info['query']?'?' . $info['query']:'');
         $port = $info['port']?$info['port']:80;
-        return self::async('GET', $host, $page, $port, null, $cookie, $timeout);
+        return self::stream('GET', $host, $page, $port, null, $cookie, $timeout);
     }
 
     /**
@@ -47,7 +47,7 @@ class http
      * @param int $timeout
      * @return array
      */
-    private static function async($type, $host, $page, $port=80, $data = array(), $cookie = array(), $timeout = 3)
+    private static function stream($type, $host, $page, $port=80, $data = array(), $cookie = array(), $timeout = 3)
     {
         $type 		= $type == 'POST'?'POST':'GET';
         $errno 		= $errstr = null;
@@ -60,11 +60,10 @@ class http
 	                $content[] = $k . "=" . rawurlencode($v);
 	            $content = implode("&", $content);
         	}
-        	else 
-        	{
-        		$content = $data;
-        	}
-            
+        	else
+            {
+                $content = $data;
+            }
         }
         // echo "\$host:$host, \$port:$port, \$errno:$errno, \$errstr:$errstr, \$timeout:$timeout";
         $fp = fsockopen($host, $port, $errno, $errstr, $timeout);
