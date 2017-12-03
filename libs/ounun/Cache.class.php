@@ -1167,6 +1167,46 @@ class Cache
 	{
 		return $this->_drive->delete();
 	}
+
+
+    /**
+     * 简单方式，设定$key对应值$val
+     * @param $key
+     * @param $val
+     */
+    public function fast_set($key,$val)
+    {
+        $this->_drive->key($key);
+        $this->_drive->val($val);
+        $this->_drive->write();
+    }
+
+    /**
+     * 简单方式，获取$key对应值$val
+     *   $sub_key不等于null时 为$val里的$sub_key的值
+     * @param $key
+     * @param $val
+     */
+    public function fast_get($key,$sub_key=null)
+    {
+        $this->_drive->key($key);
+        if($sub_key)
+        {
+            return  $this->_drive->get($sub_key);
+        }
+        return $this->_drive->read();
+    }
+
+    /**
+     * 简单方式，删除$key对应值$val
+     * @param $key
+     * @param $val
+     */
+    public function fast_del($key)
+    {
+        $this->_drive->key($key);
+        $this->_drive->delete();
+    }
     
     /**
      * 取得 File:文件名  Memcache|Redis:缓存KEY

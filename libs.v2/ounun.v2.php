@@ -785,24 +785,23 @@ class view extends base
 
 /**
  * 路由
- * @param $route_dirs    array  目录路由表
- * @param $mod           array  目录数组
- * @param $route_hosts   array  主机路由表
- * @param $host            string 主机
- * @param $default_app_dir string 默认应用
+ * @param $routes      array  目录路由表
+ * @param $host        string 主机
+ * @param $mod         array  目录数组
+ * @param $default_app string 默认应用
  * @return string 应用
  */
-function route($route_dirs,&$mod,$route_hosts,$host,$default_app_dir)
+function route(array $routes,string $host,array &$mod,string $default_app)
 {
-    if($route_hosts && $route_hosts[$host])
-    {
-        return $route_hosts[$host];
-    }elseif($route_dirs && $mod && $mod[0] && $route_dirs[$mod[0]])
+    if($routes && $mod && $mod[0] && $routes["{$host}/{$mod[0]}"])
     {
         $mod_0 = array_shift($mod);
-        return $route_dirs[$mod_0];
+        return $routes["{$host}/{$mod_0}"];
+    }elseif($routes && $routes[$host])
+    {
+        return $routes[$host];
     }
-    return $default_app_dir;
+    return $default_app;
 }
 
 /**
