@@ -34,7 +34,7 @@ class PageBase
     
     /**
      * 创建一个分页类
-     * @param resource $db
+     * @param \ounun\Mysqli $db
      * @param string $table
      * @param string $url
      * @param string $where

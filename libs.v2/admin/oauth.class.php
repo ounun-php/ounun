@@ -8,42 +8,42 @@ class oauth
      * session key
      * @var string
      **/
-    private $_session_key  = '';
-    private $_session_id   = '';
-    private $_session_g    = '';
-    private $_session_pass = '';
-    private $_session_cid  = '';
-    private $_session_type = '';
-    private $_session_hash = '';
+    protected $_session_key  = '';
+    protected $_session_id   = '';
+    protected $_session_g    = '';
+    protected $_session_pass = '';
+    protected $_session_cid  = '';
+    protected $_session_type = '';
+    protected $_session_hash = '';
 
     /** IP限定 */
-    private $_max_ips      = 20;
-    private $_max_ip       = 5;
+    protected $_max_ips      = 20;
+    protected $_max_ip       = 5;
 
     /** table */
-    private $_table_adm         = '';
-    private $_table_logs_login  = '';
-    private $_table_logs_act    = '';
+    protected $_table_adm         = '';
+    protected $_table_logs_login  = '';
+    protected $_table_logs_act    = '';
 
     /**
      * 权限列表
      * @var array
      */
-    private $_purview           = [];
-    private $_purview_group     = [];
-    private $_purview_root      = [10,20];
-    private $_purview_coop      = [10,20,50];
-    private $_purview_default   = 'info';
+    protected $_purview           = [];
+    protected $_purview_group     = [];
+    protected $_purview_root      = [10,20];
+    protected $_purview_coop      = [10,20,50];
+    protected $_purview_default   = 'info';
 
     /**
      * Mysqli 句柄
      * @var \ounun\Mysqli
      */
-    private $_db;
+    protected $_db;
 
-    /** @var Auth */
-    private static $_instance;
-    public  static function instance()
+    /** @var oauth */
+    protected static $_instance;
+    public    static function instance()
     {
         if(!self::$_instance)
         {
@@ -110,7 +110,7 @@ class oauth
      * 登录
      * $field : id,type,cid,account,password,note
      */
-    public function login(string $account,string $password,int $cid,string $code):ret
+    public function login(string $account,string $password,int $cid,string $code):\ounun\ret
     {
         $check      = $this->_check_ip($cid, $account);
         $account_id = 0;
@@ -138,8 +138,8 @@ class oauth
                 if( $rs['password'] == md5($password) )
                 {
                     // 清理一下
-                    $this->out();
-                    $this->set_cookie_cid($cid,true);
+                    $this->logout();
+                    // $this->set_cookie_cid($cid,true);
                     // 设定session
                     $hash = $this->_make_hash($cid,$account,$password);
                     $this->set_account($account);
@@ -154,24 +154,36 @@ class oauth
                     $login_last	 = time();
                     $bind	     = [ 'login_times'=>$login_times, 'login_last' =>$login_last ];
                     $this->_db->update($this->_table_adm, $bind,' `id`= ? ',$rs['id']);
-                    $this->_logs_login(true,$account_id,$cid,$account);
-                    return new ret(true);
+                    $this->logs_login(true,$account_id,$cid,$account);
+                    return new \ounun\ret(true);
                 }
                 $this->_logs_login(false,$account_id,$cid,$account);
-                return new ret(false,0,'失败:帐号或密码有误');
+                return new \ounun\ret(false,0,'失败:帐号或密码有误');
             }
             $this->_logs_login(false,$account_id,$cid,$account);
-            return new ret(false,0,'失败:谷歌验证有误');
+            return new \ounun\ret(false,0,'失败:谷歌验证有误');
         }
         $this->_logs_login(false,$account_id,$cid,$account);
-        return new ret(false,0,'失败:帐号不存在');
+        return new \ounun\ret(false,0,'失败:帐号不存在');
+    }
+
+    /** 退出登录 */
+    public function logout()
+    {
+        $this->set_account('');
+        $this->set_account_id(0);
+        $this->set_cid(0);
+        $this->set_hash('');
+        $this->set_pass('');
+        $this->set_type(0);
+        $this->set_google('');
     }
 
     /**
      * IP检查 是否锁定
-     * @return ret
+     * @return \ounun\ret
      */
-    private function _check_ip():ret
+    protected function _check_ip($cid, $account):\ounun\ret
     {
         $ip		    = \ounun\ip();
         $wry        = new \plugins\qqwry\ip('utf-8');
@@ -191,16 +203,16 @@ class oauth
             // exit();
             if ($rs_ip_counts <= $this->_max_ip)
             {
-                return new ret(true);
+                return new \ounun\ret(true);
             }
             else
             {
-                return new ret(false,0,'IP地址登录失败超过'.$this->_max_ip.'次');
+                return new \ounun\ret(false,0,'IP地址登录失败超过'.$this->_max_ip.'次');
             }
         }
         else
         {
-            return new ret(false,0,'IP地址段登录失败超过'.$this->_max_ips.'次');
+            return new \ounun\ret(false,0,'IP地址段登录失败超过'.$this->_max_ips.'次');
         }
     }
 
@@ -210,7 +222,7 @@ class oauth
      * @param $code
      * @return bool
      */
-    private function _check_google($ext, $code):bool
+    protected function _check_google($ext, $code):bool
     {
         if($ext && $ext['google'])
         {
@@ -241,7 +253,7 @@ class oauth
      * @param int $cid
      * @param string $account
      */
-    private function _logs_login(bool $status,int $account_id, int $cid, string $account)
+    public function logs_login(bool $status, int $account_id, int $cid, string $account)
     {
         $ip		    = \ounun\ip();
         $wry        = new \plugins\qqwry\ip('utf-8');
@@ -312,7 +324,7 @@ class oauth
 
     /**
      * 添加帐号
-     * @return ret
+     * @return \ounun\ret
      */
     public function user_add(int $adm_type,int $adm_cid,string $adm_account,string $password,string $adm_tel,string $adm_note):ret
     {
@@ -320,7 +332,7 @@ class oauth
         $rs             = $this->_db->row("SELECT `adm_id` FROM {$this->_table_adm} where `cid` = :cid  and `account` = :account limit 0,1;",['cid'=>$adm_cid,'account'=>$adm_account]);
         if($rs)
         {
-            return new ret(false,0,'提示：帐号"'.$adm_account.'"已存在!');
+            return new \ounun\ret(false,0,'提示：帐号"'.$adm_account.'"已存在!');
         }
         // 添加
         $adm_type_p     = $this->get_type();
@@ -341,34 +353,26 @@ class oauth
         $this->logs_act($adm_id?1:0,1,$bind);
         if($adm_id)
         {
-            return new ret(true,0,"成功:操作成功!");
+            return new \ounun\ret(true,0,"成功:操作成功!");
         }
-        return new ret(false,0,'提示：系统忙稍后再试!');
+        return new \ounun\ret(false,0,'提示：系统忙稍后再试!');
     }
 
-    /**
-     * 更新帐号
-     * @return ret
-     */
-    public function user_modify():ret
-    {
-
-    }
     /**
      * 帐号删除
-     * @return ret
+     * @return \ounun\ret
      */
-    public function user_del(int $adm_id):ret
+    public function user_del(int $adm_id):\ounun\ret
     {
         if($adm_id == $this->get_account_id())
         {
-            return new ret(false,0,'提示：不能删除自己[account_id]!');
+            return new \ounun\ret(false,0,'提示：不能删除自己[account_id]!');
         }
         $rs			 = $this->_db->row("SELECT `cid`,`account` FROM {$this->_table_adm} where `adm_id` = :adm_id limit 0,1;",['adm_id'=>$adm_id]);
         if($rs['cid'] == $this->get_cid() &&
            $rs['account'] == $this->get_account() )
         {
-            return new ret(false,0,'提示：不能删除自己[account]!');
+            return new \ounun\ret(false,0,'提示：不能删除自己[account]!');
         }
         $bind = ['adm_id'=>$adm_id,'cid'=>$rs['cid'], 'account'=>$rs['account'] ];
         $rs   = $this->_db->delete($this->_table_adm,'`adm_id`= :adm_id ',$bind);
@@ -376,23 +380,23 @@ class oauth
         $this->logs_act($rs?1:0,3,$bind);
         if($rs)
         {
-            return new ret(true,0,"成功:操作成功!");
+            return new \ounun\ret(true,0,"成功:操作成功!");
         }
-        return new ret(false,0,'提示：系统忙稍后再试!');
+        return new \ounun\ret(false,0,'提示：系统忙稍后再试!');
     }
     /**
      * 更改密码
-     * @return ret
+     * @return \ounun\ret
      */
-    public function user_modify_passwd($old_pwd,$new_pwd,$google_code):ret
+    public function user_modify_passwd($old_pwd,$new_pwd,$google_code):\ounun\ret
     {
         if(!$old_pwd)
         {
-            return new ret(false,0,'提示：请输入旧密码');
+            return new \ounun\ret(false,0,'提示：请输入旧密码');
         }
         if(!$new_pwd)
         {
-            return new ret(false,0,'提示：请输入新密码');
+            return new \ounun\ret(false,0,'提示：请输入新密码');
         }
         $account_id	    = $this->get_account_id();
         $rs			    = $this->_db->row("SELECT `adm_id`,`password`,`exts` FROM {$this->_table_adm} where `adm_id` = ? ;",$account_id);
@@ -403,10 +407,10 @@ class oauth
 
         if ($old_pwd_md5 != $rs['password'])
         {
-            return new ret(false,0,'提示：旧密码错误,请重新输入');
+            return new \ounun\ret(false,0,'提示：旧密码错误,请重新输入');
         }else if(!$this->_check_google($exts,$google_code))
         {
-            return new ret(false,0,'提示：请输入正确6位数谷歌(洋葱)验证');
+            return new \ounun\ret(false,0,'提示：请输入正确6位数谷歌(洋葱)验证');
         }
         else
         {
@@ -414,10 +418,10 @@ class oauth
             $rs2 = $this->_db->update($this->_table_adm, ['password'=>$new_pwd_md5, ],' `adm_id`= ? ',$account_id);
             if($rs2)
             {
-                return new ret(true, 0,'成功：密码修改成功!');
+                return new \ounun\ret(true, 0,'成功：密码修改成功!');
             }else
             {
-                return new ret(false,0,'提示：系统忙,请稍后再试');
+                return new \ounun\ret(false,0,'提示：系统忙,请稍后再试');
             }
         }
     }
@@ -446,8 +450,8 @@ class oauth
             // $secret = $ext['google']['secret'];
         }else
         {
-            $ga     = new \plugins\google\GoogleAuthenticator();
-            $secret = $ga->createSecret();
+            $ga     = new \plugins\google\auth_code();
+            $secret = $ga->create_secret();
 
             $google        = ['is'=>false,'secret'=>$secret];
             $ext['google'] = $google;
@@ -460,7 +464,7 @@ class oauth
     /**
      * 设定 Google身份验证
      */
-    public function user_set_exts_google($google_yn=true,$ext=null,$old_pwd='',$google_code=''):ret
+    public function user_set_exts_google($google_yn=true,$ext=null,$old_pwd='',$google_code=''):\ounun\ret
     {
         $account_id	= $this->get_account_id();
         if(!$ext && $old_pwd != '' && $google_code != '')
@@ -470,12 +474,12 @@ class oauth
             $oldpwd		= md5(md5($old_pwd));
             if ($oldpwd != $rs['password'])
             {
-                return new ret(false,0,'失败：登录密码有误!');
+                return new \ounun\ret(false,0,'失败：登录密码有误!');
             }
             $ext['google']['is'] = true;
             if(!$this->_check_google($ext, $google_code) )
             {
-                return new ret(false,0,'失败：谷歌验证有误!');
+                return new \ounun\ret(false,0,'失败：谷歌验证有误!');
             }
         }
         if(!$ext)
@@ -496,56 +500,16 @@ class oauth
         $rs          = $this->_db->update($this->_table_adm,['exts'=>serialize($ext)],' `adm_id` = ? ',$account_id);
         if($rs)
         {
-            return new ret(true,0, '成功：操作成功!');
+            return new \ounun\ret(true,0, '成功：操作成功!');
         }else
         {
-            return new ret(false,0,'提示:系统忙,请稍后再试');
+            return new \ounun\ret(false,0,'提示:系统忙,请稍后再试');
         }
     }
 
-//    /**
-//     * 删除 Google身份验证
-//     * @param $old_pwd
-//     * @param $google_code
-//     */
-//    public function user_del_exts_google($old_pwd,$google_code)
-//    {
-//        return $this->user_set_exts_google(false,null,$old_pwd,$google_code);
-//    }
 
-    /**
-     * 退出登录
-     */
-    public function out()
-    {
-        $this->set_account('');
-        $this->set_account_id(0);
-        $this->set_cid(0);
-        $this->set_hash('');
-        $this->set_pass('');
-        $this->set_type(0);
-        $this->set_google('');
-    }
 
-    /**
-     * 获得Config
-     * @return array
-     */
-    public function config_all():array
-    {
-        return [
-            'adm_purview_default'   => $this->_purview_default,
-            // 'adm_purview_group'     => $this->_purview_group,
-            'adm_account'           => $this->get_account(),
-            'adm_account_id'        => $this->get_account_id(),
-            'adm_cid'               => $this->get_cid(),
-            'adm_cookie_cid'        => $this->get_cookie_cid(),
-            'adm_cookie_cid_login'  => $this->get_cookie_cid_login(),
-            'adm_cookie_sid'        => $this->get_cookie_sid(),
-            'adm_type'              => $this->get_type(),
-            'adm_group_name'        => $this->get_group_name(),
-        ];
-    }
+
     /**
      * 获得权限目录
      * @param string $type
@@ -855,120 +819,7 @@ class oauth
         return (bool)$_SESSION[$this->_session_g];
     }
 
-    /**
-     * cookie cid
-     * @param int $cid
-     * @param bool $is_login
-     */
-    public function set_cookie_cid(int $cid,bool $is_login=false)
-    {
-        // 登录时设一下
-        if($is_login)
-        {
-            setcookie('login_cid', $cid, time()+864000);
-        }
-
-        if(!$this->get_cid())
-        {
-            setcookie('cp_cid', $cid, time()+86400);
-        }
-    }
-
-    /**
-     * @return int
-     */
-    public function get_cookie_cid():int
-    {
-        $cid  = $this->get_cid();
-        if($cid)
-        {
-            return (int)$cid;
-        }
-        return (int)$_COOKIE['cp_cid'];
-    }
-
-    /**
-     * @return int
-     */
-    public function get_cookie_cid_login():int
-    {
-        return (int)$_COOKIE['login_cid'];
-    }
-
-    /**
-     * cookie sid
-     * @param int $sid
-     */
-    public function set_cookie_sid(int $hub_id)
-    {
-        setcookie('cp_sid', $hub_id, time()+86400);
-    }
-
-    /**
-     * cookie sid
-     * @return int
-     */
-    public function get_cookie_sid():int
-    {
-        return (int)$_COOKIE['cp_sid'];
-    }
-
-
-    /**
-     * cookie sid
-     * @param int $sid
-     */
-    public function set_cookie_group(int $group_id)
-    {
-        setcookie('cp_group', $group_id, time()+86400);
-    }
-
-    /**
-     * cookie sid
-     * @return int
-     */
-    public function get_cookie_group():int
-    {
-        return (int)$_COOKIE['cp_group'];
-    }
-
-    /**
-     * cookie game_id
-     * @param int $sid
-     */
-    public function set_cookie_game_id(int $game_id)
-    {
-        setcookie('cp_game_id', $game_id, time()+86400);
-    }
-
-    /**
-     * cookie game_id
-     * @return int
-     */
-    public function get_cookie_game_id():int
-    {
-        return (int)$_COOKIE['cp_game_id'];
-    }
-
-    /*
-    * cookie hall_id  hyz  2017-9-27
-    * */
-    public function set_cookie_hall_id(int $hall_id)
-    {
-        setcookie('cp_hall_id', $hall_id, time()+86400);
-    }
-
-    /*
-     * cookie hall_id  hyz 2017-9-27
-     * */
-    public function get_cookie_hall_id()
-    {
-        return (int)$_COOKIE['cp_hall_id'];
-    }
-
-    /**
-     * 内部 设定key
-     */
+    /** 内部 设定key */
     private function _session_set()
     {
         $this->_session_id     = $this->_session_key.'_id';

@@ -145,15 +145,15 @@ function url_original(string $uri =''):string
  */
 function url_to_mod(string $uri,string $root = '/'):array
 {
-	$uri 	= \explode($root,    $uri, 					2);
-	$uri 	= \explode('.', 	 urldecode($uri[1]),	2);
-	$uri	= \explode('/', 	 $uri[0]                 );
-	$mod	= array();
-	foreach ($uri as $v) 
-	{
-		$v !== '' && $mod[] = $v;
-	}
-	return $mod;
+    $uri 	= \explode($root,    $uri, 					2);
+    $uri 	= \explode('.', 	 urldecode($uri[1]),	2);
+    $uri	= \explode('/', 	 $uri[0]                 );
+    $mod	= [];
+    foreach ($uri as $v)
+    {
+        $v !== '' && $mod[] = $v;
+    }
+    return $mod;
 }
 
 /**
@@ -183,7 +183,7 @@ function url_check(string $url_original="",bool $ext_req=true,string $domain=nul
     {
         $domain     = $_SERVER['HTTP_HOST'];
         $url_reset  = $url_reset?$url_reset:$_SERVER['REQUEST_URI'];
-        $url_reset  = "http://{$domain}{$url_reset}";
+        $url_reset  = "//{$domain}{$url_reset}";
         go_url($url_reset,false,301);
     }else if($url_reset)
     {
@@ -680,7 +680,7 @@ class Base
             $db_cfg = $GLOBALS['scfg']['db'][$key];
         }
 		self::$_db[$key] || self::$_db[$key] = new \ounun\Mysqli($db_cfg);
-		self::$_db[$key]->active();
+		// self::$_db[$key]->active();
 		return self::$_db[$key];
 	}
 }
@@ -787,7 +787,7 @@ class ViewBase extends Base
     }
     /**
 	 * 赋值
-	 * @param mix|string $name
+	 * @param string|array $name
 	 * @param mix $value
 	 */
 	public function assign($name, $val = null)
@@ -868,7 +868,7 @@ function autoload($class_name)
 
 /**
  * 世界从这里开始
- * @param aaray  $mod
+ * @param array  $mod
  * @param string $app
  */
 function start($mod,$app)

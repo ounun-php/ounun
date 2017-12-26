@@ -136,7 +136,7 @@ function url_to_mod(string $uri,string $root = '/'):array
 	$uri 	= \explode($root,    $uri, 					2);
 	$uri 	= \explode('.', 	 urldecode($uri[1]),	2);
 	$uri	= \explode('/', 	 $uri[0]                 );
-	$mod	= array();
+	$mod	= [];
 	foreach ($uri as $v) 
 	{
 		$v !== '' && $mod[] = $v;
@@ -611,6 +611,7 @@ class ret
         $this->data         = $data;
     }
 }
+
 /**
  * 基类的基类
  * Class Base
@@ -648,7 +649,7 @@ class base
             $db_cfg = $GLOBALS['scfg']['db'][$key];
         }
 		self::$_db[$key] || self::$_db[$key] = new \ounun\mysqli($db_cfg);
-		self::$_db[$key]->active();
+		// self::$_db[$key]->active();
 		return self::$_db[$key];
 	}
 }
@@ -724,7 +725,7 @@ class view extends base
 		if(null == $this->_stpl)
         {
             require Ounun_Dir. 'ounun/tpl.class.php';
-            $this->_stpl  = new tpl(Ounun_Dir_Tpl,$this->_stpl_drive,Ounun_Dir_Tpl_Pc);
+            $this->_stpl  = new tpl(Ounun_Dir_Tpl,$this->_stpl_drive);
         }
         $this->_global_assign();
 	}
@@ -756,7 +757,7 @@ class view extends base
     }
     /**
 	 * 赋值
-	 * @param mix|string $name
+	 * @param string|array $name
 	 * @param mix $value
 	 */
 	public function assign($name, $val = null)
@@ -791,169 +792,265 @@ class view extends base
  * @param $default_app string 默认应用
  * @return string 应用
  */
-function route(array $routes,string $host,array &$mod,string $default_app)
-{
-    if($routes && $mod && $mod[0] && $routes["{$host}/{$mod[0]}"])
-    {
-        $mod_0 = array_shift($mod);
-        return $routes["{$host}/{$mod_0}"];
-    }elseif($routes && $routes[$host])
-    {
-        return $routes[$host];
-    }
-    return $default_app;
-}
+//function route(array $routes,string $host,array &$mod,string $default_app)
+//{
+//    if($routes && $mod && $mod[0] && $routes["{$host}/{$mod[0]}"])
+//    {
+//        $mod_0 = array_shift($mod);
+//        return $routes["{$host}/{$mod_0}"];
+//    }elseif($routes && $routes[$host])
+//    {
+//        return $routes[$host];
+//    }
+//    return $default_app;
+//}
 
-/**
- * 自动加载的类
- * @param $class_name
- */
-function autoload($class_name)
+class scfg
 {
-    $class_name = ltrim($class_name, '\\');
-    $lists 	    = explode('\\', $class_name);
-    if('app' == $lists[0])
+
+    /** 路由数据 */
+    protected $routes = [
+        //         'www.866bet.com/api'  => ['app'=>'api', 'cls'=> 'site' ],         /* 数据接口 */
+        //                 '138.vc/api'  => ['app'=>'api', 'cls'=> 'site' ],         /* 数据接口 */
+        //        'www2.866bet.com/api'  => ['app'=>'api', 'cls'=> 'site' ],         /* 数据接口 */
+    ];
+
+    /** 路由数据(默认) */
+    protected $routes_default = ['app'=>'www', 'cls'=> 'site'];
+
+    /** html缓存配制  */
+    protected $cache_html     = [
+        'type'          => \ounun\cache::Type_File,
+        'mod'  			=> 'html',
+        'root' 			=> Dir_Cache,
+        'format_string' => false,
+        'large_scale' 	=> true,
+    ];
+
+    /** @var string 当前数据 */
+    public static $app      = '';
+
+    /** @var \cfg\site 站点常量包 */
+    public static $site;
+
+    /** @var \cfg\i18n\zh_cn 语言包 */
+    public static $i18n;
+
+    /** @return \cfg\site 站点常量包 */
+    public static function site()
     {
-        array_shift($lists);
-        $file_name  = implode('/', $lists).'.class.php';
-        $file_name  =\Dir_Libs  . $file_name;
-        if(file_exists($file_name))
+        return \scfg::$site;
+    }
+
+    /** @return \cfg\i18n\zh_cn 语言包 */
+    public static function i18n()
+    {
+        return \scfg::$i18n;
+    }
+
+    /**
+     * 静态地址
+     * @param string|array $url
+     * @param string       $pre_str
+     * @param bool         $is_web  true:Web静态 false:Image图片
+     * @return string
+     */
+    static public function surl($url,string $pre_str="",bool $is_web=true):string
+    {
+        if($url && is_array($url) )
         {
-            require $file_name;
+            $url = count($url) > 1 ? '??'.implode(',',$url) : $url[0];
         }
-    }else
+        return ($is_web?Const_Url_Static_Web:Const_Url_Static_Image).$pre_str.$url;
+    }
+
+    /** @return string 认别用户语言 */
+    public static function lang($domain_valid=false)
     {
-        $file_name0   = implode('/', $lists) . '.class.php';
-        $file_name    = \Dir_Libs_ProJ . $file_name0;
-        if (file_exists($file_name))
+        if($domain_valid)
         {
-            require $file_name;
-        } else
+            return (   \cfg::Site_Domain_En_Pc == $_SERVER['HTTP_HOST']
+                || \cfg::Site_Domain_En_M  == $_SERVER['HTTP_HOST'] )
+                ? 'en'
+                : 'zh_cn';
+        }
+        $lang = $_SERVER['HTTP_ACCEPT_LANGUAGE'];
+        $lang = substr($lang,0,2);
+        $lang = strtolower($lang);
+        return 'zh' == $lang ? 'zh_cn' :'en';
+    }
+
+    /**
+     * 自动加载的类
+     * @param $class_name
+     */
+    public static function autoload($class_name)
+    {
+        $class_name = ltrim($class_name, '\\');
+        $lists 	    = explode('\\', $class_name);
+        if('app' == $lists[0])
         {
-            $file_name = \Dir_Lib . $file_name0;
-            if (file_exists($file_name))
+            array_shift($lists);
+            $file_name  = implode('/', $lists).'.class.php';
+            $file_name  =\Dir_Libs  . $file_name;
+            if(file_exists($file_name))
             {
                 require $file_name;
             }
-        }
-    }
-}
-
-/**
- * 世界从这里开始
- * @param aaray  $mod
- * @param string $app
- */
-function start($mod,$app)
-{
-    /** 重定义头 */
-    header('X-Powered-By: Ounun.org');
-    /** 应用名称 */
-    define('App_Name',           	$app);
-    /** 应用目录 */
-    define('Dir_App',           	\Dir_Root. 'app.'.$app.'/');
-    /** Libs目录 **/
-    define('Dir_Libs',        	    \Dir_App . 'libs/');
-    /** 模块所在目录 */
-    define('Ounun_Dir_Module', 	    \Dir_App . 'module/');
-    /** 模板存放目录 */
-    define('Ounun_Dir_Tpl', 	    \Const_Mobile_Edition?\Dir_App . 'tpl.mobile/':\Dir_App . 'tpl.pc/');
-    /** 模板存放目录pc */
-    define('Ounun_Dir_Tpl_Pc', 	    \Dir_App . 'tpl.pc/'        );
-    /** 模板存放目录mobile */
-    define('Ounun_Dir_Tpl_Mobile',  \Dir_App . 'tpl.mobile/'    );
-    /** 加载libs/scfg.{$app}.ini.php文件 */
-    $filename   = Dir_Libs . "scfg.{$app}.ini.php";
-    if(file_exists($filename))
-    {
-        require $filename;
-    }
-
-	// 设定 模块与方法
-	if(is_array($mod) && $mod[0])
-	{
-        $filename         = Ounun_Dir_Module . $mod[0] . '.class.php';
-        if(file_exists($filename))
+        }else
         {
-            $module		  = $mod[0];
-            if($mod[1])
+            $file_name0   = implode('/', $lists) . '.class.php';
+            $file_name    = \Dir_Libs_ProJ . $file_name0;
+            if (file_exists($file_name))
             {
-                array_shift($mod);
-            }else
+                require $file_name;
+            } else
             {
-                $mod	  = [Ounun_Def_Met];
+                $file_name = \Dir_Lib . $file_name0;
+                if (file_exists($file_name))
+                {
+                    require $file_name;
+                }
             }
         }
-        else
+    }
+
+    /**
+     * scfg constructor.
+     * @param string $host
+     * @param array $mod
+     */
+    public function __construct(string $host,array &$mod)
+    {
+        $this->start($host,$mod);
+    }
+
+    /**
+     * 世界从这里开始(路由)
+     * @param string $host
+     * @param array $mod
+     */
+    public function start(string $host,array &$mod)
+    {
+        if($mod && $mod[0] && $this->routes["{$host}/{$mod[0]}"])
         {
-            if($mod[1])
+            $mod_0 = array_shift($mod);
+            $val_0 = $this->routes["{$host}/{$mod_0}"];
+        }elseif($this->routes[$host])
+        {
+            $val_0 = $this->routes[$host];
+        }else
+        {
+            $val_0 = $this->routes_default;
+        }
+        self::$app  = $val_0['app'];
+        self::$site = "\\cfg\\".$val_0['cls'];
+        self::$i18n = "\\cfg\\i18n\\".(self::$site::lang);
+
+        /** 重定义头 */
+        header('X-Powered-By: Ounun.org');
+        /** 应用目录 */
+        define('Dir_App',           	\Dir_Root. 'app.'.self::$app.'/');
+        /** Libs目录 **/
+        define('Dir_Libs',        	    \Dir_App . 'libs/');
+        /** 模块所在目录 */
+        define('Ounun_Dir_Module', 	    \Dir_App . 'module/');
+        /** 模板存放目录 */
+        define('Ounun_Dir_Tpl', 	    \Dir_App . 'template/');
+        /** 加载libs/scfg.{self::$app}.ini.php文件 */
+        $filename   = Dir_Libs . "scfg.".self::$app.".ini.php";
+        if(file_exists($filename))
+        {
+            require $filename;
+        }
+
+        // 设定 模块与方法
+        if(is_array($mod) && $mod[0])
+        {
+            $filename         = Ounun_Dir_Module . $mod[0] . '.class.php';
+            if(file_exists($filename))
             {
-                $filename = Ounun_Dir_Module . "{$mod[0]}/{$mod[1]}.class.php";
-                if(file_exists($filename))
+                $module		  = $mod[0];
+                if($mod[1])
                 {
-                    $module		    = $mod[0].'\\'.$mod[1];
-                    if($mod[2])
+                    array_shift($mod);
+                }else
+                {
+                    $mod	  = [Ounun_Def_Met];
+                }
+            }
+            else
+            {
+                if($mod[1])
+                {
+                    $filename = Ounun_Dir_Module . "{$mod[0]}/{$mod[1]}.class.php";
+                    if(file_exists($filename))
                     {
-                        array_shift($mod);
-                        array_shift($mod);
+                        $module		    = $mod[0].'\\'.$mod[1];
+                        if($mod[2])
+                        {
+                            array_shift($mod);
+                            array_shift($mod);
+                        }else
+                        {
+                            $mod	   = [Ounun_Def_Met];
+                        }
                     }else
                     {
-                        $mod	   = [Ounun_Def_Met];
+                        $filename       = Ounun_Dir_Module . $mod[0].'/'.Ounun_Def_Mod.'.class.php';
+                        if(file_exists(Ounun_Dir_Module . $mod[0]) && file_exists($filename))
+                        {
+                            $module	    = $mod[0].'\\'.Ounun_Def_Mod;
+                            array_shift($mod);
+                        }else
+                        {
+                            // 默认模块
+                            $module		= Ounun_Def_Mod;
+                            $filename 	= Ounun_Dir_Module . $module . '.class.php';
+                        }
                     }
                 }else
                 {
-                    $filename       = Ounun_Dir_Module . $mod[0].'/'.Ounun_Def_Mod.'.class.php';
-                    if(file_exists(Ounun_Dir_Module . $mod[0]) && file_exists($filename))
+                    $filename = Ounun_Dir_Module . $mod[0].'/'.Ounun_Def_Mod.'.class.php';
+                    // exit($filename);
+                    if(file_exists($filename))
                     {
-                        $module	    = $mod[0].'\\'.Ounun_Def_Mod;
-                        array_shift($mod);
+                        $module		= $mod[0].'\\'.Ounun_Def_Mod;
+                        $mod	    = [Ounun_Def_Met];
+                        // array_shift($mod);
                     }else
                     {
                         // 默认模块
+                        // $mod	    = array(Ounun_Default_Method);
                         $module		= Ounun_Def_Mod;
                         $filename 	= Ounun_Dir_Module . $module . '.class.php';
                     }
                 }
-            }else
-            {
-                $filename = Ounun_Dir_Module . $mod[0].'/'.Ounun_Def_Mod.'.class.php';
-                // exit($filename);
-                if(file_exists($filename))
-                {
-                    $module		= $mod[0].'\\'.Ounun_Def_Mod;
-                    $mod	    = [Ounun_Def_Met];
-                    // array_shift($mod);
-                }else
-                {
-                    // 默认模块
-                    // $mod	    = array(Ounun_Default_Method);
-                    $module		= Ounun_Def_Mod;
-                    $filename 	= Ounun_Dir_Module . $module . '.class.php';
-                }
-            }
-        } // end Ounun_Dir_Module . $mod[0] . '.class.php';
-	}
-	else
-	{
-	    // 默认模块 与 默认方法
-		$mod				= [Ounun_Def_Met];
-		$module				=  Ounun_Def_Mod;
-		$filename 			=  Ounun_Dir_Module . $module . '.class.php';
-	}
-	// 包括模块文件
-	require $filename;
-	// 初始化类
-	$module  				= '\\module\\'.$module;
-    if(class_exists($module,false))
-	{
-        new $module($mod);
-	}
-	else
-	{
-		header('HTTP/1.1 404 Not Found');
-		trigger_error("ERROR! Can't find Module:'{$module}'.", E_USER_ERROR);
-	}
+            } // end Ounun_Dir_Module . $mod[0] . '.class.php';
+        }
+        else
+        {
+            // 默认模块 与 默认方法
+            $mod				= [Ounun_Def_Met];
+            $module				=  Ounun_Def_Mod;
+            $filename 			=  Ounun_Dir_Module . $module . '.class.php';
+        }
+        // 包括模块文件
+        require $filename;
+        // 初始化类
+        $module  				= '\\module\\'.$module;
+        if(class_exists($module,false))
+        {
+            new $module($mod);
+        }
+        else
+        {
+            header('HTTP/1.1 404 Not Found');
+            trigger_error("ERROR! Can't find Module:'{$module}'.", E_USER_ERROR);
+        }
+    }
+
 }
 
 /** 注册自动加载 */
-spl_autoload_register('\\ounun\\autoload');
+spl_autoload_register('\\ounun\\scfg::autoload');

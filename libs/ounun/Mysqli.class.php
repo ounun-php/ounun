@@ -9,22 +9,28 @@ namespace ounun;
 #############################<meta http-equiv="Content-Type" content="text/html; charset=utf-8">*/
 class Mysqli
 {
-    #class cache
-    /**
-     * @var \mysqli_result
-     */
+    /** @var string 当前数据库名 */
+    protected static $_curr_db      = '';
+    /** @var string 当前数据库charset */
+    protected static $_curr_charset = '';
+    /** @var \mysqli_result */
     protected $_rs;
-    /**
-     * @var \mysqli
-     */
-    protected $_conn; //_connection
-    protected $_sql;
-    protected $_insert_id;
-    protected $_query_times;
-    protected $_query_affected;
+    /** @var \mysqli */
+    protected $_conn           = null; //_connection
+    protected $_sql            = '';
+    protected $_insert_id      = 0;
+    protected $_query_times    = 0;
+    protected $_query_affected = 0;
     #db charset
-    protected $_charset = 'utf8'; //,'utf8','gbk',latin1;
-    protected $_database;
+    protected $_charset  = 'utf8'; //,'utf8','gbk',latin1;
+
+    protected $_database = '';
+    protected $_username = '';
+    protected $_password = '';
+    protected $_host     = '';
+    protected $_post     = 0;
+
+
 
     /**
      * 创建MYSQL类
@@ -38,11 +44,12 @@ class Mysqli
             $this->_charset = $cfg['charset'];
         }
         $host            = explode(':',$cfg['host']);
-        $post            = (int)$host[1];
-        $host            = $host[0];
+        $this->_post     = (int)$host[1];
+        $this->_host     = $host[0];
         $this->_database = $cfg['database'];
-        $this->_conn 	 = new \mysqli($host,$cfg['username'],$cfg['password'],$this->_database,$post);
-        $this->_conn->set_charset($this->_charset);
+        $this->_username = $cfg['username'];
+        $this->_password = $cfg['password'];
+        $this->_conn     = null;
     }
 
     /**
@@ -51,8 +58,22 @@ class Mysqli
      */
     public function active()
     {
-        $this->_conn->select_db($this->_database);
-        $this->_conn->set_charset($this->_charset);
+        if(null == $this->_conn)
+        {
+            $this->_conn         = new \mysqli($this->_host,$this->_username,$this->_password,$this->_database,$this->_post);
+            self::$_curr_db      = '';
+            self::$_curr_charset = '';
+        }
+        if($this->_database && self::$_curr_db != $this->_database )
+        {
+            $this->_conn->select_db($this->_database);
+            self::$_curr_db = $this->_database;
+        }
+        if($this->_charset && self::$_curr_charset != $this->_charset )
+        {
+            $this->_conn->set_charset($this->_charset);
+            self::$_curr_charset = $this->_charset;
+        }
     }
 
     /**
@@ -91,7 +112,7 @@ class Mysqli
     protected function bindValue($sql, $bind)
     {
         $rs  = preg_split('/(\:[A-Za-z0-9_]+)\b/', $sql, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY);
-        $rs2 = array();
+        $rs2 = [];
         foreach ($rs as $v)
         {
         	if($v[0] == ':')
@@ -124,11 +145,11 @@ class Mysqli
      * @param  $value
      * @return string
      */
-    public function quote($value)
+    protected function quote($value)
     {
         if(is_array($value))
         {
-            $vals = array();
+            $vals = [];
             foreach ($value as $val)
             {
                 $vals[] = $this->quote($val);
@@ -137,6 +158,10 @@ class Mysqli
         }
         else
         {
+            if(null == $this->_conn)
+            {
+                $this->active();
+            }
             return "'" . $this->_conn->real_escape_string($value) . "'";
         }
     }
@@ -150,11 +175,12 @@ class Mysqli
      */
     public function conn($sql, $bind = null)
     {
+        $this->active();
         if($sql)
         {
-			$this->_sql = $this->format($sql, $bind);
+			$this->_sql  = $this->format($sql, $bind);
 		}
-        $this->_rs		= $this->_conn->query($this->_sql);
+        $this->_rs		 = $this->_conn->query($this->_sql);
         $this->_query_times++;
         return $this->_rs;
     }
@@ -183,7 +209,7 @@ class Mysqli
         else
         {
             // Indexed array
-            $tmpArray 	= array();
+            $tmpArray 	= [];
             $cols 		= array_keys($bind[0]);
             foreach ($bind as $v)
             {
@@ -208,7 +234,7 @@ class Mysqli
      */
     public function insertUpdate($table, $primary, $bind,$operate='update')
     {
-        $update= array();
+        $update= [];
         foreach ($bind as $col=>$val)
         {
         	if($operate =='add')
@@ -277,7 +303,7 @@ class Mysqli
         else
        {
             // Indexed array
-            $tmpArray = array();
+            $tmpArray = [];
             $cols 	  = array_keys($bind[0]);
             foreach ($bind as $v)
             {
@@ -304,7 +330,7 @@ class Mysqli
     {
         $sql = "REPLACE {$param} INTO {$table} " . $this->format($sql, $bind);
         $this->conn($sql, $bind);
-        //$this->_query_affected = mysqli_affected_rows($this->_conn);
+        // $this->_query_affected = mysqli_affected_rows($this->_conn);
         $this->_query_affected = $this->_conn->affected_rows; //取得前一次 MySQL 操作所影响的记录行数
         return $this->_query_affected;
     }
@@ -322,7 +348,7 @@ class Mysqli
     public function update($table, $data, $where = null, $bind = null, $param = '', $limit = 0)
     {
         $where && $where = $this->format($where, $bind);
-        $set = array();
+        $set = [];
         foreach ($data as $col=>$value)
         {
             $set[] = "`$col` = ".$this->quote($value);
@@ -347,7 +373,7 @@ class Mysqli
     public function add($table, $data, $where = null, $bind = null, $param = '')
     {
         $where && $where = $this->format($where, $bind);
-        $set = array();
+        $set = [];
         foreach ($data as $col=>$val)
         {
             $set[] = "`$col` = `$col` + " . (float)$val;
@@ -371,7 +397,7 @@ class Mysqli
     public function cut($table, $data, $where = null, $bind = null, $param = '')
     {
         $where && $where = $this->format($where, $bind);
-        $set = array();
+        $set = [];
         foreach ($data as $col=>$val)
         {
             $set[] = "`$col` = `$col` - " . (float)$val;
@@ -474,7 +500,7 @@ class Mysqli
     public function fetchAssoc($sql = null, $bind = null, $keyField = null)
     {
         $sql && $this->conn($sql, $bind);
-        $rs = array();
+        $rs = [];
         if($keyField)
         {
         	while ($rss = $this->_rs->fetch_assoc() )

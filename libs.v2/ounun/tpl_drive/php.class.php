@@ -15,12 +15,6 @@ class php extends \ounun\_tpl
     protected $_tpl_dir;
 
     /**
-     * 模板文件所以目录(移动)
-     * @var string
-     */
-    protected $_tpl_dir_backup;
-
-    /**
      * 模板文件所以目录(当前目录)
      * @var string
      */
@@ -36,15 +30,11 @@ class php extends \ounun\_tpl
      * 创建对像
      * @param string $tpl_dir
      */
-    public function __construct($tpl_dir = null, $tpl_dir_backup = null)
+    public function __construct($tpl_dir = null)
     {
         if($tpl_dir)
         {
             $this->_tpl_dir = $tpl_dir;
-        }
-        if($tpl_dir_backup)
-        {
-            $this->_tpl_dir_backup = $tpl_dir_backup;
         }
         $this->_tpl_dir_cur = null;
     }
@@ -68,6 +58,7 @@ class php extends \ounun\_tpl
             $this->_data[$name] = $value;
         }
     }
+
     /**
      * 追加一个 值
      * @param $name
@@ -83,7 +74,6 @@ class php extends \ounun\_tpl
             $this->_data[$name][]= $value;
         }
     }
-
 
     /**
      * 返回一个 模板文件地址(绝对目录,相对root)
@@ -125,16 +115,6 @@ class php extends \ounun\_tpl
             $this->_tpl_dir_cur    = realpath(dirname($filename)) .'/';
             return $filename;
         }
-        // 备份
-        if($this->_tpl_dir_backup )
-        {
-            $filename = $this->_tpl_dir_backup . $tpl_name;
-            if( file_exists($filename) )
-            {
-                $this->_tpl_dir_cur = realpath(dirname($filename)) .'/';
-                return $filename;
-            }
-        }
         return null;
     }
 
@@ -143,7 +123,7 @@ class php extends \ounun\_tpl
      * @param $tpl_name
      * @param array $vars
      */
-    public function import($tpl_name, $vars = array())
+    public function import($tpl_name, $vars = [])
     {
         extract($this->_data);
         if($vars)
@@ -166,7 +146,7 @@ class php extends \ounun\_tpl
      * @param $tpl_name
      * @param array $vars
      */
-    public function output($tpl_name, $vars = array())
+    public function output($tpl_name, $vars = [])
     {
         $this->import($tpl_name,$vars);
         exit();

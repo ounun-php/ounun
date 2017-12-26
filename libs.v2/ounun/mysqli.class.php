@@ -9,14 +9,16 @@ namespace ounun;
 #############################<meta http-equiv="Content-Type" content="text/html; charset=utf-8">*/
 class mysqli
 {
-    #class cache
+    /** @var string 当前数据库名 */
+    protected static $_curr_db      = '';
+    /** @var string 当前数据库charset */
+    protected static $_curr_charset = '';
     /** @var \mysqli_result */
     protected $_rs;
     /** @var \mysqli  connection */
-    protected $_conn;
-
+    protected $_conn           = null; //_connection
     /** @var string */
-    protected $_sql = '';
+    protected $_sql            = '';
     /** @var int */
     protected $_insert_id      = 0;
     /** @var int */
@@ -24,10 +26,14 @@ class mysqli
     /** @var int */
     protected $_query_affected = 0;
     /** @var string db charset */
-    protected $_charset = 'utf8'; //,'utf8','gbk',latin1;
+    protected $_charset        = 'utf8'; //,'utf8','gbk',latin1;
 
     /** @var string */
-    protected $_database;
+    protected $_database = '';
+    protected $_username = '';
+    protected $_password = '';
+    protected $_host     = '';
+    protected $_post     = 0;
 
     /**
      * 创建MYSQL类
@@ -41,11 +47,11 @@ class mysqli
             $this->_charset = $cfg['charset'];
         }
         $host            = explode(':',$cfg['host']);
-        $post            = (int)$host[1];
-        $host            =      $host[0];
+        $this->_post     = (int)$host[1];
+        $this->_host     = $host[0];
         $this->_database = $cfg['database'];
-        $this->_conn 	 = new \mysqli($host,$cfg['username'],$cfg['password'],$this->_database,$post);
-        $this->_conn->set_charset($this->_charset);
+        $this->_username = $cfg['username'];
+        $this->_password = $cfg['password'];
     }
 
     /**
@@ -54,8 +60,20 @@ class mysqli
      */
     public function active()
     {
-        $this->_conn->select_db($this->_database);
-        $this->_conn->set_charset($this->_charset);
+        if(null == $this->_conn)
+        {
+            $this->_conn = new \mysqli($this->_host,$this->_username,$this->_password,$this->_database,$this->_post);
+        }
+        if($this->_database && self::$_curr_db != $this->_database )
+        {
+            $this->_conn->select_db($this->_database);
+            self::$_curr_db = $this->_database;
+        }
+        if($this->_charset && self::$_curr_charset != $this->_charset )
+        {
+            $this->_conn->set_charset($this->_charset);
+            self::$_curr_charset = $this->_charset;
+        }
     }
 
     /**
@@ -71,11 +89,11 @@ class mysqli
         {
             if(strpos($sql, '?') !== false)
             {
-                return $this->quoteInto($sql, $bind);
+                return $this->quote_into($sql, $bind);
             }
             else
             {
-                return $this->bindValue($sql, $bind);
+                return $this->bind_value($sql, $bind);
             }
         }
         else
@@ -91,7 +109,7 @@ class mysqli
      * @param  $bind
      * @return string
      */
-    protected function bindValue(string $sql, $bind):string
+    protected function bind_value(string $sql, $bind):string
     {
         $rs  = preg_split('/(\:[A-Za-z0-9_]+)\b/', $sql, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY);
         $rs2 = [];
@@ -116,7 +134,7 @@ class mysqli
      * @param $value
      * @return string
      */
-    protected function quoteInto(string $text, $value):string
+    protected function quote_into(string $text, $value):string
     {
         return str_replace('?', $this->quote($value), $text);
     }
@@ -148,11 +166,12 @@ class mysqli
      * 发送一条 MySQL 查询
      *
      * @param string $sql
-     * @param null $bind
+     * @param null   $bind
      * @return bool|\mysqli_result
      */
     public function conn(string $sql = '', $bind = null)
     {
+        $this->active();
         if($sql)
         {
 			$this->_sql = $this->format( $sql, $bind);
@@ -208,9 +227,9 @@ class mysqli
      * @param array $primary 数据
      * @param array $bind    数据
      * @param string $operate
-     * @return int
+     * @return int insert_id
      */
-    public function insertUpdate(string $table,array $primary, array $bind, string $operate='update'):int
+    public function insert_update(string $table, array $primary, array $bind, string $operate='update'):int
     {
         $update= [];
         foreach ($bind as $col=>$val)
@@ -245,9 +264,9 @@ class mysqli
      * @param string $sql   INSERT ... SELECT语法
      * @param array  $bind  INSERT ... SELECT语法 中的$bind
      * @param string $param 可选参数  //[LOW_PRIORITY | DELAYED(仅适用于MyISAM, MEMORY和ARCHIVE表) | HIGH_PRIORITY] [IGNORE]
-     * @return insertId
+     * @return int insert_id
      */
-    public function insertImport(string $table,array $sql,array $bind,string $param = ''):int
+    public function insert_import(string $table, array $sql, array $bind, string $param = ''):int
     {
         $sql = "INSERT {$param} INTO {$table} " . $this->format($sql, $bind);
         $this->conn($sql, $bind);
@@ -263,7 +282,7 @@ class mysqli
      * @param string $table   表名
      * @param array  $bind    数据  Array
      * @param string $param   可选参数  //[LOW_PRIORITY | DELAYED(仅适用于MyISAM, MEMORY和ARCHIVE表)]
-     * @return insertId
+     * @return int insert_id
      */
     public function replace(string $table,array $bind,string $param = ''):int
     {
@@ -298,9 +317,9 @@ class mysqli
      * @param string $sql
      * @param array  $bind  数据  Array
      * @param string $param 可选参数  //[LOW_PRIORITY | DELAYED(仅适用于MyISAM, MEMORY和ARCHIVE表)]
-     * @return insertId
+     * @return int insert_id
      */
-    public function replaceImport(string $table,string $sql ='', $bind = null,string $param = ''):int
+    public function replace_import(string $table, string $sql ='', $bind = null, string $param = ''):int
     {
         $sql = "REPLACE {$param} INTO {$table} " . $this->format($sql, $bind);
         $this->conn($sql, $bind); 
@@ -317,7 +336,7 @@ class mysqli
      * @param string $where 条件
      * @param array  $bind  条件数组
      * @param string $param 可选参数 [LOW_PRIORITY] [IGNORE]
-     * @return queryAffected
+     * @return int query_affected
      */
     public function update(string $table, array $data, string $where = '', $bind = null,string $param = '',int $limit = 0):int
     {
@@ -342,7 +361,7 @@ class mysqli
      * @param string $where  条件
      * @param array  $bind   条件数组
      * @param string $param  可选参数 [LOW_PRIORITY] [IGNORE]
-     * @return queryAffected
+     * @return int query_affected
      */
     public function add(string $table,array $data,string $where = '', $bind = null,string $param = ''):int
     {
@@ -367,7 +386,7 @@ class mysqli
      * @param string $where 条件
      * @param array $bind   条件数组
      * @param string $param 可选参数 [LOW_PRIORITY] [IGNORE]
-     * @return queryAffected
+     * @return int query_affected
      */
     public function cut(string $table, array $data, string $where = '', $bind = null,string $param = ''):int
     {
@@ -391,7 +410,7 @@ class mysqli
      * @param string $where 条件
      * @param array  $bind  条件数组
      * @param string $param 可选参数 [LOW_PRIORITY] [QUICK] [IGNORE]
-     * @return queryAffected
+     * @return int query_affected
      */
     public function delete(string $table,string $where = '', $bind = null,string $param = ''):int
     {
@@ -469,26 +488,26 @@ class mysqli
      *
      * @param string $sql
      * @param array  $bind  条件数组
-     * @param string $keyField 可选 指定行
+     * @param string $key_field 可选 指定行
      * @return array
      */
-    public function fetch_assoc(string $sql = '', $bind = null,string $keyField = ''):array
+    public function fetch_assoc(string $sql = '', $bind = null,string $key_field = ''):array
     {
         $sql && $this->conn($sql, $bind);
         $rs = [];
-        if($keyField)
+        if($key_field)
         {
         	while ($rss = $this->_rs->fetch_assoc() )
             {
-                $rs[$rss[$keyField]] = $rss;
+                $rs[$rss[$key_field]] = $rss;
             }
         }
         else
         {
             while ($rss = $this->_rs->fetch_assoc() )
             {
-                $tmp 				 = array_values($rss);
-                $rs[$tmp[0]] 		 = $rss;
+                $tmp 		 = array_values($rss);
+                $rs[$tmp[0]] = $rss;
             }
         }
         $this->free();
@@ -503,7 +522,7 @@ class mysqli
      * @param string $value
      * @return boolean 有返回true 沒有為false
      */
-    public function row_repeat($table, $field, $value)
+    public function row_repeat(string $table, string $field,string $value)
     {
         if($table && $field && $value)
         {
@@ -553,24 +572,16 @@ class mysqli
         return $this->_query_affected;
     }
 
-    /**
-     * 清空内存
-     */
-    /**
-     * 清空内存
-     */
+    /** 清空内存 */
     public function free()
     {
         if($this->_rs)
         {
-            return $this->_rs->free_result();
+            $this->_rs->free_result();
         }
-        return ;
     }
 
-    /**
-     * 關閉打開的連接     *
-     */
+    /** 關閉打開的連接  */
     public function close()
     {
         if($this->_conn)
@@ -579,9 +590,7 @@ class mysqli
         }
     }
     
-    /**
-     * 關閉打開的連接     *
-     */
+    /** 關閉打開的連接   */
     public function is_connect():bool
     {
     	return $this->_conn ? true :false;

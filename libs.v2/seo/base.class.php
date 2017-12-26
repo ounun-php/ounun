@@ -1,9 +1,8 @@
 <?php
 namespace seo;
 
-class video
+class base
 {
-
     protected $_url;
     protected $_http_host;
     protected $_requst_uri;

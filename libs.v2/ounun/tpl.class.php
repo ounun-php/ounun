@@ -86,6 +86,7 @@ abstract class _tpl
      */
     abstract public function output($tpl_name, $vars = array());
 }
+
 /**
  * 模板类
  * @package core
@@ -113,7 +114,7 @@ class tpl
      * @param string $cache_lifetime
      * @param string $tpl_filename
      */
-    public function __construct($tpl_dir, $drive = null, $tpl_backup_dir = '', $temp_dir = '', $cache_lifetime = '', $tpl_filename = '')
+    public function __construct($tpl_dir, $drive = null, $temp_dir = '', $cache_lifetime = '', $tpl_filename = '')
     {
         if(null == $drive)
         {
@@ -125,7 +126,7 @@ class tpl
             require $filename;
             if('php' == $drive)
             {
-                self::$_drive = new \ounun\tpl_drive\php($tpl_dir,$tpl_backup_dir);
+                self::$_drive = new \ounun\tpl_drive\php($tpl_dir);
             }else
             {
                 self::$_drive = new $drive($tpl_dir,$temp_dir,$cache_lifetime,$tpl_filename);
@@ -153,9 +154,9 @@ class tpl
      * @param mixed $value Parameter Value
      * @desc Assign Template Content
      *
-     * 设定一个值
-     * @param $name
-     * @param null $value
+     * 设定一个值 赋值
+     * @param string|array $name
+     * @param mix $value
      */
     public function assign($name, $value = '')
     {
@@ -199,7 +200,7 @@ class tpl
      * @param $tpl_name
      * @param array $vars
      */
-    public static function import($filename,$args=array())
+    public static function import($filename,$args=[])
     {
         self::$_drive->import($filename,$args);
     }

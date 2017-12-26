@@ -228,7 +228,7 @@ class html
     const Cache_Time_Interval   = 300;
 
 	private $_app                = '';
-    private $_app_ver            = 0;
+    private $_tpl                = '';
     private $_expire             = 3600;
     private $_now_time;
 
@@ -252,11 +252,11 @@ class html
      * @param int 	 $expire
      * @param string $key
      */
-    public function __construct(string $app,$app_ver,$cache_config,string $key='',int $expire=3600,bool $trim=true,bool $debug=true)
+    public function __construct(string $app,$tpl,$cache_config,string $key='',int $expire=3600,bool $trim=true,bool $debug=true)
     {
         // 初始化参数
         $this->_app          = $app;
-        $this->_app_ver      = $app_ver;
+        $this->_tpl          = $tpl;
         $this->_expire       = $expire;
         $this->_now_time     = time();
 
@@ -274,7 +274,7 @@ class html
         }
         // Cache
         $this->_cache       = new _html_cache($cache_config,$this->_debug);
-        $this->_cache->key("{$app}{$app_ver}{$key}");
+        $this->_cache->key("{$app}{$tpl}{$key}");
     }
     /**
      * [1/1] 判断->执行缓存->输出

@@ -50,7 +50,7 @@ class page
      * @param string $sql_count
      * @param array $config
      */
-    public function __construct(\ounun\mysqli $db,string $table,string $url,string $where_str = '',array $where_bind = [],string $sql_count = 'count(*)',  array $config = [])
+    public function __construct(\ounun\mysqli $db,string $table,string $url,string $where_str = '', $where_bind =null,string $sql_count = 'count(*)',  array $config = [])
     {
         $this->_db    = $db;
         $this->_table = $table;

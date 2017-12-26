@@ -3,12 +3,33 @@ namespace cms;
 
 class base
 {
+    /** @var  \ounun\mysqli */
+    protected $_db;
+
+    /** @var  \seo\base */
+    protected $_seo;
+
     /** @var string 扩展名 */
     protected $_page_ext    = '.html';
 
     /** @var bool 首页 true(默认)：最大页 false:第一页 */
     protected $_page_is_max = true;
 
+
+    /** base constructor. */
+    public function __construct(\ounun\mysqli $db,\seo\base $seo,string $page_ext,bool $page_is_max)
+    {
+        $this->_db          = $db;
+        $this->_seo         = $seo;
+        $this->_page_ext    = $page_ext;
+        $this->_page_is_max = $page_is_max;
+    }
+
+    /** @return \ounun\mysqli 输出db */
+    public function db()
+    {
+        return $this->_db;
+    }
     /**
      * @param array $data
      * @param int $len
