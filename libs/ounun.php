@@ -571,6 +571,10 @@ function base64_url_decode(string $string = null):string
  */
 function short_url_encode(int $id = 0):string
 {
+    if($id < 10)
+    {
+        return (string)$id;
+    }
     $show = '';
     while($id>0)
     {
@@ -595,7 +599,7 @@ function short_url_encode(int $id = 0):string
 function short_url_decode(string $string = ''):int
 {
     $p  = 0;
-    while($string)
+    while($string !== '')
     {
         $s      = substr($string,0,1);
         $n      = is_numeric($s)?$s:ord($s);
