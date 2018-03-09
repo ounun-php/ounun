@@ -9,34 +9,54 @@ namespace ounun\tpl_drive;
 class php extends \ounun\_tpl
 {
     /**
-     * 模板文件所以目录
+     * 模板根目录
      * @var string
      */
-    protected $_tpl_dir;
+    protected $_dir_root;
 
     /**
-     * 模板文件所以目录(当前目录)
+     * 相对模板目录(当前目录)
      * @var string
      */
-    protected $_tpl_dir_cur;
+    protected $_dir_current;
+
+    /**
+     * 模板样式目录
+     * @var string
+     */
+    protected $_style_name;
+
+    /**
+     * 模板文件所以目录(默认)
+     * @var string
+     */
+    protected $_style_name_default;
 
     /**
      * 数据缓存
      * @var array
      */
-    protected $_data = array();
+    protected $_data = [];
 
     /**
      * 创建对像
-     * @param string $tpl_dir
+     * @param string $dir_root
      */
-    public function __construct($tpl_dir = null)
+    public function __construct($dir_root = '', $style_name = '', $style_name_default = '')
     {
-        if($tpl_dir)
+        if($dir_root)
         {
-            $this->_tpl_dir = $tpl_dir;
+            $this->_dir_root            = $dir_root;
         }
-        $this->_tpl_dir_cur = null;
+        if($style_name)
+        {
+            $this->_style_name          = $style_name;
+        }
+        if($style_name_default)
+        {
+            $this->_style_name_default  = $style_name;
+        }
+        $this->_dir_current             = '';
     }
 
     /**
@@ -64,7 +84,7 @@ class php extends \ounun\_tpl
      * @param $name
      * @param $value
      */
-    public function append($name, $value)
+    public function append($name, $value=null)
     {
         if(is_string($this->_data[$name]))
         {
@@ -77,78 +97,87 @@ class php extends \ounun\_tpl
 
     /**
      * 返回一个 模板文件地址(绝对目录,相对root)
-     * @param $tpl_name
+     * @param $filename
      */
-    public function file($tpl_name)
+    public function file($filename)
     {
-        return $this->_tpl_dir . $tpl_name;
+        return "{$this->_dir_root}{$this->_style_name}/{$filename}";
     }
 
     /**
      * 返回一个 模板文件地址(相对目录)
-     * @param $tpl_name
+     * @param $filename
      */
-    public function file_cur($tpl_name)
+    public function file_cur($filename)
     {
-        return $this->_tpl_dir_cur . $tpl_name;
+        return "{$this->_dir_root}{$this->_style_name}/{$this->_dir_current}{$filename}";
     }
 
     /**
      * 返回一个 模板文件地址(兼容)
-     * @param $tpl_name
+     * @param $filename
      */
-    public function file_comp($tpl_name)
+    public function file_comp($filename)
     {
         // 相对
-        if($this->_tpl_dir_cur)
+        if($this->_dir_current)
         {
-            $filename = $this->_tpl_dir_cur . $tpl_name;
-            if(file_exists($filename))
+            $filename2     = "{$this->_dir_root}{$this->_style_name}/{$this->_dir_current}{$filename}";
+            if(file_exists($filename2))
             {
-                return $filename;
+                return $filename2;
+            }else
+            {
+                $filename2 = "{$this->_dir_root}{$this->_style_name_default}/{$this->_dir_current}{$filename}";
+                if(file_exists($filename2))
+                {
+                    return $filename2;
+                }
             }
         }
         // 绝对
-        $filename = $this->_tpl_dir . $tpl_name;
-        if( file_exists($filename) )
+        $filename2     = "{$this->_dir_root}{$this->_style_name}/{$filename}";
+        if( file_exists($filename2) )
         {
-            $this->_tpl_dir_cur    = realpath(dirname($filename)) .'/';
-            return $filename;
+            $current            = dirname($filename);
+            $this->_dir_current = ('.' == $current || '' == $current || '/' == $current ) ? '' : $current.'/';
+            return $filename2;
+        }else
+        {
+            $filename2 = "{$this->_dir_root}{$this->_style_name_default}/{$filename}";
+            if( file_exists($filename2) )
+            {
+                $current            = dirname($filename);
+                $this->_dir_current = ('.' == $current || '' == $current || '/' == $current ) ? '' : $current.'/';
+                return $filename2;
+            }
         }
-        return null;
+        trigger_error("Can't find Template:{$filename2} \nstyle:{$this->_style_name} \nstyle_default:{$this->_style_name_default}", E_USER_ERROR);
     }
 
     /**
      * 导入一个模板文件
-     * @param $tpl_name
+     * @param $filename
      * @param array $vars
      */
-    public function import($tpl_name, $vars = [])
+    public function import($filename, $vars = [])
     {
         extract($this->_data);
         if($vars)
         {
             extract($vars);
         }
-
-        $filename  = $this->file_comp($tpl_name);
-        if($filename)
-        {
-            require $filename;
-        }else
-        {
-            trigger_error('<strong style="color:#F30">Can\'t find Template:'.$tpl_name.'</strong>', E_USER_ERROR);
-        }
+        require $this->file_comp($filename);
     }
 
     /**
      * 最后输出
-     * @param $tpl_name
+     * @param $filename
      * @param array $vars
      */
-    public function output($tpl_name, $vars = [])
+    public function output($filename, $vars = [])
     {
-        $this->import($tpl_name,$vars);
+        $this->import($filename,$vars);
         exit();
     }
 }

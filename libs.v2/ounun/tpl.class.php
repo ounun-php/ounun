@@ -11,22 +11,28 @@ abstract class _tpl
 {
 
     /**
-     * 模板文件所以目录
+     * 模板根目录
      * @var string
      */
-    protected $_tpl_dir;
+    protected $_dir_root;
 
     /**
-     * 模板文件所以目录(移动)
+     * 相对模板目录(当前目录)
      * @var string
      */
-    protected $_tpl_dir_backup;
+    protected $_dir_current;
 
     /**
-     * 模板文件所以目录(当前目录)
+     * 模板样式目录
      * @var string
      */
-    protected $_tpl_dir_cur;
+    protected $_style_name;
+
+    /**
+     * 模板文件所以目录(默认)
+     * @var string
+     */
+    protected $_style_name_default;
 
     /**
      * 数据缓存
@@ -36,9 +42,9 @@ abstract class _tpl
 
     /**
      * 创建对像
-     * @param string $tpl_dir
+     * @param string $dir_root
      */
-    abstract public function __construct($tpl_dir = null);
+    abstract public function __construct($dir_root = '', $style_name = '', $style_name_default = '');
 
     /**
      * 设定一个值
@@ -52,39 +58,39 @@ abstract class _tpl
      * @param $name
      * @param $value
      */
-    abstract public function append($name, $value);
+    abstract public function append($name, $value=null);
 
     /**
      * 返回一个 模板文件地址(相对目录)
      * @param $tpl_name
      */
-    abstract public function file_cur($tpl_name);
+    abstract public function file_cur($filename);
 
     /**
      * 返回一个 模板文件地址(绝对目录,相对root)
      * @param $tpl_name
      */
-    abstract public function file($tpl_name);
+    abstract public function file($filename);
 
     /**
      * 返回一个 模板文件地址(兼容)
      * @param $tpl_name
      */
-    abstract public function file_comp($tpl_name);
+    abstract public function file_comp($filename);
 
     /**
      * 导入一个模板文件
      * @param $tpl_name
      * @param array $vars
      */
-    abstract public function import($tpl_name, $vars = array());
+    abstract public function import($filename, $vars = []);
 
     /**
      * 最后输出
      * @param $tpl_name
      * @param array $vars
      */
-    abstract public function output($tpl_name, $vars = array());
+    abstract public function output($filename, $vars = []);
 }
 
 /**
@@ -94,47 +100,50 @@ abstract class _tpl
 class tpl
 {
     /**
+     * 模板驱动名(默认)
+     * @var string
+     */
+    const drive_name_default    = 'php';
+
+    /**
      * 驱动缓存
      * @var _tpl
      */
-    private static $_drive = null;
-
-    /**
-     * 模板驱动名
-     * @var string
-     */
-    private $_drive_name   = 'php';
+    private static $_drive      = null;
 
     /**
      * 创建一个模板对像
      * Tpl constructor.
-     * @param $tpl_dir
-     * @param null $drive
-     * @param string $temp_dir
+     * @param string $dir_root
+     * @param string $style_name
+     * @param string $style_name_default
+     * @param string $drive_name
      * @param string $cache_lifetime
-     * @param string $tpl_filename
      */
-    public function __construct($tpl_dir, $drive = null, $temp_dir = '', $cache_lifetime = '', $tpl_filename = '')
+    public function __construct($dir_root='', $style_name = '',$style_name_default='', $drive_name = '', $cache_lifetime = 0)
     {
-        if(null == $drive)
+        if('' == $drive_name)
         {
-            $drive = $this->_drive_name;
+            $drive_name = self::drive_name_default;
         }
-        $filename  = Ounun_Dir. "ounun/tpl_drive/{$drive}.class.php";
+        $filename  = Ounun_Dir. "ounun/tpl_drive/{$drive_name}.class.php";
+
         if(file_exists($filename))
         {
+            $this->_drive_name = $drive_name;
+
             require $filename;
-            if('php' == $drive)
+            if('php' == $drive_name)
             {
-                self::$_drive = new \ounun\tpl_drive\php($tpl_dir);
+                self::$_drive = new \ounun\tpl_drive\php($dir_root,$style_name,$style_name_default);
             }else
             {
-                self::$_drive = new $drive($tpl_dir,$temp_dir,$cache_lifetime,$tpl_filename);
+                self::$_drive = new $drive_name($dir_root,$style_name,$style_name_default,$cache_lifetime);
             }
         }
         else
         {
-            trigger_error("Error:Not found \"{$drive}\" template drive", E_USER_ERROR);
+            trigger_error("Error:Not found \"{$drive_name}\" template drive", E_USER_ERROR);
             exit();
         }
     }
@@ -193,6 +202,15 @@ class tpl
     public static function file_cur($filename)
     {
         return self::$_drive->file_cur($filename);
+    }
+
+    /**
+     * 返回一个 返回一个 模板文件地址(兼容)
+     * @param $tpl_name
+     */
+    public static function file_comp($filename)
+    {
+        return self::$_drive->file_comp($filename);
     }
 
     /**

@@ -712,9 +712,9 @@ class view extends base
 	protected $_stpl = null;
     /**
      * 模板驱动
-     * @var string null | php | smarty
+     * @var string '' | php | smarty
      */
-	protected $_stpl_drive = null;
+	protected $_stpl_drive_name = 'php';
 
     /**
      * 默认赋值(空)
@@ -724,12 +724,16 @@ class view extends base
     /**
      * 初始化HTMl模板类
      */
-	public function template()
+	public function template($style_name = '',$style_name_default='', $dir_root='', $drive_name = '')
 	{
 		if(null == $this->_stpl)
         {
             require Ounun_Dir. 'ounun/tpl.class.php';
-            $this->_stpl  = new tpl(Ounun_Dir_Tpl,$this->_stpl_drive);
+            $style_name         = $style_name        ?$style_name        :'zh_cn';
+            $style_name_default = $style_name_default?$style_name_default:'default';
+            $dir_root           = $dir_root  ?$dir_root  :\Dir_App . 'template/';
+            $drive_name         = $drive_name?$drive_name:$this->_stpl_drive_name;
+            $this->_stpl        = new tpl($dir_root,$style_name,$style_name_default,$drive_name);
         }
         $this->_global_assign();
 	}
@@ -846,7 +850,7 @@ class scfg
         return \scfg::$site;
     }
 
-    /** @return \cfg\i18n\zh_cn 语言包 */
+    /** @return \cfg\i18n 语言包 */
     public static function i18n()
     {
         return \scfg::$i18n;
@@ -869,21 +873,25 @@ class scfg
     }
 
     /** @return string 认别用户语言 */
-    public static function lang($domain_valid=false)
+    public static function lang_http_accept()
     {
-        if($domain_valid)
-        {
-            return (   \cfg::Site_Domain_En_Pc == $_SERVER['HTTP_HOST']
-                || \cfg::Site_Domain_En_M  == $_SERVER['HTTP_HOST'] )
-                ? 'en'
-                : 'zh_cn';
-        }
         $lang = $_SERVER['HTTP_ACCEPT_LANGUAGE'];
         $lang = substr($lang,0,2);
         $lang = strtolower($lang);
-        return 'zh' == $lang ? 'zh_cn' :'en';
+        return 'zh' == $lang ? 'cn' :'en';
     }
 
+    public static function lang_seting($lang,$default='en')
+    {
+
+        if($lang  == $default)
+        {
+            self::$i18n = "\\cfg\\i18n";
+        }else
+        {
+            self::$i18n = "\\cfg\\i18n\\{$lang}";
+        }
+    }
     /**
      * 自动加载的类
      * @param $class_name
@@ -896,7 +904,7 @@ class scfg
         {
             array_shift($lists);
             $file_name  = implode('/', $lists).'.class.php';
-            $file_name  =\Dir_Libs  . $file_name;
+            $file_name  = \Dir_Libs  . $file_name;
             if(file_exists($file_name))
             {
                 require $file_name;
@@ -949,7 +957,7 @@ class scfg
         }
         self::$app  = $val_0['app'];
         self::$site = "\\cfg\\".$val_0['cls'];
-        self::$i18n = "\\cfg\\i18n\\".(self::$site::lang);
+        self::$i18n = "\\cfg\\i18n".(self::$site::i18n?'\\'.self::$site::i18n:'');
 
         /** 重定义头 */
         header('X-Powered-By: Ounun.org');
@@ -957,10 +965,6 @@ class scfg
         define('Dir_App',           	\Dir_Root. 'app.'.self::$app.'/');
         /** Libs目录 **/
         define('Dir_Libs',        	    \Dir_App . 'libs/');
-        /** 模块所在目录 */
-        define('Ounun_Dir_Module', 	    \Dir_App . 'module/');
-        /** 模板存放目录 */
-        define('Ounun_Dir_Tpl', 	    \Dir_App . 'template/');
         /** 加载libs/scfg.{self::$app}.ini.php文件 */
         $filename   = Dir_Libs . "scfg.".self::$app.".ini.php";
         if(file_exists($filename))
@@ -971,7 +975,7 @@ class scfg
         // 设定 模块与方法
         if(is_array($mod) && $mod[0])
         {
-            $filename         = Ounun_Dir_Module . $mod[0] . '.class.php';
+            $filename         = \Dir_App . "module/{$mod[0]}.class.php";
             if(file_exists($filename))
             {
                 $module		  = $mod[0];
@@ -980,14 +984,14 @@ class scfg
                     array_shift($mod);
                 }else
                 {
-                    $mod	  = [Ounun_Def_Met];
+                    $mod	  = ['index'];
                 }
             }
             else
             {
                 if($mod[1])
                 {
-                    $filename = Ounun_Dir_Module . "{$mod[0]}/{$mod[1]}.class.php";
+                    $filename           = \Dir_App . "module/{$mod[0]}/{$mod[1]}.class.php";
                     if(file_exists($filename))
                     {
                         $module		    = $mod[0].'\\'.$mod[1];
@@ -997,52 +1001,50 @@ class scfg
                             array_shift($mod);
                         }else
                         {
-                            $mod	   = [Ounun_Def_Met];
+                            $mod	    = ['index'];
                         }
                     }else
                     {
-                        $filename       = Ounun_Dir_Module . $mod[0].'/'.Ounun_Def_Mod.'.class.php';
-                        if(file_exists(Ounun_Dir_Module . $mod[0]) && file_exists($filename))
+                        $filename       = \Dir_App . "module/{$mod[0]}/system.class.php";
+                        if(file_exists(\Dir_App . "module/{$mod[0]}" ) && file_exists($filename))
                         {
-                            $module	    = $mod[0].'\\'.Ounun_Def_Mod;
+                            $module	    = "{$mod[0]}\\system";
                             array_shift($mod);
                         }else
                         {
-                            // 默认模块
-                            $module		= Ounun_Def_Mod;
-                            $filename 	= Ounun_Dir_Module . $module . '.class.php';
+                            $module		= 'system';
+                            $filename 	= \Dir_App . "module/system.class.php";
                         }
                     }
                 }else
                 {
-                    $filename = Ounun_Dir_Module . $mod[0].'/'.Ounun_Def_Mod.'.class.php';
-                    // exit($filename);
+                    $filename       = \Dir_App . "module/{$mod[0]}/system.class.php";
                     if(file_exists($filename))
                     {
-                        $module		= $mod[0].'\\'.Ounun_Def_Mod;
-                        $mod	    = [Ounun_Def_Met];
+                        $module		= "{$mod[0]}\\system";
+                        $mod	    =  ['index'];
                         // array_shift($mod);
                     }else
                     {
                         // 默认模块
                         // $mod	    = array(Ounun_Default_Method);
-                        $module		= Ounun_Def_Mod;
-                        $filename 	= Ounun_Dir_Module . $module . '.class.php';
+                        $module		= 'system';
+                        $filename 	= \Dir_App . "module/system.class.php";
                     }
                 }
-            } // end Ounun_Dir_Module . $mod[0] . '.class.php';
+            } // end \Dir_App . "module/" . $mod[0] . '.class.php';
         }
         else
         {
             // 默认模块 与 默认方法
-            $mod				= [Ounun_Def_Met];
-            $module				=  Ounun_Def_Mod;
-            $filename 			=  Ounun_Dir_Module . $module . '.class.php';
+            $mod				= ['index'];
+            $module				=  'system';
+            $filename 			=  \Dir_App . "module/system.class.php";
         }
         // 包括模块文件
         require $filename;
         // 初始化类
-        $module  				= '\\module\\'.$module;
+        $module  				= "\\module\\{$module}";
         if(class_exists($module,false))
         {
             new $module($mod);
