@@ -252,7 +252,7 @@ class html
      * @param int 	 $expire
      * @param string $key
      */
-    public function __construct(string $app,$tpl,$cache_config,string $key='',int $expire=3600,bool $trim=true,bool $debug=true)
+    public function __construct(string $app,string $tpl,$cache_config,string $key='',int $expire=3600,bool $trim=true,bool $debug=true)
     {
         // 初始化参数
         $this->_app          = $app;
@@ -403,6 +403,7 @@ class html
             }
         }
     }
+
     /**
      * 是否清理本缓存
      */

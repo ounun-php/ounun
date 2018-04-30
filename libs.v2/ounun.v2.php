@@ -841,35 +841,43 @@ class scfg
     /** @var \cfg\site 站点常量包 */
     public static $site;
 
-    /** @var \cfg\i18n\zh_cn 语言包 */
+    /** @var \cfg\i18n 语言包 */
     public static $i18n;
+
+    /** @var \app\i18n 语言包 */
+    public static $i18n_app;
 
     /** @return \cfg\site 站点常量包 */
     public static function site()
     {
-        return \scfg::$site;
+        return self::$site;
     }
 
     /** @return \cfg\i18n 语言包 */
     public static function i18n()
     {
-        return \scfg::$i18n;
+        return self::$i18n;
     }
 
+    /** @return \app\i18n 语言包 */
+    public static function i18n_app()
+    {
+        return \scfg::$i18n_app;
+    }
     /**
      * 静态地址
      * @param string|array $url
      * @param string       $pre_str
-     * @param bool         $is_web  true:Web静态 false:Image图片
+     * @param bool         $static_root
      * @return string
      */
-    static public function surl($url,string $pre_str="",bool $is_web=true):string
+    static public function surl($url,string $pre_str="",string $static_root = '/static/'):string
     {
         if($url && is_array($url) )
         {
             $url = count($url) > 1 ? '??'.implode(',',$url) : $url[0];
         }
-        return ($is_web?Const_Url_Static_Web:Const_Url_Static_Image).$pre_str.$url;
+        return $static_root.$pre_str.$url;
     }
 
     /** @return string 认别用户语言 */
@@ -886,10 +894,12 @@ class scfg
 
         if($lang  == $default)
         {
-            self::$i18n = "\\cfg\\i18n";
+            self::$i18n     = "\\cfg\\i18n";
+            self::$i18n_app = "\\app\\i18n";
         }else
         {
-            self::$i18n = "\\cfg\\i18n\\{$lang}";
+            self::$i18n     = "\\cfg\\i18n\\{$lang}";
+            self::$i18n_app = "\\app\\i18n\\{$lang}";
         }
     }
     /**
@@ -955,9 +965,10 @@ class scfg
         {
             $val_0 = $this->routes_default;
         }
-        self::$app  = $val_0['app'];
-        self::$site = "\\cfg\\".$val_0['cls'];
-        self::$i18n = "\\cfg\\i18n".(self::$site::i18n?'\\'.self::$site::i18n:'');
+        self::$app      = $val_0['app'];
+        self::$site     = "\\cfg\\".$val_0['cls'];
+        self::$i18n     = "\\cfg\\i18n";
+        self::$i18n_app = "\\app\\i18n";
 
         /** 重定义头 */
         header('X-Powered-By: Ounun.org');
