@@ -126,7 +126,7 @@ class tpl
         {
             $drive_name = self::drive_name_default;
         }
-        $filename  = Ounun_Dir. "ounun/tpl_drive/{$drive_name}.class.php";
+        $filename  = __DIR__. "/tpl_drive/{$drive_name}.class.php";
 
         if(file_exists($filename))
         {
@@ -223,6 +223,15 @@ class tpl
         self::$_drive->import($filename,$args);
     }
 
+
+    /**
+     * 返回一个 返回一个 模板文件地址(兼容)
+     * @param $tpl_name
+     */
+    public function require_file($filename)
+    {
+        return self::$_drive->file_comp($filename);
+    }
     /**
      * 最后输出
      * @param $tpl_name

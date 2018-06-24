@@ -484,11 +484,11 @@ function expires(int $expires = 0,string $etag = '', int $LastModified = 0)
  */
 function error404($msg=''):void
 {
+    header('HTTP/1.1 404 Not Found');
     if(function_exists('\error404'))
     {
         \error404();
     }
-    header('HTTP/1.1 404 Not Found');
     exit('<html>
             <head>
                 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
@@ -902,6 +902,7 @@ class scfg
             self::$i18n_app = "\\app\\i18n\\{$lang}";
         }
     }
+
     /**
      * 自动加载的类
      * @param $class_name
