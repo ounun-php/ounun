@@ -84,7 +84,7 @@ class auth_code
 	    {
 	        $urlencoded .= urlencode('&issuer='.urlencode($title));
         }
-        return 'http://shqr.7pk.cn/qrout_aosin.php?c='.$urlencoded.'';
+        return 'https://qr.7pk.cn/qrout.php?c='.$urlencoded.'';
     }
 
     /**

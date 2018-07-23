@@ -55,7 +55,7 @@ class page
      * @param string $sql_count
      * @param array $config
      */
-    public function __construct(\ounun\mysqli $db,string $table,string $url,string $where_str = '', $where_bind =null,string $sql_count = 'count(*)',  array $config = [])
+    public function __construct(\ounun\mysqli $db,string $table,string $url,string $where_str = '', $where_bind =null,string $sql_count = 'count(*)',  array $config = [],int $rows=0)
     {
         $this->_db    = $db;
         $this->_table = $table;
@@ -67,6 +67,11 @@ class page
         if($config)
         {
             $this->set_config($config);
+        }
+
+        if($rows)
+        {
+            $this->_cfg_rows = $rows;
         }
     }
 

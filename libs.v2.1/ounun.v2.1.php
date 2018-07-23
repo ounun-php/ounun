@@ -394,19 +394,26 @@ class ounun_scfg
             }
         }else
         {
-            $file_name0    = implode('/', $lists) . '.class.php';
-            $file_name     = self::$dir_root . 'proj.libs/' . $file_name0;
+            $file_name0   = implode('/', $lists) . '.class.php';
+            $file_name    = self::$dir_root_app  . 'libs/' . $file_name0;
             if (file_exists($file_name))
             {
                 require $file_name;
             }else
             {
-                $file_name = self::root_dir . $file_name0;
+                $file_name     = self::$dir_root . 'proj.libs/' . $file_name0;
                 if (file_exists($file_name))
                 {
                     require $file_name;
-                }
-            }
+                }else
+                {
+                    $file_name = self::root_dir . $file_name0;
+                    if (file_exists($file_name))
+                    {
+                        require $file_name;
+                    } // end ounun
+                } // end proj.libs
+            } // end app.libs
         }
     }
 

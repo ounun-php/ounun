@@ -357,6 +357,7 @@ class html
             // 处理 cache expire
             header('Expires: '. gmdate('D, d M Y H:i:s', $this->_now_time + $this->_expire). ' GMT');
             header('Cache-Control: max-age='. $this->_expire);
+            header('Last-Modified: '.gmdate('D, d M Y H:i:s', $this->_cache_time).' GMT');
 
     		if($etag && $etag == $etag_http)
     		{

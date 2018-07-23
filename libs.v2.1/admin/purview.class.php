@@ -146,46 +146,7 @@ class purview
         return false;
     }
 
-    /*
-    * 显示权限
-    */
-    public function show(int $type)
-    {
-        $rs           = '';
-        $uuid         = 0;
-        $purview      = $this->purview[$type];
-        if($purview && is_array($purview))
-        {
-            foreach ( $purview as $key1 => $data1 )
-            {
-                $rs .= '<h4 style="color: blue;">' . $data1 ['name'] . '</h4>';
-                foreach ( $data1 ['sub'] as $key2 => $data2 )
-                {
-                    if ($data2 ['url'])
-                    {
-                        $rs .= $data2 ['name'] . ', ';
-                    } else
-                    {
-                        $uuid ++;
-                        $i   = 0;
-                        foreach ( $data2 ['data'] as $key3 => $data3 )
-                        {
-                            $i ++;
-                            if (0 == $i % 5)
-                            {
-                                $rs .= '<br />';
-                            }
-                            if ($data3 ['name'])
-                            {
-                                $rs .= $data3 ['name'] . ', ';
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        return $rs;
-    }
+
 
 
     /**
@@ -197,7 +158,7 @@ class purview
     public function data(int $type=0):array
     {
         $purview	= [];
-        if ($this->oauth->login_is())
+        if ($this->oauth->login_check())
         {
             if(''==$type)
             {

@@ -258,6 +258,7 @@ class mysqli
         $this->_query_affected = $this->_conn->affected_rows; //取得前一次 MySQL 操作所影响的记录行数
         return $this->_insert_id;
     }
+
     /**
      * 快速地从一个或多个表中向一个表中插入多个行
      *
