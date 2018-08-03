@@ -18,10 +18,15 @@ class template
     protected $_dir_root;
 
     /**
-     * 相对模板目录(当前目录)
+     * 模板目录(当前)
      * @var string
      */
     protected $_dir_current;
+    /**
+     * 模板样式(当前)
+     * @var string
+     */
+    protected $_style_current;
 
     /**
      * 模板样式目录
@@ -40,11 +45,11 @@ class template
      * 创建对像
      * @param string $dir_root
      */
-    public function __construct($dir_root = '', $style_name = '', $style_name_default = '')
+    public function __construct($dir_tpl_root = '', $style_name = '', $style_name_default = '')
     {
-        if($dir_root)
+        if($dir_tpl_root)
         {
-            $this->_dir_root            = $dir_root;
+            $this->_dir_root            = $dir_tpl_root;
         }
         if($style_name)
         {
@@ -55,6 +60,7 @@ class template
             $this->_style_name_default  = $style_name_default;
         }
         $this->_dir_current             = '';
+        $this->_style_current           = '';
     }
 
 
@@ -88,7 +94,7 @@ class template
      */
     public function file_cur(string $filename):string
     {
-        return "{$this->_dir_root}{$this->_style_name}/{$this->_dir_current}{$filename}";
+        return "{$this->_dir_root}{$this->_style_current}/{$this->_dir_current}{$filename}";
     }
 
     /**
@@ -97,12 +103,28 @@ class template
      */
     public function file_cur_comp(string $filename):string
     {
-        $filename2 = "{$this->_dir_root}{$this->_style_name}/{$this->_dir_current}{$filename}";
-        if(file_exists($filename2))
+        if($this->_style_current)
         {
-            return $filename2;
+            $filename2 = "{$this->_dir_root}{$this->_style_current}/{$this->_dir_current}{$filename}";
+            if(file_exists($filename2))
+            {
+                return $filename2;
+            }
+            if($this->_style_name == $this->_style_current)
+            {
+                return "{$this->_dir_root}{$this->_style_name_default}/{$this->_dir_current}{$filename}";
+            }else
+            {
+                return "{$this->_dir_root}{$this->_style_name}/{$this->_dir_current}{$filename}";
+            }
+        }else{
+            $filename2 = "{$this->_dir_root}{$this->_style_name}/{$this->_dir_current}{$filename}";
+            if(file_exists($filename2))
+            {
+                return $filename2;
+            }
+            return "{$this->_dir_root}{$this->_style_name_default}/{$this->_dir_current}{$filename}";
         }
-        return "{$this->_dir_root}{$this->_style_name_default}/{$this->_dir_current}{$filename}";
     }
 
     /**
@@ -112,27 +134,33 @@ class template
     public function file_require(string $filename)
     {
         // 相对
-        if($this->_dir_current)
+        if($this->_style_current)
         {
-            $filename2     = "{$this->_dir_root}{$this->_style_name}/{$this->_dir_current}{$filename}";
+            $filename2     = "{$this->_dir_root}{$this->_style_current}/{$this->_dir_current}{$filename}";
             if(file_exists($filename2))
             {
                 return $filename2;
+            }
+            if($this->_style_name == $this->_style_current)
+            {
+                return "{$this->_dir_root}{$this->_style_name_default}/{$this->_dir_current}{$filename}";
             }else
             {
-                $filename2 = "{$this->_dir_root}{$this->_style_name_default}/{$this->_dir_current}{$filename}";
-                if(file_exists($filename2))
-                {
-                    return $filename2;
-                }
+                return "{$this->_dir_root}{$this->_style_name}/{$this->_dir_current}{$filename}";
             }
         }
         // 绝对
         $filename2     = "{$this->_dir_root}{$this->_style_name}/{$filename}";
         if( file_exists($filename2) )
         {
-            $current            = dirname($filename);
-            $this->_dir_current = ('.' == $current || '' == $current || '/' == $current ) ? '' : $current.'/';
+            $current                  = dirname($filename);
+            if('.' == $current || '' == $current || '/' == $current){
+                $this->_dir_current   = '';
+                $this->_style_current = $this->_style_name;
+            }else{
+                $this->_dir_current   = $current.'/';
+                $this->_style_current = $this->_style_name;
+            }
             return $filename2;
         }else
         {
@@ -140,7 +168,13 @@ class template
             if( file_exists($filename2) )
             {
                 $current            = dirname($filename);
-                $this->_dir_current = ('.' == $current || '' == $current || '/' == $current ) ? '' : $current.'/';
+                if('.' == $current || '' == $current || '/' == $current){
+                    $this->_dir_current   = '';
+                    $this->_style_current = $this->_style_name_default;
+                }else{
+                    $this->_dir_current   = $current.'/';
+                    $this->_style_current = $this->_style_name_default;
+                }
                 return $filename2;
             }
         }

@@ -122,7 +122,6 @@ class ounun_view extends ounun_base
         }
     }
 
-
     /** @var int html_cache_time */
     protected $_html_cache_time = 2678400; // 31天
 
@@ -167,12 +166,12 @@ class ounun_view extends ounun_base
 	protected static $_stpl = null;
 
     /** 初始化HTMl模板类 */
-	public function template($style_name = '',$style_name_default='',$dir_root='')
+	public function template($style_name = '',$style_name_default='',$dir_tpl_root='')
 	{
 		if(null == self::$_stpl)
         {
-            $dir_root     = $dir_root  ?$dir_root :\ounun_scfg::$dir_root_app . 'template/';
-            self::$_stpl  = new \tpl\template($dir_root,$style_name,$style_name_default);
+            $dir_tpl_root     = $dir_tpl_root  ?$dir_tpl_root :\ounun_scfg::$dir_root_app . 'template/';
+            self::$_stpl  = new \tpl\template($dir_tpl_root,$style_name,$style_name_default);
         }
 	}
 
@@ -279,46 +278,44 @@ class ounun_view extends ounun_base
 
 class ounun_scfg
 {
-    /** @var string Ounun目录 */
-    const root_dir =  __DIR__.'/';
-
     /** @var string 默认模块名称 */
-    const def_mod  = 'system';
-
+    const def_mod   = 'system';
     /** @var string 默认操作名称 */
-    const def_met  = 'index';
+    const def_met   = 'index';
+
+    /** @var string Ounun目录 */
+    static public $lib_ounun    =  __DIR__.'/';
+    /** @var string CMS目录   */
+    static public $lib_cms      = '';
+    /** @var string APP目录   */
+    static public $lib_app      = '';
+
 
     /** @var string 根目录 */
     static public $dir_root      = '';
-
-    /** @var string App根目录 */
+    /** @var string 根目录(App) */
     static public $dir_root_app  = '';
 
     /** @var string 当前APP */
     static public $app           = '';
-
     /** @var string 当前APP Url */
     static public $app_url       = '';
-
     /** @var string 当前APP Host */
     static public $app_host      = '';
 
     /** @var string 模板 */
     static public $tpl           = '';
-
     /** @var string 模板(默认) */
     static public $tpl_default   = '';
 
 
     /** @var \cfg\i18n 语言包 */
     static public $i18n;
-
     /** @var \app\i18n 语言包 */
     static public $i18n_app;
 
     /** @var string 当前语言 */
     static public $lang         = 'en';
-
     /** @var string 默认语言 */
     static public $lang_default = 'en';
 
@@ -383,11 +380,11 @@ class ounun_scfg
     {
         $class_name = ltrim($class_name, '\\');
         $lists 	    = explode('\\', $class_name);
-        if('app' == $lists[0] && self::$dir_root_app)
+        if('app' == $lists[0] && self::$lib_app)
         {
             array_shift($lists);
             $file_name    = implode('/', $lists).'.class.php';
-            $file_name    = self::$dir_root_app  . 'libs/' . $file_name;
+            $file_name    = self::$lib_app . $file_name;
             if(file_exists($file_name))
             {
                 require $file_name;
@@ -395,19 +392,19 @@ class ounun_scfg
         }else
         {
             $file_name0   = implode('/', $lists) . '.class.php';
-            $file_name    = self::$dir_root_app  . 'libs/' . $file_name0;
+            $file_name    = self::$lib_app . $file_name0;
             if (file_exists($file_name))
             {
                 require $file_name;
             }else
             {
-                $file_name     = self::$dir_root . 'proj.libs/' . $file_name0;
+                $file_name     = self::$lib_cms . $file_name0;
                 if (file_exists($file_name))
                 {
                     require $file_name;
                 }else
                 {
-                    $file_name = self::root_dir . $file_name0;
+                    $file_name = self::$lib_ounun . $file_name0;
                     if (file_exists($file_name))
                     {
                         require $file_name;
@@ -418,30 +415,16 @@ class ounun_scfg
     }
 
     /**
-     * @param $lang
-     * @param string $default
-     */
-    public static function lang_seting($lang)
-    {
-        self::$lang = $lang;
-        if($lang  == self::$lang_default)
-        {
-            self::$i18n     = "\\cfg\\i18n";
-            self::$i18n_app = "\\app\\i18n";
-        }else
-        {
-            self::$i18n     = "\\cfg\\i18n\\{$lang}";
-            self::$i18n_app = "\\app\\i18n\\{$lang}";
-        }
-    }
-
-    /**
      * 配制文件
      * @param string $host
      * @param array $mod
      */
-    public function __construct(array $mod,string $host,string $dir_root,string $dir_libs, string $lang_default,string $lang)
+    public function __construct(array $mod,string $host,string $lang_default,string $lang,array $dirs = [], array $libs = [], array $routes = [])
     {
+        if($routes)
+        {
+            $this->routes_data($routes['routes'],$routes['routes_default']);
+        }
         if($mod && $mod[0] && $this->routes["{$host}/{$mod[0]}"])
         {
             $mod_0 = array_shift($mod);
@@ -458,17 +441,99 @@ class ounun_scfg
 
         /** 默认语言 */
         self::$lang_default  = $lang_default;
-        self::lang_seting($lang);
+        self::langs($lang);
 
-        /**   根目录 */
-        self::$dir_root      = $dir_root;
-        /** 应用目录 */
-        self::$dir_root_app  = $dir_root.'app.'.self::$app.'/';
+        /** 目录(根/应用) */
+        if($dirs)
+        {
+            self::dirs($dirs['root'],$dirs['root_app']);
+        }
+
+        /** 库(Ounun/Cms/App) */
+        if($libs)
+        {
+            self::libs($libs['ounun'],$libs['cms'],$libs['app']);
+        }
+
         /** @var string 模板 */
         self::$tpl           = $val_0['tpl']?$val_0['tpl']:self::i18n()::tpl;
         self::$tpl_default   = $val_0['tpl_default']?$val_0['tpl_default']:self::i18n()::tpl_default;
 
         $this->mod = $mod;
+    }
+
+    /**
+     * @param string $lang
+     * @param string $default
+     */
+    public static function langs($lang)
+    {
+        self::$lang = $lang;
+        // echo "self::\$lang:".self::$lang." \$lang_default:".self::$lang_default."\n";
+        if($lang  == self::$lang_default)
+        {
+            self::$i18n     = "\\cfg\\i18n";
+            self::$i18n_app = "\\app\\i18n";
+        }else
+        {
+            self::$i18n     = "\\cfg\\i18n\\{$lang}";
+            self::$i18n_app = "\\app\\i18n\\{$lang}";
+        }
+    }
+
+    /**
+     * @param string $lib_ounun
+     * @param string $lib_cms
+     * @param string $lib_app
+     */
+    public function libs(string $lib_ounun,string $lib_cms,string $lib_app)
+    {
+        // Ounun目录
+        self::$lib_ounun    = $lib_ounun;
+        // CMS目录
+        self::$lib_cms      = $lib_cms;
+        // APP目录
+        if($lib_app)
+        {
+            self::$lib_app  = $lib_app;
+        }else
+        {
+            self::$lib_app  = self::$dir_root_app.'libs/';
+        }
+    }
+
+    /**
+     * @param string $dir_root
+     * @param string $dir_root_app
+     */
+    public function dirs(string $dir_root,string $dir_root_app = '')
+    {
+        /** 根目录 */
+        self::$dir_root      = $dir_root;
+        /** 应用目录 */
+        if($dir_root_app)
+        {
+            self::$dir_root_app  = $dir_root_app;
+        }else
+        {
+            self::$dir_root_app  = $dir_root.'app.'.self::$app.'/';
+        }
+    }
+
+    /**
+     * @param array $routes
+     * @param array $routes_default
+     */
+    public function routes_data(array $routes = [],array $routes_default = [])
+    {
+        if($routes)
+        {
+            $this->routes = $routes;
+        }
+        if($routes_default)
+        {
+            $this->routes_default = $routes_default;
+        }
     }
 
     /** 路由数据 */
@@ -498,7 +563,7 @@ class ounun
         /** 重定义头 */
         header('X-Powered-By: Ounun.org');
 
-        $mod  = $scfg->mod;
+        $mod        = $scfg->mod;
         /** 加载libs/scfg.{self::$app}.ini.php文件 */
         $filename   = ounun_scfg::$dir_root_app . 'libs/scfg.'.ounun_scfg::$app.'.ini.php';
         if(file_exists($filename))
@@ -589,7 +654,6 @@ class ounun
             trigger_error("ERROR! Can't find Module:'{$module}'.", E_USER_ERROR);
         }
     }
-
     /**
      * 得到访客的IP
      * @return string IP
@@ -1089,11 +1153,12 @@ class ounun
             </body>
             </html>
             <!-- a padding to disable MSIE and Chrome friendly error page -->
+            <!-- '.scfg::$app.' -->
             <!-- a padding to disable MSIE and Chrome friendly error page -->
             <!-- a padding to disable MSIE and Chrome friendly error page -->
             <!-- a padding to disable MSIE and Chrome friendly error page -->
             <!-- a padding to disable MSIE and Chrome friendly error page -->
-            <!-- a padding to disable MSIE and Chrome friendly error page -->');
+            <!-- a padding to disable MSIE and Chrome friendly error page -->'."\n");
     }
 
     /**

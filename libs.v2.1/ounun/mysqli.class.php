@@ -48,7 +48,7 @@ class mysqli
         }
         $host            = explode(':',$cfg['host']);
         $this->_post     = (int)$host[1];
-        $this->_host     = $host[0];
+        $this->_host     =      $host[0];
         $this->_database = $cfg['database'];
         $this->_username = $cfg['username'];
         $this->_password = $cfg['password'];
@@ -169,9 +169,12 @@ class mysqli
      * @param null   $bind
      * @return bool|\mysqli_result
      */
-    public function conn(string $sql = '', $bind = null)
+    public function conn(string $sql = '', $bind = null, bool $is_active = true)
     {
-        $this->active();
+        if($is_active)
+        {
+            $this->active();
+        }
         if($sql)
         {
 			$this->_sql = $this->format( $sql, $bind);
@@ -201,7 +204,7 @@ class mysqli
             $cols 	= array_keys($bind);
             $sql 	= "INSERT {$params} INTO {$table} " . '(`' . implode('`, `', $cols) . '`) ' . 'VALUES (:' . implode(', :', $cols) . ') ' . $this->format($ext, $bind2).';';
 
-            $this->conn($sql, $bind);
+            $this->conn($sql, $bind,false);
         }
         else
         {
@@ -213,7 +216,7 @@ class mysqli
                 $tmpArray[] = $this->format(' :' . implode(', :', $cols) . ' ', $v);
             }
             $sql = "INSERT {$params} INTO {$table} " . '(`' . implode('`, `', $cols) . '`) ' . 'VALUES (' . implode('),(', $tmpArray) . ') ' . $this->format($ext, $bind2).';';
-            $this->conn($sql);
+            $this->conn($sql,null,false);
         }
         
         $this->_insert_id 	     = $this->_conn->insert_id; //取得上一步 INSERT 操作产生的 ID
@@ -250,8 +253,8 @@ class mysqli
         }    	
         $primary = $primary+$bind;
         
-        $cols = array_keys($primary);
-        $sql  = "INSERT  INTO {$table} " . '(`' . implode('`, `', $cols) . '`) ' . 'VALUES (:' . implode(', :', $cols) . ')  ON DUPLICATE KEY UPDATE '.implode(' , ',$update).';';
+        $cols    = array_keys($primary);
+        $sql     = "INSERT  INTO {$table} " . '(`' . implode('`, `', $cols) . '`) ' . 'VALUES (:' . implode(', :', $cols) . ')  ON DUPLICATE KEY UPDATE '.implode(' , ',$update).';';
         $this->conn($sql,$primary);
         
         $this->_insert_id 	   = $this->_conn->insert_id; //取得上一步 INSERT 操作产生的 ID
@@ -340,13 +343,18 @@ class mysqli
      */
     public function update(string $table, array $data, string $where = '', $bind = null,string $param = '',int $limit = 0):int
     {
+        $this->active();
+        if($where && $bind)
+        {
+           $where = $this->format($where, $bind);
+        }
         $set = [];
         foreach ($data as $col=>$value)
         {
             $set[] = "`$col` = ".$this->quote($value);
         }
         $sql = "UPDATE {$param} {$table} " . 'SET ' . implode(', ', $set) . (($where)?" WHERE {$where}":'') . ($limit?' LIMIT ' . $limit:'');
-        $this->conn($sql,$bind);
+        $this->conn($sql,null,false);
 
         $this->_query_affected = $this->_conn->affected_rows; //取得前一次 MySQL 操作所影响的记录行数
         return $this->_query_affected;
@@ -364,13 +372,18 @@ class mysqli
      */
     public function add(string $table,array $data,string $where = '', $bind = null,string $param = ''):int
     {
+        $this->active();
+        if($where && $bind)
+        {
+            $where = $this->format($where, $bind);
+        }
         $set = [];
         foreach ($data as $col=>$val)
         {
             $set[] = "`$col` = `$col` + " . (float)$val;
         }
         $sql = "UPDATE {$param} {$table} " . 'SET ' . implode(', ', $set) . (($where)?" WHERE {$where}":'');
-        $this->conn($sql, $bind);
+        $this->conn($sql,null,false);
 
         $this->_query_affected = $this->_conn->affected_rows; //取得前一次 MySQL 操作所影响的记录行数
         return $this->_query_affected;
@@ -388,13 +401,18 @@ class mysqli
      */
     public function cut(string $table, array $data, string $where = '', $bind = null,string $param = ''):int
     {
+        $this->active();
+        if($where && $bind)
+        {
+            $where = $this->format($where, $bind);
+        }
         $set = [];
         foreach ($data as $col=>$val)
         {
             $set[] = "`$col` = `$col` - " . (float)$val;
         }
         $sql = "UPDATE {$param} {$table} " . 'SET ' . implode(', ', $set) . (($where)?" WHERE {$where}":'');
-        $this->conn($sql, $bind);
+        $this->conn($sql,null,false);
 
         $this->_query_affected = $this->_conn->affected_rows; //取得前一次 MySQL 操作所影响的记录行数
         return $this->_query_affected;
