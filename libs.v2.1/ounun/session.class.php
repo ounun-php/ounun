@@ -124,26 +124,27 @@ class session implements SessionHandlerInterface, SessionUpdateTimestampHandlerI
             $this->_session_id = $_COOKIE[$this->_session_name];
         }else
         {
-            $uniqid_prefix     = '';
-            $uniqid_filename   = '/tmp/php_session_uniqid.txt';
-            if(!file_exists($uniqid_filename))
-            {
-                $uniqid_prefix = \substr(\uniqid('',false),3);
-                @file_put_contents($uniqid_filename,$uniqid_prefix);
-            }
-            if(!$uniqid_prefix)
-            {
-                if(file_exists($uniqid_filename))
-                {
-                    $uniqid_prefix = @file_get_contents($uniqid_filename);
-                }
-                if(!$uniqid_prefix)
-                {
-                    $uniqid_prefix = \substr(\uniqid('',false),3);
-                }
-            }
-            $session_id        = \uniqid($uniqid_prefix,true);
-            $this->_session_id = \substr($session_id,0,24).\substr($session_id,25);
+//            $uniqid_prefix     = '';
+//            $uniqid_filename   = '/tmp/php_session_uniqid.txt';
+//            if(!file_exists($uniqid_filename))
+//            {
+//                $uniqid_prefix = \substr(\uniqid('',false),3);
+//                @file_put_contents($uniqid_filename,$uniqid_prefix);
+//            }
+//            if(!$uniqid_prefix)
+//            {
+//                if(file_exists($uniqid_filename))
+//                {
+//                    $uniqid_prefix = @file_get_contents($uniqid_filename);
+//                }
+//                if(!$uniqid_prefix)
+//                {
+//                    $uniqid_prefix = \substr(\uniqid('',false),3);
+//                }
+//            }
+//            $session_id        = \uniqid($uniqid_prefix,true);
+//            $this->_session_id = \substr($session_id,0,24).\substr($session_id,25);
+            $this->_session_id = \util::uniqid();
         }
         return $this->_session_id;
     }

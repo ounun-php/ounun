@@ -119,7 +119,7 @@ class auth_code
      * Set the code length, should be >=6
      *
      * @param int $length
-     * @return PHPGangsta_GoogleAuthenticator
+     * @return auth_code GoogleAuthenticator
      */
     public function set_code_length($length)
     {

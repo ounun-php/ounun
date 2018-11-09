@@ -33,7 +33,7 @@ class base
         $this->_requst_uri  = $_SERVER['REQUEST_URI'];
 
         $this->_tag         = explode('.',$this->_http_host,2)[0];
-        $this->_domain      = cfg_domain::domain($this->_http_host);
+        $this->_domain      = cfg\domain::domain($this->_http_host);
 
         $this->_data        = [];
         if($key)
@@ -69,9 +69,20 @@ class base
      * @param $key
      * @param $val
      */
-    public function set($key,$val)
+    public function set(string $key,$val)
     {
         $this->_data[$key] = $val;
+    }
+
+    /**
+     * @param array $data
+     */
+    public function sets(array $data)
+    {
+        foreach ($data as $key => $val)
+        {
+            $this->_data[$key] = $val;
+        }
     }
 
     /**

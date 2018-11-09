@@ -274,13 +274,16 @@ class image
         switch ($img_info["type"])
         {
             case 1: //gif
-                $result = imageGIF($new_img, $new_file_name);
+                // $result = imageGIF($new_img, $new_file_name);
+                imageGIF($new_img, $new_file_name);
                 break;
             case 2: //jpg
-                $result = imageJPEG($new_img,$new_file_name);
+                // $result = imageJPEG($new_img,$new_file_name);
+                imageJPEG($new_img,$new_file_name);
                 break;
             case 3: //png
-                $result = imagePng($new_img, $new_file_name);
+                // $result = imagePng($new_img, $new_file_name);
+                imagePng($new_img, $new_file_name);
                 break;
         }
         imagedestroy($new_img);

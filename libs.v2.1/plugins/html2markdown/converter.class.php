@@ -15,7 +15,7 @@ class converter
     /**
      * html parser object
      *
-     * @var parseHTML
+     * @var string parseHTML
      */
     protected $parser;
 

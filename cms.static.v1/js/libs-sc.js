@@ -1,4 +1,5 @@
-function uaredirect(murl){
+function uaredirect(murl)
+{
     try {
         if(document.getElementById("bdmark") != null){
             return;
@@ -12,8 +13,33 @@ function uaredirect(murl){
     } catch(err){}
 }
 
-if(typeof $sc != "undefined"  && $sc['url_mobile']){
-    uaredirect($sc.url_mobile);
+function qrcode_float(config)
+{
+    if(config==null){config={};}
+    if(config.width==null){config.width=100;config.height=100;}
+    if(config.height==null){config.height=100;}
+    if(config.maxScreen==null){config.maxScreen=980;}
+    if(config.message==null){config.message="扫码手机访问";}
+
+    try
+    {
+        var mobile_url2 = $sc.url_wap+'?f=qr';
+    }catch (e)
+    {
+        var mobile_url2 = document.location.href;
+    }
+    // qrcode
+    document.write('<style type="text/css">#qrocdeContainer{position: fixed;z-index: 999;bottom: 0;left: 0;}#qrcodeMessage{background:#fff;width:'+config.width+'px;padding:8px;text-align:center;float:right;}@media screen and (max-width: '+config.maxScreen+'px) {#qrocdeContainer{display:none;}}</style>');
+    document.write('<div id="qrocdeContainer"><div id="qrcodeMessage"><div id="qrcode"></div><div>'+config.message+'</div></div></div>');
+    $(function(){
+        var content=mobile_url2;
+        $('#qrcode').qrcode({width:config.width,height:config.height,correctLevel:0,text:content});
+    });
+}
+
+if(typeof $sc != "undefined"  && $sc['url_wap'])
+{
+    uaredirect($sc.url_wap);
 }
 // 常用JS库
 var $webp = {
@@ -24,14 +50,19 @@ var $webp = {
         if(this._check === false || this._check === true)
         {
             return this._check;
-        }else {
-            if($cookie('_sp_webp') == 'ok'){
+        }else
+        {
+            if($cookie('_sp_webp') == 'ok')
+            {
                 this._check = true;
-            }else{
-                try{
+            }else
+            {
+                try
+                {
                     this._check = (document.createElement('canvas').toDataURL('image/webp').indexOf('data:image/webp') == 0);
                     $cookie('_sp_webp','ok');
-                }catch(err) {
+                }catch(err)
+                {
                     this._check = false;
                 }
             }
@@ -65,11 +96,9 @@ var $webp = {
     src2jpg:function(url)
     {
         try{
-            if(!this.check())
-            {
+            if(!this.check()) {
                 return url.replace(/(\!.*)w$/, '$1');
-            }else
-            {
+            }else {
                 return url;
             }
         }catch(err) {
@@ -171,26 +200,5 @@ var $cookie = function(name, value, options) {
     }
 };
 
-function qrcode_float(config){
-    if(config==null){config={};}
-    if(config.width==null){config.width=100;config.height=100;}
-    if(config.height==null){config.height=100;}
-    if(config.maxScreen==null){config.maxScreen=980;}
-    if(config.message==null){config.message="扫码手机访问";}
 
-    try
-    {
-        var mobile_url2 = $sc.url_mobile+'?f=qr';
-    }catch (e)
-    {
-        var mobile_url2 = document.location.href;
-    }
-    //qrcode
-    document.write('<style type="text/css">#qrocdeContainer{position: fixed;z-index: 999;bottom: 0;left: 0;width: 100%;width:100%;}#qrcodeMessage{background:#fff;width:'+config.width+'px;padding:8px;text-align:center;float:right;}@media screen and (max-width: '+config.maxScreen+'px) {#qrocdeContainer{display:none;}}</style>');
-    document.write('<div id="qrocdeContainer"><div id="qrcodeMessage"><div id="qrcode"></div><div>'+config.message+'</div></div></div>');
-    $(function(){
-        var content=mobile_url2;
-        $('#qrcode').qrcode({width:config.width,height:config.height,correctLevel:0,text:content});
-    });
-}
 

@@ -138,7 +138,10 @@ class ip
 	public function location($ip)
 	{
 		if (! $this->fp)
-			return null; // 如果数据文件没有被正确打开，则直接返回空
+		{
+		    return null; // 如果数据文件没有被正确打开，则直接返回空
+		}
+		$location        = [];
 		$location ['ip'] = gethostbyname ( $ip ); // 将输入的域名转化为IP地址
 		$ip = $this->packip ( $location ['ip'] ); // 将输入的IP地址转化为可比较的IP地址
 		// 不合法的IP地址会被转化为255.255.255.255
@@ -234,7 +237,6 @@ class ip
 	 * 构造函数，打开 QQWry.Dat 文件并初始化类中的信息
 	 *
 	 * @param string $filename
-	 * @return IpLocation
 	 */
 	function __construct($charset='gbk') 
 	{

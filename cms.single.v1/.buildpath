@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<buildpath>
+	<buildpathentry kind="src" path=""/>
+	<buildpathentry external="true" kind="lib" path="/Users/dreamxyp/Transcend/www.cms.moko8/app.erldoc.mm/libs"/>
+	<buildpathentry combineaccessrules="false" kind="prj" path="/libs.cms.test.v1"/>
+	<buildpathentry kind="con" path="org.eclipse.php.core.LANGUAGE"/>
+	<buildpathentry combineaccessrules="false" kind="prj" path="/libs.v2.1"/>
+</buildpath>

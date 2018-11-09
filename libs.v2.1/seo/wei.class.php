@@ -7,13 +7,13 @@ class wei
 {
 	public static function wei($str)
 	{
-		return strtr($str,cfg_data::wei);
+		return strtr($str,cfg\data::wei);
 	}
 	
 	public static function test()
 	{
-		echo count(cfg_data::wei),"<br />\n";
-		$d = cfg_data::wei;
+		echo count(cfg\data::wei),"<br />\n";
+		$d = cfg\data::wei;
 		$f = file_get_contents('42537.txt');
 		$f = explode("\n", $f);
 		foreach ($f as $v)

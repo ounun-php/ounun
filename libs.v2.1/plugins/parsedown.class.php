@@ -41,7 +41,6 @@ class parsedown
     #
     # Setters
     #
-
     public function setBreaksEnabled($breaksEnabled)
     {
         $this->breaksEnabled = $breaksEnabled;

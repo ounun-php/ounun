@@ -219,8 +219,8 @@ class mysqli
             $this->conn($sql,null,false);
         }
         
-        $this->_insert_id 	     = $this->_conn->insert_id; //取得上一步 INSERT 操作产生的 ID
-        $this->_query_affected   = $this->_conn->affected_rows; //取得前一次 MySQL 操作所影响的记录行数
+        $this->_insert_id 	     = $this->_conn->insert_id;     // 取得上一步 INSERT 操作产生的 ID
+        $this->_query_affected   = $this->_conn->affected_rows; // 取得前一次 MySQL 操作所影响的记录行数
         return $this->_insert_id;
     }
 

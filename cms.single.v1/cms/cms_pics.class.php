@@ -3,17 +3,13 @@ namespace cms;
 
 class cms_pics extends \cms\base
 {
-    /** @var \ounun\mysqli */
-    public $db = null;
-
-
     /**
      * 热搜美女
      * @param int $count
      */
     public function star_lists_simple(int $count = 12, $order = " ORDER BY `data` .`times` DESC ")
     {
-        $bind = ['mod_id' => \site_cfg::mod_star ];
+        $bind = ['mod_id' => \site_cfg::mod_star ]; 
         $rs0  =  $this->db->data_array("SELECT `data` .`data_id`, `data` .`title`, `data` .`times`,`data` .`exts`, `data_star`.`pinyin` FROM `data` ,`data_star` WHERE `data` .`mod_id` = :mod_id and `data` .`data_id` = `data_star` .`star_id` {$order}  LIMIT 0 , {$count};",$bind);
         $rs   = [];
         foreach ($rs0 as $v){
@@ -42,7 +38,6 @@ class cms_pics extends \cms\base
         //  echo $this->db->sql()."<br />\n";
         return $rs;
     }
-
 
     /**
      * @param $table
@@ -155,7 +150,7 @@ class cms_pics extends \cms\base
     {
         $where  = $key?' and `key` = :key ':'';
         $bind   = ['key'=>$key];
-        $rs     = $this->db->row("SELECT `id`,`value` FROM  `site_config` where `mod_id` = {$mod_id} {$where} LIMIT 0,1;",$bind);
+        $rs     = $this->db->row("SELECT `id`,`value` FROM  `z_site_config` where `mod_id` = {$mod_id} {$where} LIMIT 0,1;",$bind);
         // echo $this->db->sql()."\n";
         $value  = [];
         if($rs && $rs['value']){
@@ -189,8 +184,15 @@ class cms_pics extends \cms\base
      */
     public function tags_p2n($pinyin)
     {
-        $rs = $this->db->row("SELECT `tag`,`pinyin`,`tag_id`,`exts` FROM `tag` where `pinyin` = :pinyin    LIMIT 0 , 1;",['pinyin'=>$pinyin]);
-        if($rs && $rs['exts']){
+        if(is_numeric($pinyin))
+        {
+            $rs = $this->db->row("SELECT `tag`,`pinyin`,`tag_id`,`exts` FROM `tag` where `tag_id` = :tag_id  LIMIT 0 , 1;",['tag_id'=>$pinyin]);
+        }else
+        {
+            $rs = $this->db->row("SELECT `tag`,`pinyin`,`tag_id`,`exts` FROM `tag` where `pinyin` = :pinyin  LIMIT 0 , 1;",['pinyin'=>$pinyin]);
+        }
+        if($rs && $rs['exts'])
+        {
             $rs['exts'] = json_decode($rs['exts'],true);
         }
         // echo $this->db->sql()."\n";
@@ -204,6 +206,16 @@ class cms_pics extends \cms\base
     public function tags_name(array $tag)
     {
         $rs = $this->db->data_array("SELECT `tag`,`pinyin`,`tag_id` FROM `tag` where `tag` in (?) ;",$tag);
+        if($rs and is_array($rs))
+        {
+            foreach ($rs as $k=>$v)
+            {
+                if(!$v['pinyin'])
+                {
+                    $rs[$k]['pinyin'] = $v['tag_id'];
+                }
+            }
+        }
         // echo $this->db->sql()."\n";
         return $rs;
     }

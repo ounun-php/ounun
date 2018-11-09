@@ -75,7 +75,7 @@ class _cache_file extends _cache_base
 	/** @var string cache文件名称 */
 	private $_filename		= null;
     
-	/** @var mix    数据 */
+	/** @var array  数据 */
 	private $_data   		= null;
     
 	/** @var bool false:没读    true:已读 */
@@ -280,7 +280,7 @@ class _cache_redis extends _cache_base
     /** @var string key */
     private $_key		    = null;
     
-    /** @var mix    数据 */
+    /** @var array    数据 */
     private $_data   		= null;
     
     /** @var bool false:没读    true:已读 */
@@ -510,7 +510,7 @@ class _cache_memcache extends _cache_base
 	/** @var string key */
 	private $_key		    = null;
     
-	/** @var mix    数据 */
+	/** @var array    数据 */
 	private $_data   		= null;
     
 	/** @var bool false:没读    true:已读 */
@@ -723,7 +723,7 @@ class _cache_memcached extends _cache_base
     /** @var string key */
     private $_key		    = null;
     
-    /** @var mix    数据 */
+    /** @var array    数据 */
     private $_data   		= null;
     
     /** @var bool false:没读    true:已读 */

@@ -122,6 +122,14 @@ class ounun_view extends ounun_base
         }
     }
 
+    /**
+     * adm2.moko8.com/favicon.ico
+     */
+    public function favicon($mod)
+    {
+        \ounun::go_url(\ounun_scfg::$url_static.'favicon.ico',false,301);
+    }
+
     /** @var int html_cache_time */
     protected $_html_cache_time = 2678400; // 31天
 
@@ -166,12 +174,13 @@ class ounun_view extends ounun_base
 	protected static $_stpl = null;
 
     /** 初始化HTMl模板类 */
-	public function template($style_name = '',$style_name_default='',$dir_tpl_root='')
+	public function template(string $style_name = '',string $style_name_default='',string $dir_tpl_root='',string $dir_tpl_root_g = '')
 	{
 		if(null == self::$_stpl)
         {
-            $dir_tpl_root     = $dir_tpl_root  ?$dir_tpl_root :\ounun_scfg::$dir_root_app . 'template/';
-            self::$_stpl  = new \tpl\template($dir_tpl_root,$style_name,$style_name_default);
+            $dir_tpl_root   = $dir_tpl_root  ?$dir_tpl_root  :\ounun_scfg::$dir_root_app    . 'template/';
+            $dir_tpl_root_g = $dir_tpl_root_g?$dir_tpl_root_g:dirname(\ounun_scfg::$lib_cms). '/cms.single.template.v1/';
+            self::$_stpl    = new \tpl\template($dir_tpl_root,$style_name,$style_name_default,$dir_tpl_root_g);
         }
 	}
 
@@ -187,23 +196,6 @@ class ounun_view extends ounun_base
         if(self::$_html_cache)
         {
             self::$_html_cache->stop($output);
-        }
-    }
-
-    /**
-     * html 替换数组
-     * @var array
-     */
-    protected $_replace_data     = [];
-
-    /**
-     * @param array $data
-     */
-    public function replace_sets(array $data)
-    {
-        foreach ($data as $key => $val)
-        {
-            $this->_replace_data[$key] = $val;
         }
     }
 
@@ -239,13 +231,24 @@ class ounun_view extends ounun_base
     
     /**
      * 返回一个 返回一个 模板文件地址(兼容)
-     * @param $tpl_name
+     * @param string $filename
+     * @return string
      */
     public function require_file(string $filename):string
     {
         // return $this->_stpl->file_require($filename);
         // return self::$_stpl->file_fixed_comp($filename);
         return self::$_stpl->file_require($filename);
+    }
+
+    /**
+     * 返回一个 模板文件地址(兼容)(公共)
+     * @param string $filename
+     * @return string
+     */
+    public function require_file_g(string $filename):string
+    {
+        return self::$_stpl->file_require_g($filename);
     }
 
     /**
@@ -283,12 +286,27 @@ class ounun_scfg
     /** @var string 默认操作名称 */
     const def_met   = 'index';
 
-    /** @var string Ounun目录 */
-    static public $lib_ounun    =  __DIR__.'/';
+    /** @var string Ounun目录   */
+    static public $lib_ounun     =  __DIR__.'/';
     /** @var string CMS目录   */
-    static public $lib_cms      = '';
+    static public $lib_cms       = '';
     /** @var string APP目录   */
-    static public $lib_app      = '';
+    static public $lib_app       = '';
+
+    /** @var string Www URL */
+    static public $url_www       = '';
+    /** @var string Mobile URL */
+    static public $url_mobile    = '';
+    /** @var string Mip URL */
+    static public $url_mip       = '';
+    /** @var string Api URL */
+    static public $url_api       = '';
+    /** @var string Res URL */
+    static public $url_res       = '';
+    /** @var string Static URL */
+    static public $url_static    = '';
+    /** @var string StaticG URL */
+    static public $url_static_g  = '';
 
 
     /** @var string 根目录 */
@@ -300,14 +318,13 @@ class ounun_scfg
     static public $app           = '';
     /** @var string 当前APP Url */
     static public $app_url       = '';
-    /** @var string 当前APP Host */
-    static public $app_host      = '';
+    /** @var string 域名Domain */
+    static public $app_domain    = '';
 
-    /** @var string 模板 */
+    /** @var string 模板-样式 */
     static public $tpl           = '';
-    /** @var string 模板(默认) */
+    /** @var string 模板-样式[默认] */
     static public $tpl_default   = '';
-
 
     /** @var \cfg\i18n 语言包 */
     static public $i18n;
@@ -326,10 +343,10 @@ class ounun_scfg
         return self::$i18n;
     }
 
-    /** @return \app\i18n 语言包 */
+    /** @return \app\i18n 语言包 */ 
     static public function i18n_app()
     {
-        return self::$i18n_app;
+        return self::$i18n_app; 
     }
 
     /** @var string 当前面页 Url */
@@ -521,6 +538,32 @@ class ounun_scfg
     }
 
     /**
+     * @param string $url_www
+     * @param string $url_mobile
+     * @param string $url_res
+     */
+    public function urls(string $url_www,string $url_mobile,string $url_mip,string $url_api,string $url_res,string $url_static,string $url_static_g,string $app_domain)
+    {
+        /** Www URL */
+        self::$url_www       = $url_www;
+        /** Mobile URL */
+        self::$url_mobile    = $url_mobile;
+        /** Mobile URL */
+        self::$url_mip       = $url_mip;
+        /** Api URL */
+        self::$url_api       = $url_api;
+        /** Res URL */
+        self::$url_res       = $url_res;
+        /** Static URL */
+        self::$url_static    = $url_static;
+        /** StaticG URL */
+        self::$url_static_g  = $url_static_g;
+
+        /** 项目主域名 */
+        self::$app_domain    = $app_domain;
+    }
+
+    /**
      * @param array $routes
      * @param array $routes_default
      */
@@ -680,9 +723,11 @@ class ounun
 
     /**
      * 输出带参数的URL
-     * @param string $url   URL
-     * @param array  $data  数据
-     * @return string URL
+     * @param string $url  URL
+     * @param array $data  数据
+     * @param array $exts  要替换的数据
+     * @param array $skip  忽略的数据 如:page
+     * @return string
      */
     static public function url(string $url,array $data,array $exts=[],array $skip=[]):string
     {
@@ -816,7 +861,7 @@ class ounun
         // 域名
         if($domain && $domain != $_SERVER['HTTP_HOST'])
         {
-            $domain     = $_SERVER['HTTP_HOST'];
+            // $domain  = $_SERVER['HTTP_HOST'];
             $url_reset  = $url_reset?$url_reset:$_SERVER['REQUEST_URI'];
             $url_reset  = "//{$domain}{$url_reset}";
             // exit("\$url_reset:{$url_reset} \$domain:{$domain}\n");
@@ -1132,7 +1177,7 @@ class ounun
     /**
      * error 404
      */
-    static public function error404($msg=''):void
+    static public function error404(string $msg=''):void
     {
         header('HTTP/1.1 404 Not Found');
         if(function_exists('\error404'))

@@ -38,6 +38,12 @@ class purview
     const cp_hall_id      = 'cp_hall_id';
 
 
+    /** 管理面板 - 应用类型 */
+    const app_type_admin  = 'admin';
+    /** 站点    - 应用类型 */
+    const app_type_site   = 'site';
+
+
     /** 导航头 什么都不用显示 */
     const nav_null        = 0;
     /** 导航头 要显示 平台 */
@@ -146,9 +152,6 @@ class purview
         }
         return false;
     }
-
-
-
 
     /**
      * 获得权限目录

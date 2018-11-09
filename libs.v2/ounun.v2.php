@@ -864,6 +864,7 @@ class scfg
     {
         return \scfg::$i18n_app;
     }
+    
     /**
      * 静态地址
      * @param string|array $url

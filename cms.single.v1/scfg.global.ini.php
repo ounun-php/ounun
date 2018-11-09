@@ -5,10 +5,8 @@ define('IsDebug',                   file_exists('/Users/dreamxyp/Transcend/') );
 define('Dir_Data_ProJ',             Dir_Root.'proj.data/');
 /** cache目录 **/
 define('Dir_Cache',          	    Dir_Root.'proj.cache/');
-/** 项目代号    */
-define('Const_Static_Idx',  	 	12);
-/** 内部服务器与中心服务器通信密码 */
-define('Const_Key_Conn_Private',  	'512009757a6e7f57b76dcd5edf378e67');
+/** libs目录 **/
+// define('Dir_TemplateG',             dirname(Dir_Libs_Cms).'/cms.single.template.v1/');
 
 /** ***********************************************************************
  * cache_file
@@ -34,26 +32,24 @@ class scfg extends ounun_scfg
 
     /**
      * 静态地址
-     * @param string|array $url
-     * @param string       $pre_str
-     * @param bool         $static_root
+     * @param array|string $url
+     * @param string $pre_str
      * @return string
      */
-    public static function surl($url, string $pre_str = "", string $static_root = Const_Url_Static): string
+    public static function surl($url, string $pre_str = ""): string
     {
-        return parent::surl($url, "{$static_root}{$pre_str}");
+        return parent::surl($url, scfg::$url_static.$pre_str);
     }
 
     /**
      * 静态地址(G)
      * @param $url
      * @param string $pre_str
-     * @param string $static_root
      * @return string
      */
-    public static function gurl($url, string $pre_str = "", string $static_root = Const_Url_StaticG): string
+    public static function gurl($url, string $pre_str = ""): string
     {
-        return parent::surl($url, "{$static_root}{$pre_str}");
+        return parent::surl($url, scfg::$url_static_g.$pre_str);
     }
 
     /**
@@ -79,11 +75,11 @@ class v extends \ounun_view
 {
     /** @var \cms\cms_pics */
     public static $cms;
-    /** @var \cms\seo_comm */
+    /** @var \seo\base */
     public static $seo;
 
     /** @var \ounun\mysqli DB */
-    protected $_db_v;
+    protected $_db_v  = null;
 
     public static function db(string $key, $db_cfg = null): \ounun\mysqli
     {
@@ -94,35 +90,49 @@ class v extends \ounun_view
     }
 
     /** 初始化 */
-    public function init(string $url = '',bool $is_cache = true,bool $is_replace = true, string $dir_tpl_root ="")
+    public function init(string $url = '',bool $is_cache = true,bool $is_replace = true)
     {
-        $this->_db_v    = self::db(\ounun_scfg::$app);
+        self::$seo       = new \seo\base($url);
+        self::$cms       = new \cms\cms_pics(self::$seo);
 
-        self::$seo      = new \cms\seo_comm($url);
-        self::$cms      = new \cms\cms_pics(self::$seo);
-        self::$cms->db  = $this->_db_v;
+//      $dir_tpl_root    = '';
+//      $dir_tpl_root_g  = '';
+        $dir_tpl_root    = '';
+        $dir_tpl_root_g  = '';
+        if(null == $this->_db_v)
+        {
+            $this->_db_v = self::db(\ounun_scfg::$app);
+        }
+        self::$cms->db   = $this->_db_v;
+        $this->init_complete($is_cache,$is_replace,$dir_tpl_root,$dir_tpl_root_g);
+    }
 
-        $this->template(\scfg::$tpl,\scfg::$tpl_default,$dir_tpl_root);
+    /**
+     * @param bool $is_cache
+     * @param bool $is_replace
+     * @param string $dir_tpl_root
+     */
+    public function init_complete(bool $is_cache = true,bool $is_replace = true,string $dir_tpl_root = "",string $dir_tpl_root_g = "")
+    {
+        $this->_global_replace();
+        $this->template(\scfg::$tpl,\scfg::$tpl_default,$dir_tpl_root,$dir_tpl_root_g);
         if(IsDebug)
         {
             if($is_replace)
             {
-                $this->_global_replace();
-                self::$_stpl->replace($this->_replace_data,false);
+                self::$_stpl->replace(self::$seo,false);
             }
         }else
         {
             if($is_cache)
             {
-                $this->_global_replace();
                 if(self::$_html_cache)
                 {
-                    self::$_html_cache->replace($this->_replace_data);
+                    self::$_html_cache->replace(self::$seo);
                 }
             }elseif($is_replace)
             {
-                $this->_global_replace();
-                self::$_stpl->replace($this->_replace_data,$this->_html_trim);
+                self::$_stpl->replace(self::$seo,$this->_html_trim);
             }
         }
     }
@@ -143,31 +153,35 @@ class v extends \ounun_view
     /** 赋值(默认) */
     protected function _global_replace()
     {
-        $static              = scfg::surl('');
-        $static_g            = scfg::gurl('');
         $url_base            = substr($this->_page_url,1);
-        $this->replace_sets([
-            '{$url_www}'         => Const_Url_Www,
-            '{$url_api}'         => Const_Url_Api,
-            '{$url_app}'         => scfg::url_page(),
-            '{$page_url}'        => $this->_page_url,
-            '{$canonical_pc}'    => Const_Url_Www.$url_base,
-            '{$canonical_mip}'   => Const_Url_Mip.$url_base,
-            '{$page_file}'       => $this->_page_file,
-            '{$domain}'          => Const_Domain,
-            '{$app}'             => \scfg::$app,
-            '{$static}'          => $static,
-            '{$static_g}'        => $static_g,
-            //'{$idx}'           => Const_Static_Idx,
-            '"/static/'          => '"'.$static,
+        self::$seo->sets([
+            '{$url_www}'          => scfg::$url_www,
+            '{$url_wap}'          => scfg::$url_mobile,
+            '{$url_mip}'          => scfg::$url_mip,
+            '{$url_api}'          => scfg::$url_api,
+            '{$url_app}'          => scfg::url_page(),
+
+            '{$page_url}'         => $this->_page_url ,
+            '{$page_file}'        => $this->_page_file,
+
+            '{$canonical_pc}'     => scfg::$url_www.$url_base,
+            '{$canonical_mip}'    => scfg::$url_mip.$url_base,
+            '{$canonical_wap}'    => scfg::$url_mobile.$url_base,
+
+            '{$app}'              => scfg::$app,
+            '{$domain}'           => scfg::$app_domain,
+
+            '{$sres}'             => scfg::$url_res,
+            '{$static}'           => scfg::$url_static,
+            '{$static_g}'         => scfg::$url_static_g,
+            '"/static/'           => '"'.scfg::$url_static,
         ]);
-        $this->replace_sets(self::$seo->tkd());
     }
 }
 
 
 /** 开始 */
-function start($req,$host,$argv,string $lang_default,string $lang,string $dir_root,string $dir_root_app,string $lib_ounun,string $lib_cms,string $lib_app,array $routes=[],array $routes_default=[])
+function start($req,$host,$argv,string $lang_default,string $lang,string $dir_root,string $dir_root_app,string $lib_ounun,string $lib_cms,string $lib_app,array $routes=[],array $routes_default=[],array $base_urls=[])
 {
     // 解析URL
     if($argv && $argv[1])
@@ -182,9 +196,8 @@ function start($req,$host,$argv,string $lang_default,string $lang,string $dir_ro
         }
     }else
     {
-        $uri 	= \ounun::url_original($_SERVER['REQUEST_URI']);
+        $uri 	= \ounun::url_original($req);
         $mod	= \ounun::url_to_mod($uri);
-        $host   = $_SERVER["HTTP_HOST"];
     }
     /** 初始化scfg */
     $dirs = [
@@ -201,8 +214,10 @@ function start($req,$host,$argv,string $lang_default,string $lang,string $dir_ro
         'routes_default'  => $routes_default,
     ];
     $scfg = new scfg($mod,$host,$lang_default,$lang,$dirs,$libs,$route);
-    //  $scfg->dirs($dir_root , $dir_root_app);
-    //  $scfg->libs($lib_ounun, $lib_cms, $lib_app);
+    if($base_urls)
+    {
+        $scfg->urls($base_urls['url_www'],$base_urls['url_wap'],$base_urls['url_mip'],$base_urls['url_api'],$base_urls['url_res'],$base_urls['url_static'],$base_urls['url_static_g'],$base_urls['app_domain']);
+    }
     /** 开始 */
     new ounun($scfg);
 }

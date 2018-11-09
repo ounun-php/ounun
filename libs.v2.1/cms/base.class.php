@@ -3,6 +3,9 @@ namespace cms;
 
 class base
 {
+    /** @var \ounun\mysqli */
+    public $db;
+
     /** @var  \seo\base */
     protected $_seo;
 
@@ -20,7 +23,7 @@ class base
      */
     public function a(array $data, int $len=0, string $a_ext=''):string
     {
-        $tag  = $len?\ounun\util::msubstr($data['title'],0,$len,true) :$data['title'];
+        $tag  = $len?\util::msubstr($data['title'],0,$len,true) :$data['title'];
         return "<a href=\"{$data['url']}\" title=\"{$data['title']}\" {$a_ext}>{$tag}</a>";
     }
 
@@ -91,26 +94,4 @@ class base
         $rs = $this->kv2a_m($array,$url_fun,true);
         return implode($glue,$rs);
     }
-
-    /**
-     * @param string $url
-     * @param string $dir
-     * @param int    $page
-     * @return string
-     */
-//    public function url(string $url,string $dir,int $page=1,int $page_max=0):string
-//    {
-//        $page_ext         = \scfg::i18n()::page_ext;
-//        $page_is_max      = \scfg::i18n()::page_is_max;
-//
-//        if($page_is_max)
-//        {
-//            $page     = $page > 1?$page:1;
-//            $page_str = $page >= $page_max?"":"-p{$page}";
-//        }else
-//        {
-//            $page_str = $page > 1?"-p{$page}":"";
-//        }
-//        return "/{$dir}/{$url}{$page_str}{$this->_page_ext}";
-//    }
 }

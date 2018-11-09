@@ -6,6 +6,7 @@ class _html_cache extends cache
     private $_cache_time    = -1;
     private $_cache_time_t  = -1;
     private $_cache_size    = -1;
+    private $_cache_size_t  = -1;
 
     private $_debug         = false;
 
@@ -66,8 +67,8 @@ class _html_cache extends cache
         return $this->_cache_time;
     }
     /**
-     * 文件大小(临时)
-     * @return int 文件大小(临时)
+     * 文件生成时间(临时)
+     * @return int 文件生成时间(临时)
      */
     public function cache_time_tmp()
     {
@@ -84,6 +85,7 @@ class _html_cache extends cache
             if(file_exists($filename) )
             {
                 $this->_cache_time_t = filemtime($filename);
+                $this->_cache_size_t = filesize($filename);
                 // \debug::header('time',$this->_cache_time_t,$this->_debug,__FUNCTION__,__LINE__);
             }
         }else
@@ -91,6 +93,15 @@ class _html_cache extends cache
             $this->_cache_time_t     = (int)$this->get('filemtime_t');
         }
         return $this->_cache_time_t;
+    }
+
+    /**
+     * 文件大小(临时)
+     * @return int
+     */
+    public function cache_size_tmp()
+    {
+        return $this->_cache_size_t;
     }
     /**
      * 标记(临时)
@@ -211,6 +222,14 @@ class _html_cache extends cache
         $this->_cache_time    = -1;
         $this->_cache_time_t  = -1;
         $this->_cache_size    = -1;
+        $this->_cache_size_t  = -1;
+
+        $filename = $this->filename().'.t';
+
+        if (file_exists($filename))
+        {
+            return unlink($filename);
+        }
         return parent::delete();
     }
 }
@@ -236,17 +255,20 @@ class html
     /** @var bool  */
     private $_stop			 	= false;
     /** @var bool  */
-    private $_trim			 	= false;
-    /** @var bool  */
-    private $_debug		        = false;
+
+
     /** @var bool  */
     private $_gzip	            = true;
     /** @var int  */
     private $_cache_time		= 0;
     /** @var null|_html_cache  */
     private $_cache             = null;
-    /** @var array  */
-    private $_replace_data      = [];
+    /** @var \seo\base 是否替换数据 null:不替换 不为空:就获得替换数据 */
+    private $_seo               = null;
+    /** @var bool 是否去空格 换行 */
+    private $_is_trim			= false;
+    /** @var bool  */
+    private $_is_debug		    = false;
     /**
      * 创建缓存对像
      * @param string $app
@@ -263,9 +285,10 @@ class html
         $this->_now_time     = time();
 
         $this->_stop         = false;
-        $this->_trim         = $trim;
-        $this->_debug        = $debug;
         $this->_cache_time   = 0;
+
+        $this->_is_trim      = $trim;
+        $this->_is_debug     = $debug;
         // 是否支持gzip
         if(stripos($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip') === false)
         {
@@ -275,12 +298,12 @@ class html
             $this->_gzip    = true;
         }
         // Cache
-        $this->_cache       = new _html_cache($cache_config,$this->_debug);
+        $this->_cache       = new _html_cache($cache_config,$this->_is_debug);
         $this->_cache->key("{$app}{$tpl}{$key}");
     }
     /**
      * [1/1] 判断->执行缓存->输出
-     * @param   booleam $outpt  ( 是否输出 )
+     * @param bool $outpt  ( 是否输出 )
      */
     public function run(bool $output = true)
     {
@@ -311,18 +334,18 @@ class html
     {
         $this->_cache_time  = $this->_cache->cache_time();
         //exit("\$this->_cache_time:{$this->_cache_time }");
-        // \debug::header('time',  $this->_cache_time,$this->_debug,__FUNCTION__,__LINE__);
-        // \debug::header('expire',$this->_expire,    $this->_debug,__FUNCTION__,__LINE__);
+        // \debug::header('time',  $this->_cache_time,$this->_is_debug,__FUNCTION__,__LINE__);
+        // \debug::header('expire',$this->_expire,    $this->_is_debug,__FUNCTION__,__LINE__);
         if( $this->_cache_time + $this->_expire > $this->_now_time )
         {
-            // \debug::header('xypc',$this->_cache->filename(),$this->_debug,__FUNCTION__,__LINE__);
+            // \debug::header('xypc',$this->_cache->filename(),$this->_is_debug,__FUNCTION__,__LINE__);
             return true;
         }
         $cache_time_t       = $this->_cache->cache_time_tmp();
-        // \debug::header('time_t',$cache_time_t,$this->_debug,__FUNCTION__,__LINE__);
+        // \debug::header('time_t',$cache_time_t,$this->_is_debug,__FUNCTION__,__LINE__);
     	if($cache_time_t + self::Cache_Time_Interval > $this->_now_time)
     	{
-            //  \debug::header('xypc_t',$this->_cache->filename().'.t time:'.$cache_time_t,true,__FUNCTION__,__LINE__);
+            // \debug::header('xypc_t',$this->_cache->filename().'.t time:'.$cache_time_t,true,__FUNCTION__,__LINE__);
             return true;
     	}
         $this->_cache_time = 0;
@@ -330,12 +353,11 @@ class html
     }
     /**
      * [2/3] 执行缓存程序
-     * @param   booleam $outpt  ( 是否输出 )
+     * @param  bool $outpt  ( 是否输出 )
      */
     public function run_execute(bool $output)
     {
-        // \debug::header('xypm',$this->_cache->filename(),$this->_debug,__FUNCTION__,__LINE__);
-        //
+        // \debug::header('xypm',$this->_cache->filename(),$this->_is_debug,__FUNCTION__,__LINE__);
     	$this->_stop = false;
         $this->_cache->cache_set_time_tmp();
     	// 生成
@@ -344,7 +366,7 @@ class html
     }
     /**
      * [3/3] 输出缓存
-     * @param   booleam  $temp  ( 是否读取临时文件. 默认读取正式文件 )
+     * @param bool  $temp  ( 是否读取临时文件. 默认读取正式文件 )
      */
     public function run_output()
     {
@@ -374,7 +396,7 @@ class html
 
     /**
      * 创建缓存
-     * @param $output 是否有输出
+     * @param bool $output 是否有输出
      */
     public function callback(bool $output)
     {
@@ -388,18 +410,19 @@ class html
         ob_clean();
         ob_implicit_flush(1);
         // 写文件
-        // \debug::header('xypm_size',$filesize,$this->_debug,__FUNCTION__,__LINE__);
+        // \debug::header('xypm_size',$filesize,$this->_is_debug,__FUNCTION__,__LINE__);
         if($filesize > self::Cache_Mini_Size)
         {
-            //  \debug::header('xypm_ok',$this->_cache->filename(),$this->_debug,__FUNCTION__,__LINE__);
-            if($this->_replace_data)
+            // \debug::header('xypm_ok',$this->_cache->filename(),$this->_is_debug,__FUNCTION__,__LINE__);
+            if($this->_seo)
             {
-                $val    = array_values($this->_replace_data);
-                $key    = array_keys($this->_replace_data);
+                $data   = $this->_seo->tkd();
+                $val    = array_values($data);
+                $key    = array_keys($data);
                 $buffer = str_replace($key,$val,$buffer);
             }
-            
-            if($this->_trim)
+
+            if($this->_is_trim)
             {
                 $buffer = preg_replace(['/<!--.*?-->/','/[^:\-\"]\/\/[^\S].*?\n/', '/\/\*.*?\*\//', '/[\n\r\t]*?/', '/\s{2,}/','/>\s?</','/<!--.*?-->/','/\"\s?>/'],
                                        [''            ,''                        , ''             , ''            , ' '       ,'><'     ,''            ,'">'],
@@ -414,7 +437,8 @@ class html
             }
         }else
         {
-            //  \debug::header('xypm_noc','nocache',$this->_debug,__FUNCTION__,__LINE__);
+            $this->_cache->delete();
+            // \debug::header('xypm_noc','nocache',$this->_is_debug,__FUNCTION__,__LINE__);
             if($output)
             {
                 header('Content-Length: '. $filesize);
@@ -424,11 +448,11 @@ class html
     }
 
     /**
-     * @param array $replace
+     * @param \seo\base $seo
      */
-    public function replace(array $replace)
+    public function replace(\seo\base $seo = null)
     {
-        $this->_replace_data = $replace;
+        $this->_seo = $seo;
     }
     /**
      * 是否清理本缓存

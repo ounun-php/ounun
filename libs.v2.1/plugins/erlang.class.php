@@ -2,8 +2,6 @@
 /** 命名空间 */
 namespace plugins;
 
-use ounun\curl\http;
-
 class erlang
 {
     protected $_key;
@@ -68,10 +66,10 @@ class erlang
     
     /**
      * 统一调用调用
-     * @param uint   $sid
+     * @param int   $sid
      * @param string $fun
      * @param string $arg_data
-     * @return Ambigous <multitype:, multitype:boolean string >
+     * @return multitype:boolean string
      */
     protected function _erlang_call(string $node_type,string $mod,string $fun, string $arg_data)
     {
@@ -107,15 +105,19 @@ class erlang
         return new \ounun_ret(false,0,$rs[1]);
     }
 
+  
     /**
-     * @param $fun  : 方法
-     * @param $data : 数据
+     * 
+     * @param string $mod
+     * @param string $fun   方法
+     * @param string $data  数据
+     * @return string
      */
-    protected function _port($mod,$fun,$data="[]")
+    protected function _port(string $mod,string $fun,string $data="[]")
     {
         $host 	= "http://{$this->_host}:{$this->_port}/";
         $model 	= "{{$mod},{$fun},{$data}}";
-        return http::post($host,$model, [], 600);
+        return \plugins\curl\http::post($host,$model, [], 600);
     }
 }
 

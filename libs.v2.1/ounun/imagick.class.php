@@ -138,7 +138,7 @@ class imagick
                     foreach($images as $frame)
                     {
                         $frame->thumbnailImage( $width, $height, true );
-                        $draw = new ImagickDraw();
+                        $draw = new \ImagickDraw();
                         $draw->composite($frame->getImageCompose(), $x, $y, $dst_width, $dst_height, $frame);
                         $img = new Imagick();
                         $img->newImage($width, $height, $color, 'gif');
@@ -151,7 +151,7 @@ class imagick
                 else
                 {
                     $image->thumbnailImage( $width, $height, true );
-                    $draw = new ImagickDraw();
+                    $draw = new \ImagickDraw();
                     $draw->composite($image->getImageCompose(), $x, $y, $dst_width, $dst_height, $image);
                     $canvas->newImage($width, $height, $color, $this->get_type() );
                     $canvas->drawImage($draw);
@@ -249,13 +249,14 @@ class imagick
     public function add_watermark($path, $x = 0, $y = 0)
     {
         $watermark = new Imagick($path);
-        $draw = new ImagickDraw();
+        $draw = new \ImagickDraw();
         $draw->composite($watermark->getImageCompose(), $x, $y, $watermark->getImageWidth(), $watermark->getimageheight(), $watermark);
         if($this->type=='gif')
         {
             $image = $this->image;
             $canvas = new Imagick();
-            $images = $image->coalesceImages();
+            // $images = $image->coalesceImages();
+            $image->coalesceImages();
             foreach($image as $frame)
             {
                 $img = new Imagick();
@@ -276,7 +277,7 @@ class imagick
     // 添加水印文字
     public function add_text($text, $x = 0 , $y = 0, $angle=0, $style=array())
     {
-        $draw = new ImagickDraw();
+        $draw = new \ImagickDraw();
         if(isset($style['font'])) $draw->setFont($style['font']);
         if(isset($style['font_size'])) $draw->setFontSize($style['font_size']);
         if(isset($style['fill_color'])) $draw->setFillColor($style['fill_color']);
@@ -353,7 +354,7 @@ class imagick
     */
     public function border($width, $height, $color='rgb(220, 220, 220)')
     {
-        $color=new ImagickPixel();
+        $color = new \ImagickPixel();
         $color->setColor($color);
         $this->image->borderImage($color, $width, $height);
     }

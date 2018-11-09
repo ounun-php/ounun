@@ -12,7 +12,7 @@ use PDO;
 
 class db
 {
-    /** @var PD */
+    /** @var array PD */
     protected $_rs;
     /** @var PDO  connection */
     protected $_conn           = null; //_connection
