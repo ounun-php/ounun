@@ -1,15 +1,14 @@
 <?php
 namespace ounun;
 
-
 class page_util
 {
     static public function url(array $paras=[],array $page_paras=[],string $url_original='')
     {
-        $paras        = $paras        ? $paras : $_GET;
-        $page_paras   = $page_paras   ? $page_paras : ['page'=>'{page}'];
-        $url_original = $url_original ? $url_original : \ounun::url_original();
-        $url          = \ounun::url($url_original,$paras,$page_paras);
+        $paras        = $paras        ? $paras        : $_GET;
+        $page_paras   = $page_paras   ? $page_paras   : ['page'=>'{page}'];
+        $url_original = $url_original ? $url_original : url_original();
+        $url          = url($url_original,$paras,$page_paras);
         self::page_set($_SERVER['REQUEST_URI']);
         return $url;
     }

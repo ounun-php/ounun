@@ -1,12 +1,5 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: dreamxyp
- * Date: 2018/5/7
- * Time: 15:32
- */
-
-namespace tpl;
+namespace ounun;
 
 
 class template

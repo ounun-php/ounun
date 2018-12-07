@@ -1,16 +1,6 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: dreamxyp
- * Date: 2018/5/30
- * Time: 18:20
- */
-
 namespace ounun;
 
-
-use SessionHandlerInterface;
-use SessionUpdateTimestampHandlerInterface;
 
 /**
  * Class session
@@ -19,7 +9,7 @@ use SessionUpdateTimestampHandlerInterface;
  *
  * @package ounun
  */
-class session implements SessionHandlerInterface, SessionUpdateTimestampHandlerInterface {
+class session implements \SessionHandlerInterface, \SessionUpdateTimestampHandlerInterface {
     /** @var \pdo\db */
     private $_db;
 

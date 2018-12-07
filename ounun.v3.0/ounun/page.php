@@ -1,5 +1,4 @@
-<?php 
-namespace ounun;
+<?php
 /**
  * 主要功能: 分頁,有問題問我吧,沒時間寫注
  *
@@ -7,8 +6,9 @@ namespace ounun;
  * coding:夏一平
  * 創建時間:2006-10-30
  * @example
- *
  */
+namespace ounun;
+
 class page
 {
     /** @var string  提示串  */

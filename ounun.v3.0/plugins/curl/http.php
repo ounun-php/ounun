@@ -112,101 +112,12 @@ class http
     }
 
     /**
-     * curl
-     * @param string $url
-     * @param string $data_json
-     * @return mixed
-     */
-    static public function curl_post($url,$data_json)
-    {
-        $ch = curl_init($url);
-        curl_setopt($ch, CURLOPT_HEADER,         0);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($ch, CURLOPT_POST,           1);
-        curl_setopt($ch, CURLOPT_POSTFIELDS,     $data_json);
-        curl_setopt($ch, CURLOPT_HTTPHEADER,    ['Content-Type:application/json','Content-Length: '.strlen($data_json)]);
-        curl_setopt($ch, CURLOPT_ENCODING,       '');
-        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 60);
-        curl_setopt($ch, CURLOPT_TIMEOUT,        60);
-        $response = curl_exec($ch);
-        curl_close($ch);
-        return $response;
-    }
-
-    /**
-     * get_contents
-     * 服务器通过get请求获得内容
-     * @param string $url       请求的url,拼接后的
-     * @return string           请求返回的内容
-     */
-    static public function curl_get($url)
-    {
-        if (ini_get("allow_url_fopen") == "1")
-        {
-            $response = file_get_contents($url);
-        }else
-        {
-            $ch = curl_init();
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-            curl_setopt($ch, CURLOPT_URL, $url);
-            $response =  curl_exec($ch);
-            curl_close($ch);
-        }
-        // 请求为空
-        if(empty($response))
-        {
-            trigger_error("ERROR! 可能是服务器无法请求http(s)协议.", E_USER_ERROR);
-        }
-        return $response;
-    }
-
-
-
-
-
-    /**
-     * @param $url
-     * @param $referer
-     * @param string $timeout
-     * @return mixed
-     */
-    static public function curl_get3($url,$referer,$timeout = '10')
-    {
-        // 1. 初始化
-        $ch = curl_init();
-        // 2. 设置选项，包括URL
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
-        curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.153 Safari/536.35'); // 模拟用户使用的浏览器
-        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1); // 使用自动跳转
-        curl_setopt($ch, CURLOPT_AUTOREFERER, 1);    // 自动设置Referer
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($ch, CURLOPT_HEADER, 0);
-        curl_setopt($ch, CURLOPT_REFERER, $referer);
-        // 3. 执行并获取HTML文档内容
-        $info = curl_exec($ch);
-        // 4. 释放curl句柄
-        curl_close($ch);
-
-        return $info;
-    }
-
-    /**
      * @param $url
      * @param $referer
      * @return bool|string
      */
     public static function file_get_contents(string $url,string $referer='')
     {
-        if ('https' == substr($url,0,5))
-        {
-            // echo $url."\n";
-            // exit();
-            // $url = 'https://mm.erldoc.com/';
-            // return self::http_request_ssl($url,$referer);
-        }
-
         $referer = $referer?$referer:$url;
         $opts = [
             'http' => [
@@ -378,5 +289,94 @@ class http
                 sleep($seconds);
             }
         }while($do);
+    }
+
+
+    /**
+     * 以get方式提交请求
+     * @param $url
+     * @return bool|mixed
+     */
+    static public function http_get($url)
+    {
+        $curl = curl_init();
+        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
+        curl_setopt($curl, CURLOPT_SSLVERSION, 1);
+        curl_setopt($curl, CURLOPT_URL, $url);
+        curl_setopt($curl, CURLOPT_TIMEOUT, 30);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+        list($content, $status) = array(curl_exec($curl), curl_getinfo($curl), curl_close($curl));
+        return (intval($status["http_code"]) === 200) ? $content : false;
+    }
+
+    /**
+     * 以post方式提交请求
+     * @param string $url
+     * @param array|string $data
+     * @return bool|mixed
+     */
+    static public function http_post($url, $data)
+    {
+        $curl = curl_init();
+        curl_setopt($curl, CURLOPT_URL, $url);
+        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curl, CURLOPT_HEADER, false);
+        curl_setopt($curl, CURLOPT_POST, true);
+        curl_setopt($curl, CURLOPT_POSTFIELDS, self::_build_post($data));
+        list($content, $status) = array(curl_exec($curl), curl_getinfo($curl), curl_close($curl));
+        return (intval($status["http_code"]) === 200) ? $content : false;
+    }
+
+    /**
+     * 使用证书，以post方式提交xml到对应的接口url
+     * @param string $url POST提交的内容
+     * @param array $data 请求的地址
+     * @param string $ssl_cer 证书Cer路径 | 证书内容
+     * @param string $ssl_key 证书Key路径 | 证书内容
+     * @param int $second 设置请求超时时间
+     * @return bool|mixed
+     */
+    static public function https_post($url, $data, $ssl_cer = null, $ssl_key = null, $second = 30)
+    {
+        $curl = curl_init();
+        curl_setopt($curl, CURLOPT_URL, $url);
+        curl_setopt($curl, CURLOPT_TIMEOUT, $second);
+        curl_setopt($curl, CURLOPT_HEADER, false);
+        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        if (!is_null($ssl_cer) && file_exists($ssl_cer) && is_file($ssl_cer)) {
+            curl_setopt($curl, CURLOPT_SSLCERTTYPE, 'PEM');
+            curl_setopt($curl, CURLOPT_SSLCERT, $ssl_cer);
+        }
+        if (!is_null($ssl_key) && file_exists($ssl_key) && is_file($ssl_key)) {
+            curl_setopt($curl, CURLOPT_SSLKEYTYPE, 'PEM');
+            curl_setopt($curl, CURLOPT_SSLKEY, $ssl_key);
+        }
+        curl_setopt($curl, CURLOPT_POST, true);
+        curl_setopt($curl, CURLOPT_POSTFIELDS, self::_build_post($data));
+        list($content, $status) = array(curl_exec($curl), curl_getinfo($curl), curl_close($curl));
+        return (intval($status["http_code"]) === 200) ? $content : false;
+    }
+
+    /**
+     * POST数据过滤处理
+     * @param array $data
+     * @return array
+     */
+    static private function _build_post(&$data)
+    {
+        if (is_array($data)) {
+            foreach ($data as &$value) {
+                if (is_string($value) && $value[0] === '@' && class_exists('CURLFile', false)) {
+                    $filename = realpath(trim($value, '@'));
+                    file_exists($filename) && $value = new \CURLFile($filename);
+                }
+            }
+        }
+        return $data;
     }
 }

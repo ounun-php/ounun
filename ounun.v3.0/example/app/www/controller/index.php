@@ -23,7 +23,7 @@ class system extends \adm
 		}else
 		{
 		    // 还没登录
-            \ounun::go_url ('/login.html');
+            go_url ('/login.html');
 		}	
 	}
 
@@ -42,7 +42,7 @@ class system extends \adm
 		if ( self::$auth->login_check() )
 		{
 		    // 登录了
-            \ounun::go_url ('/');
+            go_url ('/');
 		}else
 		{
 		    // 还没登录
@@ -60,12 +60,12 @@ class system extends \adm
 		{
             // var_dump($_SESSION);
 		    // var_dump($rs);
-            \ounun::go_url ('/');
+            go_url ('/');
 		}else
 		{
-			echo \ounun::msg ( $rs->data);
+			echo msg ( $rs->data);
 
-            \ounun::go_url ('/',false,302,2);
+            go_url ('/',false,302,2);
 		}
 	}
 
@@ -73,7 +73,7 @@ class system extends \adm
 	public function out($mod)
 	{
         self::$auth->logout();
-        \ounun::go_url('/login.html' );
+        go_url('/login.html' );
 	}
 
 	/** 权限受限 */
@@ -119,7 +119,7 @@ class system extends \adm
 		}
 		if (isset($_GET['uri']))
 		{
-            \ounun::go_url($_GET['uri']);
+            go_url($_GET['uri']);
 		}
 	}
 

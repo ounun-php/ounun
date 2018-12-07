@@ -1,5 +1,4 @@
 <?php
-
 namespace plugins\qqyun;
 
 if (!extension_loaded('openssl')) {

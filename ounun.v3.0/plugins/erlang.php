@@ -69,7 +69,7 @@ class erlang
      * @param int   $sid
      * @param string $fun
      * @param string $arg_data
-     * @return multitype:boolean string
+     * @return mixed|boolean string
      */
     protected function _erlang_call(string $node_type,string $mod,string $fun, string $arg_data)
     {
@@ -87,22 +87,22 @@ class erlang
      * @param string $mod
      * @param string $fun
      * @param string $arg_data
-     * @return \ounun_ret
+     * @return \ret
      */
-    protected function _erlang_call_result(string $node_type,string $mod,string $fun, string $arg_data):\ounun_ret
+    protected function _erlang_call_result(string $node_type,string $mod,string $fun, string $arg_data):\ret
     {
         $rs   = $this->_erlang_call($node_type,$mod, $fun,  $arg_data);
         if($rs[0])
         {
             // echo $rs[1]."<br />\n";
-            $data = \ounun\json_decode($rs[1]);
+            $data = json_decode_array($rs[1]);
             if($data['ret'])
             {
-                return new \ounun_ret($data['ret'],0,$data['data']);
+                return new \ret($data['ret'],0,$data['data']);
             }
-            return new \ounun_ret(false,0,$data['msg']);
+            return new \ret(false,0,$data['msg']);
         }
-        return new \ounun_ret(false,0,$rs[1]);
+        return new \ret(false,0,$rs[1]);
     }
 
   

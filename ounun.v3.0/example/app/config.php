@@ -196,8 +196,8 @@ function start($req,$host,$argv,string $lang_default,string $lang,string $dir_ro
         }
     }else
     {
-        $uri 	= \ounun::url_original($req);
-        $mod	= \ounun::url_to_mod($uri);
+        $uri 	= url_original($req);
+        $mod	= url_to_mod($uri);
     }
     /** 初始化scfg */
     $dirs = [

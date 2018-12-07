@@ -1,18 +1,17 @@
 <?php
 namespace ounun;
 
-
 class xml
 {
     /**
-     * @param array   $data
-     * @param string  $key
-     * @param string  $t
-     * @param Boolean $ps		true:有父级
-     * 							false:没父级
-     * @param Boolean $ps_auto  true:$ps无效数组多于1时加s父级 等于1时 没有父级
-     * 							false:有没有父级 看$ps
-     * @return string
+     * @param    $data  array|string|mixed
+     * @param    $key   string
+     * @param    $t     string
+     * @param    $ps    boolean		true:有父级
+     * 							   false:没父级
+     * @param    $ps_auto boolean   true:$ps无效数组多于1时加s父级 等于1时 没有父级
+     * 							   false:有没有父级 看$ps
+     * @return  string
      */
     public static function array2xml($data,$key,$t="",$ps=false,$ps_auto=false)
     {
@@ -33,7 +32,7 @@ class xml
             {
                 if(is_numeric($data))
                 {
-                    // $data = printf("%s",$data);
+                 // $data = printf("%s",$data);
                     $data = number_format($data,0,'','');
                 }
                 $xml	.= "{$t}<{$key}>{$data}</{$key}>\n";

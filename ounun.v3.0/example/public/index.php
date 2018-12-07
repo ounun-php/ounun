@@ -48,8 +48,8 @@ if($argv && $argv[1])
     // 59  23   * * * (/home/php/bin/php /data/www.2014/com.yixuew/www.www/index.php zrun_back,Run1D  >> /data/xbsglogs/zrun_ZRunBack_Run1D.log 2>&1)
 }else
 {
-    $uri 	= \ounun::url_original($_SERVER['REQUEST_URI']);
-    $mod	= \ounun::url_to_mod($uri);
+    $uri 	= url_original($_SERVER['REQUEST_URI']);
+    $mod	= url_to_mod($uri);
     $host   = $_SERVER["HTTP_HOST"];
 }
 /** 初始化scfg */

@@ -64,7 +64,7 @@ echo $bitcoin->error;
 echo $bitcoin->status;
 
 */
-namespace bitcoin;
+namespace plugins\bitcoin;
 
 class bitcoin
 {

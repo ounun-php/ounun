@@ -1,7 +1,20 @@
 <?php
+namespace ounun;
 
 class util
 {
+    /**
+     * 格式化字节大小
+     * @param  number $size      字节数
+     * @param  string $delimiter 数字和单位分隔符
+     * @return string            格式化后的带单位的大小
+     */
+    public static function format_bytes($size, $delimiter = '') {
+        $units = array('B', 'KB', 'MB', 'GB', 'TB', 'PB');
+        for ($i = 0; $size >= 1024 && $i < 5; $i++) $size /= 1024;
+        return round($size, 2) . $delimiter . $units[$i];
+    }
+
     /**
      * UT*转GBK
      * @param string $str
@@ -9,7 +22,7 @@ class util
      */
     public static function u2g(string $str):string
     {
-        return mb_convert_encoding($str,'GBK','UTF-8');
+        return \mb_convert_encoding($str,'GBK','UTF-8');
     }
 
     /**
@@ -19,7 +32,7 @@ class util
      */
     public static function g2u(string $str):string
     {
-        return mb_convert_encoding($str,'UTF-8','GBK');
+        return \mb_convert_encoding($str,'UTF-8','GBK');
     }
 
     /**

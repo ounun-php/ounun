@@ -9,11 +9,11 @@ class oauth
 
     /** @var string  session key **/
     protected $_o_key  = '';
-    /** @var \ounun\Mysqli  Mysqli 句柄  */
+    /** @var \ounun\mysqli  Mysqli 句柄  */
     protected $_db;
 
     /** Auth constructor. */
-    public function __construct(\ounun\Mysqli $db,purview $purview ,string $session_key='adm')
+    public function __construct(\ounun\mysqli $db,purview $purview ,string $session_key='adm')
     {
         $this->_db              = $db;
         $this->_o_key           = $session_key;
@@ -47,7 +47,7 @@ class oauth
      * 登录
      * $field : id,type,cid,account,password,note
      */
-    public function login(string $account, string $password, int $cid, string $code):\ounun_ret
+    public function login(string $account, string $password, int $cid, string $code):\ret
     {
         $check      = $this->_check_ip($cid, $account);
         $account_id = 0;
@@ -96,16 +96,16 @@ class oauth
                     $this->logs_login(true,$account_id,$cid,$account);
 
                     // print_r($_SESSION);
-                    return new \ounun_ret(true);
+                    return new \ret(true);
                 }
                 $this->logs_login(false,$account_id,$cid,$account);
-                return new \ounun_ret(false,0,'失败:帐号或密码有误');
+                return new \ret(false,0,'失败:帐号或密码有误');
             }
             $this->logs_login(false,$account_id,$cid,$account);
-            return new \ounun_ret(false,0,'失败:谷歌验证有误');
+            return new \ret(false,0,'失败:谷歌验证有误');
         }
         $this->logs_login(false,$account_id,$cid,$account);
-        return new \ounun_ret(false,0,'失败:帐号不存在');
+        return new \ret(false,0,'失败:帐号不存在');
     }
 
 
@@ -138,7 +138,7 @@ class oauth
      */
     public function logs_login(bool $status, int $account_id, int $cid, string $account)
     {
-        $ip		    = \ounun::ip();
+        $ip		    = ip();
         $wry        = new \plugins\qqwry\ip('utf-8');
         $uCity      = $wry->location($ip);
 
@@ -175,7 +175,7 @@ class oauth
         {
             $url=$_SERVER['HTTP_REFERER'];
         }
-        $ip    = \ounun::ip();
+        $ip    = ip();
         $wry   = new \plugins\qqwry\ip('utf-8');
         $uCity = $wry->location($ip);
 
@@ -185,7 +185,7 @@ class oauth
         $time       = time();
         $address    = $uCity["country"];
 
-        $exts = \ounun::json_encode($exts);
+        $exts = \json_encode_unescaped($exts);
 
         $bind = [
             'time'    => $time,
@@ -207,15 +207,15 @@ class oauth
 
     /**
      * 添加帐号
-     * @return \ounun_ret
+     * @return \ret
      */
-    public function user_add(int $adm_type,int $adm_cid,string $adm_account,string $password,string $adm_tel,string $adm_note):\ounun_ret
+    public function user_add(int $adm_type,int $adm_cid,string $adm_account,string $password,string $adm_tel,string $adm_note):\ret
     {
         // 看是否存在相同的帐号
         $rs             = $this->_db->row("SELECT `adm_id` FROM {$this->purview->db_adm} where `cid` = :cid  and `account` = :account limit 0,1;",['cid'=>$adm_cid,'account'=>$adm_account]);
         if($rs)
         {
-            return new \ounun_ret(false,0,'提示：帐号"'.$adm_account.'"已存在!');
+            return new \ret(false,0,'提示：帐号"'.$adm_account.'"已存在!');
         }
         // 添加
         $adm_type_p     = $this->session_get(purview::s_type);
@@ -236,26 +236,26 @@ class oauth
         $this->logs_act($adm_id?1:0,1,$bind);
         if($adm_id)
         {
-            return new \ounun_ret(true,0,"成功:操作成功!");
+            return new \ret(true,0,"成功:操作成功!");
         }
-        return new \ounun_ret(false,0,'提示：系统忙稍后再试!');
+        return new \ret(false,0,'提示：系统忙稍后再试!');
     }
 
     /**
      * 帐号删除
-     * @return \ounun_ret
+     * @return \ret
      */
-    public function user_del(int $adm_id):\ounun_ret
+    public function user_del(int $adm_id):\ret
     {
         if($adm_id == $this->session_get(purview::s_id))
         {
-            return new \ounun_ret(false,0,'提示：不能删除自己[account_id]!');
+            return new \ret(false,0,'提示：不能删除自己[account_id]!');
         }
         $rs			 = $this->_db->row("SELECT `cid`,`account` FROM {$this->purview->db_adm} where `adm_id` = :adm_id limit 0,1;",['adm_id'=>$adm_id]);
         if($rs['cid'] == $this->session_get(purview::cp_cid) &&
            $rs['account'] == $this->session_get(purview::s_account) )
         {
-            return new \ounun_ret(false,0,'提示：不能删除自己[account]!');
+            return new \ret(false,0,'提示：不能删除自己[account]!');
         }
         $bind = ['adm_id'=>$adm_id,'cid'=>$rs['cid'], 'account'=>$rs['account'] ];
         $rs   = $this->_db->delete($this->purview->db_adm,'`adm_id`= :adm_id ',$bind);
@@ -263,24 +263,24 @@ class oauth
         $this->logs_act($rs?1:0,3,$bind);
         if($rs)
         {
-            return new \ounun_ret(true,0,"成功:操作成功!");
+            return new \ret(true,0,"成功:操作成功!");
         }
-        return new \ounun_ret(false,0,'提示：系统忙稍后再试!');
+        return new \ret(false,0,'提示：系统忙稍后再试!');
     }
 
     /**
      * 更改密码
-     * @return \ounun_ret
+     * @return \ret
      */
-    public function user_modify_passwd($old_pwd,$new_pwd,$google_code):\ounun_ret
+    public function user_modify_passwd($old_pwd,$new_pwd,$google_code):\ret
     {
         if(!$old_pwd)
         {
-            return new \ounun_ret(false,0,'提示：请输入旧密码');
+            return new \ret(false,0,'提示：请输入旧密码');
         }
         if(!$new_pwd)
         {
-            return new \ounun_ret(false,0,'提示：请输入新密码');
+            return new \ret(false,0,'提示：请输入新密码');
         }
         $account_id	    = $this->session_get(purview::s_id);
         $rs			    = $this->_db->row("SELECT `adm_id`,`password`,`exts` FROM {$this->purview->db_adm} where `adm_id` = ? ;",$account_id);
@@ -291,10 +291,10 @@ class oauth
 
         if ($old_pwd_md5 != $rs['password'])
         {
-            return new \ounun_ret(false,0,'提示：旧密码错误,请重新输入');
+            return new \ret(false,0,'提示：旧密码错误,请重新输入');
         }else if(!$this->_check_google($exts,$google_code))
         {
-            return new \ounun_ret(false,0,'提示：请输入正确6位数谷歌(洋葱)验证');
+            return new \ret(false,0,'提示：请输入正确6位数谷歌(洋葱)验证');
         }
         else
         {
@@ -302,10 +302,10 @@ class oauth
             $rs2 = $this->_db->update($this->purview->db_adm, ['password'=>$new_pwd_md5, ],' `adm_id`= ? ',$account_id);
             if($rs2)
             {
-                return new \ounun_ret(true, 0,'成功：密码修改成功!');
+                return new \ret(true, 0,'成功：密码修改成功!');
             }else
             {
-                return new \ounun_ret(false,0,'提示：系统忙,请稍后再试');
+                return new \ret(false,0,'提示：系统忙,请稍后再试');
             }
         }
     }
@@ -346,7 +346,7 @@ class oauth
     /**
      * 设定 Google身份验证
      */
-    public function user_set_exts_google($google_yn=true,$ext=null,$old_pwd='',$google_code=''):\ounun_ret
+    public function user_set_exts_google($google_yn=true,$ext=null,$old_pwd='',$google_code=''):\ret
     {
         $account_id	= $this->session_get(purview::s_id);
         if(!$ext && $old_pwd != '' && $google_code != '')
@@ -356,12 +356,12 @@ class oauth
             $oldpwd		= md5(md5($old_pwd));
             if ($oldpwd != $rs['password'])
             {
-                return new \ounun_ret(false,0,'失败：登录密码有误!');
+                return new \ret(false,0,'失败：登录密码有误!');
             }
             $ext['google']['is'] = true;
             if(!$this->_check_google($ext, $google_code) )
             {
-                return new \ounun_ret(false,0,'失败：谷歌验证有误!');
+                return new \ret(false,0,'失败：谷歌验证有误!');
             }
         }
         if(!$ext)
@@ -382,10 +382,10 @@ class oauth
         $rs  = $this->_db->update($this->purview->db_adm,['exts'=>json_encode($ext)],' `adm_id` = ? ',$account_id);
         if($rs)
         {
-            return new \ounun_ret(true, 0,'成功：操作成功!');
+            return new \ret(true, 0,'成功：操作成功!');
         }else
         {
-            return new \ounun_ret(false,0,'提示:系统忙,请稍后再试');
+            return new \ret(false,0,'提示:系统忙,请稍后再试');
         }
     }
 
@@ -460,11 +460,11 @@ class oauth
 
     /**
      * IP检查 是否锁定
-     * @return \ounun_ret
+     * @return \ret
      */
-    protected function _check_ip($cid, $account):\ounun_ret
+    protected function _check_ip($cid, $account):\ret
     {
-        $ip		    = \ounun::ip();
+        $ip		    = ip();
         $wry        = new \plugins\qqwry\ip('utf-8');
         $uCity      = $wry->location($ip);
         $ip_segment	= $uCity["beginip"] . "-" . $uCity["endip"];
@@ -484,16 +484,16 @@ class oauth
             // exit();
             if ($rs_ip_counts <= $this->purview->max_ip)
             {
-                return new \ounun_ret(true);
+                return new \ret(true);
             }
             else
             {
-                return new \ounun_ret(false,0,'IP地址登录失败超过'.$this->purview->max_ip.'次');
+                return new \ret(false,0,'IP地址登录失败超过'.$this->purview->max_ip.'次');
             }
         }
         else
         {
-            return new \ounun_ret(false,0,'IP地址段登录失败超过'.$this->purview->max_ips.'次');
+            return new \ret(false,0,'IP地址段登录失败超过'.$this->purview->max_ips.'次');
         }
     }
 

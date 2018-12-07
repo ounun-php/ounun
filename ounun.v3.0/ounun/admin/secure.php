@@ -20,9 +20,19 @@ class secure
     }
 
     /**
+     * 管理员密码加密方式
+     * @param $password string 密码
+     * @return string
+     */
+    public function password($password)
+    {
+        return md5(md5($password) . md5($this->key));
+    }
+
+    /**
      * 通过data获得url
-     * @param string $url
-     * @param array $data
+     * @param  $url  string
+     * @param  $data array
      * @return string
      */
     public function url(string $url = '',array $data = [])
@@ -45,7 +55,7 @@ class secure
         $sign2_s      = implode('&',$rs);
 
         $data['sign'] = md5($sign2_s);
-        return \ounun::url($url,$data);
+        return url($url,$data);
     }
 
     /**
