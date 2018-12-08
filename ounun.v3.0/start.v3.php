@@ -301,9 +301,9 @@ class scfg
     static public $i18n_app;
 
     /** @var string 当前语言 */
-    static public $lang         = 'en';
+    static public $lang         = 'zh_CN';
     /** @var string 默认语言 */
-    static public $lang_default = 'en';
+    static public $lang_default = 'zh_CN';
 
 
     /** @return \cfg\i18n 语言包 */
@@ -563,21 +563,21 @@ class scfg
 }
 
 
-class ounun
+class start
 {
     /**
      * 世界从这里开始(路由)
      * @param string $host
      * @param array $mod
      */
-    public function __construct(ounun_scfg &$scfg)
+    public function __construct(scfg &$scfg)
     {
         /** 重定义头 */
         header('X-Powered-By: Ounun.org');
 
         $mod        = $scfg->mod;
         /** 加载libs/scfg.{self::$app}.ini.php文件 */
-        $filename   = ounun_scfg::$dir_root_app . 'libs/scfg.'.ounun_scfg::$app.'.ini.php';
+        $filename   = scfg::$dir_root_app . 'libs/scfg.'.scfg::$app.'.ini.php';
         if(file_exists($filename))
         {
             require $filename;
@@ -586,7 +586,7 @@ class ounun
         // 设定 模块与方法
         if(is_array($mod) && $mod[0])
         {
-            $filename         = ounun_scfg::$dir_root_app . "module/{$mod[0]}.class.php";
+            $filename         = scfg::$dir_root_app . "module/{$mod[0]}.class.php";
             if(file_exists($filename))
             {
                 $module		  = $mod[0];
@@ -595,14 +595,14 @@ class ounun
                     array_shift($mod);
                 }else
                 {
-                    $mod	  = [ounun_scfg::def_met];
+                    $mod	  = [scfg::def_met];
                 }
             }
             else
             {
                 if($mod[1])
                 {
-                    $filename           = ounun_scfg::$dir_root_app . "module/{$mod[0]}/{$mod[1]}.class.php";
+                    $filename           = scfg::$dir_root_app . "module/{$mod[0]}/{$mod[1]}.class.php";
                     if(file_exists($filename))
                     {
                         $module		    = $mod[0].'\\'.$mod[1];
@@ -612,35 +612,35 @@ class ounun
                             array_shift($mod);
                         }else
                         {
-                            $mod	    = [ounun_scfg::def_met];
+                            $mod	    = [scfg::def_met];
                         }
                     }else
                     {
-                        $filename       = ounun_scfg::$dir_root_app . "module/{$mod[0]}/system.class.php";
-                        if(file_exists(\ounun_scfg::$dir_root_app . "module/{$mod[0]}" ) && file_exists($filename))
+                        $filename       = scfg::$dir_root_app . "module/{$mod[0]}/system.class.php";
+                        if(file_exists(\scfg::$dir_root_app . "module/{$mod[0]}" ) && file_exists($filename))
                         {
                             $module	    = "{$mod[0]}\\system";
                             array_shift($mod);
                         }else
                         {
-                            $module		= ounun_scfg::def_mod;
-                            $filename 	= ounun_scfg::$dir_root_app . "module/system.class.php";
+                            $module		= scfg::def_mod;
+                            $filename 	= scfg::$dir_root_app . "module/system.class.php";
                         }
                     }
                 }else
                 {
-                    $filename       = ounun_scfg::$dir_root_app . "module/{$mod[0]}/system.class.php";
+                    $filename       = scfg::$dir_root_app . "module/{$mod[0]}/system.class.php";
                     if(file_exists($filename))
                     {
                         $module		= "{$mod[0]}\\system";
-                        $mod	    =  [ounun_scfg::def_met];
+                        $mod	    =  [scfg::def_met];
                         // array_shift($mod);
                     }else
                     {
                         // 默认模块
                         // $mod	    = array(Ounun_Default_Method);
-                        $module		= ounun_scfg::def_mod;
-                        $filename 	= ounun_scfg::$dir_root_app . "module/system.class.php";
+                        $module		= scfg::def_mod;
+                        $filename 	= scfg::$dir_root_app . "module/system.class.php";
                     }
                 }
             } // end \Dir_App . "module/" . $mod[0] . '.class.php';
@@ -648,9 +648,9 @@ class ounun
         else
         {
             // 默认模块 与 默认方法
-            $mod				= [ounun_scfg::def_met];
-            $module				=  ounun_scfg::def_mod;
-            $filename 			=  ounun_scfg::$dir_root_app . "module/system.class.php";
+            $mod				= [scfg::def_met];
+            $module				=  scfg::def_mod;
+            $filename 			=  scfg::$dir_root_app . "module/system.class.php";
         }
         // 包括模块文件
         require $filename;
