@@ -1,38 +1,20 @@
 <?php
-/**
- * 返回基类
- * Class Ret
- * @package \
- */
-class ret
-{
-    /**
-     * @var bool 返回状态
-     */
-    public $ret        = false;
-    /**
-     * @var int 错误代码
-     */
-    public $error_code = 0;
-    /**
-     * @var mixed 返回数据
-     */
-    public $data       = null;
 
-    /**
-     * Ret constructor.
-     * @param $return
-     * @param int $error_code
-     * @param null $data
-     */
-    public function __construct(bool $return,int $error_code=0,$data=null)
-    {
-        $this->ret          = $return;
-        $this->error_code   = $error_code;
-        $this->data         = $data;
-    }
-}
+/** libs库文件目录 **/
+defined('Dir_Ounun')    || define('Dir_Ounun',     __DIR__.'/'       );
+/** libs目录 **/
+defined('Dir_Vendor')   || define('Dir_Vendor',    Dir_Root.'vendor/');
+/** data目录 **/
+defined('Dir_Extend')   || define('Dir_Extend',    Dir_Root.'extend/');
+/** cache目录 **/
+defined('Dir_Cache')    || define('Dir_Cache',     Dir_Root.'cache/' );
+/** app目录 **/
+defined('Dir_App')      || define('Dir_App',       Dir_Root.'app/'   );
+/** Environment目录 **/
+defined('Environment')  || define('Environment',   environment()     );
 
+/** 是否开发环境 **/
+// define('Is_Debug',        Environment?true:false );
 
 /**
  * 得到访客的IP
@@ -621,4 +603,164 @@ function sanitize_filename(string $string):string
     return sanitize($string, false);
 }
 
+/**
+ * 当前开发环境
+ * @return string '','2','-dev'
+ */
+function environment()
+{
+    if(isset($GLOBALS['_environment_']))
+    {
+        return $GLOBALS['_environment_'];
+    }
+    $env_file                 = Dir_Root.'environment.txt';
+    $GLOBALS['_environment_'] = (file_exists($env_file) && filesize($env_file) >= 1 )? trim(file_get_contents($env_file)):'';
+    return $GLOBALS['_environment_'];
+}
 
+
+/**
+ * 返回基类
+ * Class Ret
+ * @package \
+ */
+class ret
+{
+    /**
+     * @var bool 返回状态
+     */
+    public $ret        = false;
+    /**
+     * @var int 错误代码
+     */
+    public $error_code = 0;
+    /**
+     * @var mixed 返回数据
+     */
+    public $data       = null;
+
+    /**
+     * Ret constructor.
+     * @param $return
+     * @param int $error_code
+     * @param null $data
+     */
+    public function __construct(bool $return,int $error_code=0,$data=null)
+    {
+        $this->ret          = $return;
+        $this->error_code   = $error_code;
+        $this->data         = $data;
+    }
+}
+
+
+/**
+ * Class VodBase
+ */
+class v extends \ounun\view
+{
+    /** @var \cms\cms_pics */
+    public static $cms;
+    /** @var \seo\base */
+    public static $seo;
+
+    /** @var \ounun\mysqli DB */
+    protected $_db_v  = null;
+
+    public static function db(string $key, $db_cfg = null): \ounun\mysqli
+    {
+        $key = IsDebug?"{$key}_debug":$key;
+
+        // echo "\$key:{$key}\n";
+        return parent::db($key, $db_cfg);
+    }
+
+    /** 初始化 */
+    public function init(string $url = '',bool $is_cache = true,bool $is_replace = true)
+    {
+        self::$seo       = new \seo\base($url);
+        self::$cms       = new \cms\cms_pics(self::$seo);
+
+        //      $dir_tpl_root    = '';
+        //      $dir_tpl_root_g  = '';
+        $dir_tpl_root    = '';
+        $dir_tpl_root_g  = '';
+        if(null == $this->_db_v)
+        {
+            $this->_db_v = self::db(\ounun\scfg::$app);
+        }
+        self::$cms->db   = $this->_db_v;
+        $this->init_complete($is_cache,$is_replace,$dir_tpl_root,$dir_tpl_root_g);
+    }
+
+    /**
+     * @param bool $is_cache
+     * @param bool $is_replace
+     * @param string $dir_tpl_root
+     */
+    public function init_complete(bool $is_cache = true,bool $is_replace = true,string $dir_tpl_root = "",string $dir_tpl_root_g = "")
+    {
+        $this->_global_replace();
+        $this->template(\ounun\scfg::$tpl,\ounun\scfg::$tpl_default,$dir_tpl_root,$dir_tpl_root_g);
+        if(IsDebug)
+        {
+            if($is_replace)
+            {
+                self::$_stpl->replace(self::$seo,false);
+            }
+        }else
+        {
+            if($is_cache)
+            {
+                if(self::$_html_cache)
+                {
+                    self::$_html_cache->replace(self::$seo);
+                }
+            }elseif($is_replace)
+            {
+                self::$_stpl->replace(self::$seo,$this->_html_trim);
+            }
+        }
+    }
+
+    /** Cache */
+    public function html_cache($key)
+    {
+        if(!IsDebug)
+        {
+            $cfg                = $GLOBALS['_scfg']['cache_file'];
+            $cfg['mod']         = \ounun\scfg::$app.\ounun\scfg::$tpl;
+            self::$_html_cache  = new \ounun\html(\ounun\scfg::$app,\ounun\scfg::$tpl,$cfg,$key,$this->_html_cache_time,$this->_html_trim,false);
+
+            self::$_html_cache->run(true);
+        }
+    }
+
+    /** 赋值(默认) */
+    protected function _global_replace()
+    {
+        $url_base            = substr($this->_page_url,1);
+        self::$seo->sets([
+            '{$url_www}'          => \ounun\scfg::$url_www,
+            '{$url_wap}'          => \ounun\scfg::$url_wap,
+            '{$url_mip}'          => \ounun\scfg::$url_mip,
+            '{$url_api}'          => \ounun\scfg::$url_api,
+            '{$url_app}'          => \ounun\scfg::url_page(),
+
+            '{$page_url}'         => $this->_page_url ,
+            '{$page_file}'        => $this->_page_file,
+
+            '{$canonical_pc}'     => \ounun\scfg::$url_www.$url_base,
+            '{$canonical_mip}'    => \ounun\scfg::$url_mip.$url_base,
+            '{$canonical_wap}'    => \ounun\scfg::$url_wap.$url_base,
+
+            '{$app}'              => \ounun\scfg::$app,
+            '{$domain}'           => \ounun\scfg::$app_domain,
+
+            '{$sres}'             => \ounun\scfg::$url_res,
+            '{$static}'           => \ounun\scfg::$url_static,
+            '{$static_g}'         => \ounun\scfg::$url_static_g,
+            '"/static/'           => '"'.\ounun\scfg::$url_static,
+        ]);
+    }
+}

@@ -1,6 +1,6 @@
 <?php
 /** 命名空间 */
-namespace admin;
+namespace ounun\mvc\model\admin;
 
 class oauth
 {

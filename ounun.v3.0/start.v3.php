@@ -1,7 +1,5 @@
 <?php
 namespace ounun;
-
-require __DIR__.'/common.php';
 /**
  * 基类的基类
  * Class Base
@@ -17,7 +15,7 @@ class base
 	public function __call($method, $args)
 	{
 		header('HTTP/1.1 404 Not Found');
-        $this->debug = new \debug(scfg::$dir_root.'logs/error_404_'.date('Ymd').'.txt',false,false,false,true);
+        $this->debug = new \ounun\debug(scfg::$dir_root.'logs/error_404_'.date('Ymd').'.txt',false,false,false,true);
         error404("base \$method:{$method} \$args:[".implode(',',$args[0])."]");
 	}
 
@@ -138,7 +136,7 @@ class view extends base
 
     /**
      *  Template句柄容器
-	 *  @var \tpl\template
+	 *  @var  template
      **/
 	protected static $_stpl = null;
 
@@ -147,8 +145,8 @@ class view extends base
 	{
 		if(null == self::$_stpl)
         {
-            $dir_tpl_root   = $dir_tpl_root  ?$dir_tpl_root  :\ounun_scfg::$dir_root_app    . 'template/';
-            $dir_tpl_root_g = $dir_tpl_root_g?$dir_tpl_root_g:dirname(\ounun_scfg::$lib_cms). '/cms.single.template.v1/';
+            $dir_tpl_root   = $dir_tpl_root  ?$dir_tpl_root  :scfg::$dir_root_app    . 'template/';
+            $dir_tpl_root_g = $dir_tpl_root_g?$dir_tpl_root_g:dirname(scfg::$lib_cms). '/cms.single.template.v1/';
             self::$_stpl    = new template($dir_tpl_root,$style_name,$style_name_default,$dir_tpl_root_g);
         }
 	}
@@ -170,7 +168,7 @@ class view extends base
 
     /**
      * 调试 相关
-     * @var \debug
+     * @var \ounun\debug
      */
     public $debug	= null;
 
@@ -251,21 +249,33 @@ class view extends base
 class scfg
 {
     /** @var string 默认模块名称 */
-    const def_mod   = 'system';
+    const def_mod   = 'index';
     /** @var string 默认操作名称 */
     const def_met   = 'index';
 
+    /** @var array 公共配制数据  */
+    static public $g             = [];
+    /** @var array DB配制数据  */
+    static public $db            = [];
+    /** @var array 自动加载路径paths  */
+    static public $maps_paths    = [];
+    /** @var array 自动加载路径maps  */
+    static public $maps_class    = [];
+    /** 路由模块数据  */
+    static public $mod           = [];
+
+
+    /** @var string 根目录 */
+    static public $dir_root      = '';
     /** @var string Ounun目录   */
-    static public $lib_ounun     =  __DIR__.'/';
-    /** @var string CMS目录   */
-    static public $lib_cms       = '';
-    /** @var string APP目录   */
-    static public $lib_app       = '';
+    static public $dir_ounun     =  __DIR__.'/';
+    /** @var string 根目录(App) */
+    static public $dir_app       = '';
 
     /** @var string Www URL */
     static public $url_www       = '';
     /** @var string Mobile URL */
-    static public $url_mobile    = '';
+    static public $url_wap       = '';
     /** @var string Mip URL */
     static public $url_mip       = '';
     /** @var string Api URL */
@@ -276,12 +286,6 @@ class scfg
     static public $url_static    = '';
     /** @var string StaticG URL */
     static public $url_static_g  = '';
-
-
-    /** @var string 根目录 */
-    static public $dir_root      = '';
-    /** @var string 根目录(App) */
-    static public $dir_root_app  = '';
 
     /** @var string 当前APP */
     static public $app           = '';
@@ -295,27 +299,160 @@ class scfg
     /** @var string 模板-样式[默认] */
     static public $tpl_default   = '';
 
-    /** @var \cfg\i18n 语言包 */
+    /** @var \model\i18n 语言包 */
     static public $i18n;
-    /** @var \app\i18n 语言包 */
-    static public $i18n_app;
-
     /** @var string 当前语言 */
     static public $lang         = 'zh_CN';
     /** @var string 默认语言 */
     static public $lang_default = 'zh_CN';
+    /** @var array 支持的语言 */
+    public static $langs  = [
+        "en_us"=>"English",
+        // "zh"=>"繁體中文",
+        "zh_cn"=>"简体中文",
+        // "ja"=>"日本語",
+    ];
 
-
-    /** @return \cfg\i18n 语言包 */
-    static public function i18n()
+    /**
+     * 设定语言
+     * @param string $lang
+     * @param string $lang_default
+     */
+    static public function set_lang(string $lang,string $lang_default = '')
     {
-        return self::$i18n;
+        $lang && self::$lang = $lang;
+        $lang_default && self::$lang_default = $lang_default;
+        if($lang  == self::$lang_default)
+        {
+            self::$i18n     = "\\model\\i18n";
+        }else
+        {
+            self::$i18n     = "\\model\\i18n\\{$lang}";
+        }
     }
 
-    /** @return \app\i18n 语言包 */ 
-    static public function i18n_app()
+    /**
+     * 设定支持的语言
+     * @param array $langs
+     */
+    static public function set_lang_support(array $langs = [])
     {
-        return self::$i18n_app; 
+        if($langs)
+        {
+            foreach ($langs as $lang=>$lang_name)
+            {
+                self::$langs[$lang] = $lang_name;
+            }
+        }
+    }
+
+    /**
+     * 设定公共配制数据
+     * @param array $cfg
+     */
+    static public function set_global(array $cfgs = [])
+    {
+        if($cfgs)
+        {
+            foreach ($cfgs as $cfg=>$data)
+            {
+                self::$g[$cfg] = $data;
+            }
+        }
+    }
+
+
+    /**
+     * 设定DB配制数据
+     * @param array $cfg
+     */
+    static public function set_database(array $database_cfg = [])
+    {
+        if($database_cfg)
+        {
+            foreach ($database_cfg as $db_key=>$db_cfg)
+            {
+                self::$db[$db_key] = $db_cfg;
+            }
+        }
+    }
+
+    /** 设定路由数据 */
+    static public function set_routes(array $routes,array $routes_default = [])
+    {
+        if($routes)
+        {
+            foreach ($routes as $k=>$v)
+            {
+                self::$routes[$k] = $v;
+            }
+        }
+        if($routes_default)
+        {
+            self::$routes_default = $routes_default;
+        }
+    }
+
+
+    /**
+     * 设定地址
+     * @param string $url_www
+     * @param string $url_mobile
+     * @param string $url_mip
+     * @param string $url_api
+     * @param string $url_res
+     * @param string $url_static
+     * @param string $url_static_g
+     * @param string $app_domain
+     */
+    static public function set_urls(string $url_www,string $url_wap,string $url_mip,string $url_api,string $url_res,string $url_static,string $url_static_g,string $app_domain)
+    {
+        /** Www URL */
+        self::$url_www       = $url_www;
+        /** Mobile URL */
+        self::$url_wap       = $url_wap;
+        /** Mobile URL */
+        self::$url_mip       = $url_mip;
+        /** Api URL */
+        self::$url_api       = $url_api;
+        /** Res URL */
+        self::$url_res       = $url_res;
+        /** Static URL */
+        self::$url_static    = $url_static;
+        /** StaticG URL */
+        self::$url_static_g  = $url_static_g;
+
+        /** 项目主域名 */
+        self::$app_domain    = $app_domain;
+    }
+
+
+    /**
+     * 设定目录
+     * @param string $dir_ounun
+     * @param string $dir_root
+     * @param string $dir_app
+     */
+    static public function set_dirs(string $dir_ounun,string $dir_root,string $dir_app = '')
+    {
+        // Ounun目录
+        $dir_ounun  && self::$dir_ounun = $dir_ounun;
+        // 根目录
+        $dir_root   && self::$dir_root  = $dir_root;
+        // APP目录
+        if($dir_app)
+        {
+            self::$dir_app = $dir_app;
+        }elseif(!self::$dir_app)
+        {
+            self::$dir_app = Dir_App.self::$app.'/';
+        }
+    }
+
+    /** @return \model\i18n 语言包 */
+    static public function get_i18n()
+    {
+        return self::$i18n;
     }
 
     /** @var string 当前面页 Url */
@@ -359,44 +496,100 @@ class scfg
     }
 
     /**
+     * 添加自动加载路径
+     * @param array $paths
+     * @param string $namespace_prefix
+     */
+    static public function add_paths(array $paths,string $namespace_prefix = '')
+    {
+        if($paths && is_array($paths))
+        {
+            if($namespace_prefix)
+            {
+                $first  = $namespace_prefix[0];
+                foreach ($paths as $path)
+                {
+                    if($path && ( !self::$maps_paths  ||  !self::$maps_paths[$first]  || !self::$maps_paths[$first][$namespace_prefix]  ||  !in_array($path,self::$maps_paths[$first][$namespace_prefix])  ))
+                    {
+                        self::$maps_paths[$first][$namespace_prefix][] = $path;
+                    }
+                }
+            }else
+            {
+                foreach ($paths as $path)
+                {
+                    if($path && ( !self::$maps_paths  ||  !self::$maps_paths['']  ||  !in_array($path,self::$maps_paths['']) ))
+                    {
+                        self::$maps_paths[''][] = $path;
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * 添加类库映射
+     * @param $class
+     * @param $filename
+     */
+    static public function add_class($class,$filename)
+    {
+        self::$maps_class[$class] = $filename;
+    }
+
+
+    /**
      * 自动加载的类
      * @param $class_name
      */
-    public static function autoload($class_name)
+    static public function autoload($class)
     {
-        $class_name = ltrim($class_name, '\\');
-        $lists 	    = explode('\\', $class_name);
-        if('app' == $lists[0] && self::$lib_app)
+        echo "\$class:{$class}\n";
+
+        // 类库映射
+        if (!empty(self::$maps_class[$class]))
         {
-            array_shift($lists);
-            $file_name    = implode('/', $lists).'.class.php';
-            $file_name    = self::$lib_app . $file_name;
-            if(file_exists($file_name))
-            {
-                require $file_name;
-            }
-        }else
+            return self::$maps_class[$class];
+        }
+
+        print_r(['self::$maps_class'=>self::$maps_class,'self::$maps_paths'=>self::$maps_paths]);
+
+        // 查找 PSR-4 prefix
+        $filename  = strtr($class, '\\', '/') . '.php';
+        $first     = $class[0];
+        if (isset(self::$maps_paths[$first]))
         {
-            $file_name0   = implode('/', $lists) . '.class.php';
-            $file_name    = self::$lib_app . $file_name0;
-            if (file_exists($file_name))
+            foreach (self::$maps_paths[$first] as $prefix => $paths)
             {
-                require $file_name;
-            }else
-            {
-                $file_name     = self::$lib_cms . $file_name0;
-                if (file_exists($file_name))
+                if (0 === strpos($class, $prefix))
                 {
-                    require $file_name;
-                }else
-                {
-                    $file_name = self::$lib_ounun . $file_name0;
-                    if (file_exists($file_name))
+                    $length = strlen($prefix);
+                    foreach ($paths as $dir)
                     {
-                        require $file_name;
-                    } // end ounun
-                } // end proj.libs
-            } // end app.libs
+                        $file = $dir  . substr($filename, $length);
+                        echo "\$file:{$file}\n";
+                        if(is_file($file))
+                        {
+                            require $file;
+                        }
+                    }
+                }
+            }
+
+        }
+
+        // 查找 PSR-4 prefix = ''
+        if (isset(self::$maps_paths['']))
+        {
+            foreach (self::$maps_paths[''] as $dir)
+            {
+                $file = $dir  . $filename;
+                echo "\$file:{$file}\n";
+                if(is_file($file))
+                {
+                    require $file;
+                }
+            }
         }
     }
 
@@ -405,268 +598,185 @@ class scfg
      * @param string $host
      * @param array $mod
      */
-    public function __construct(array $mod,string $host,string $lang_default,string $lang,array $dirs = [], array $libs = [], array $routes = [])
+    static public function init(array $mod,string $host)
     {
-        if($routes)
+        /** 语言 */
+        if($mod && $mod[0] && self::$langs[$mod[0]])
         {
-            $this->routes_data($routes['routes'],$routes['routes_default']);
-        }
-        if($mod && $mod[0] && $this->routes["{$host}/{$mod[0]}"])
-        {
-            $mod_0 = array_shift($mod);
-            $val_0 = $this->routes["{$host}/{$mod_0}"];
-        }elseif($this->routes[$host])
-        {
-            $val_0 = $this->routes[$host];
+            $lang = array_shift($mod);
         }else
         {
-            $val_0 = $this->routes_default;
+            $lang = self::$lang ? self::$lang : self::$lang_default;
         }
+        self::set_lang($lang);
+
+        if($mod && $mod[0] && self::$routes["{$host}/{$mod[0]}"])
+        {
+            $mod_0 = array_shift($mod);
+            $val_0 = self::$routes["{$host}/{$mod_0}"];
+        }elseif(self::$routes[$host])
+        {
+            $val_0 = self::$routes[$host];
+        }else
+        {
+            $val_0 = self::$routes_default;
+        }
+        // $app
         self::$app           = $val_0['app'];
         self::$app_url       = $val_0['url'];
 
-        /** 默认语言 */
-        self::$lang_default  = $lang_default;
-        self::langs($lang);
-
-        /** 目录(根/应用) */
-        if($dirs)
-        {
-            self::dirs($dirs['root'],$dirs['root_app']);
-        }
-
-        /** 库(Ounun/Cms/App) */
-        if($libs)
-        {
-            self::libs($libs['ounun'],$libs['cms'],$libs['app']);
-        }
+        // set_dirs
+        self::set_dirs(Dir_Ounun,Dir_Root);
+        self::add_paths([self::$dir_ounun,self::$dir_app]);
 
         /** @var string 模板 */
-        self::$tpl           = $val_0['tpl']?$val_0['tpl']:self::i18n()::tpl;
-        self::$tpl_default   = $val_0['tpl_default']?$val_0['tpl_default']:self::i18n()::tpl_default;
-
-        $this->mod = $mod;
-    }
-
-    /**
-     * @param string $lang
-     * @param string $default
-     */
-    public static function langs($lang)
-    {
-        self::$lang = $lang;
-        // echo "self::\$lang:".self::$lang." \$lang_default:".self::$lang_default."\n";
-        if($lang  == self::$lang_default)
-        {
-            self::$i18n     = "\\cfg\\i18n";
-            self::$i18n_app = "\\app\\i18n";
-        }else
-        {
-            self::$i18n     = "\\cfg\\i18n\\{$lang}";
-            self::$i18n_app = "\\app\\i18n\\{$lang}";
-        }
-    }
-
-    /**
-     * @param string $lib_ounun
-     * @param string $lib_cms
-     * @param string $lib_app
-     */
-    public function libs(string $lib_ounun,string $lib_cms,string $lib_app)
-    {
-        // Ounun目录
-        self::$lib_ounun    = $lib_ounun;
-        // CMS目录
-        self::$lib_cms      = $lib_cms;
-        // APP目录
-        if($lib_app)
-        {
-            self::$lib_app  = $lib_app;
-        }else
-        {
-            self::$lib_app  = self::$dir_root_app.'libs/';
-        }
-    }
-
-    /**
-     * @param string $dir_root
-     * @param string $dir_root_app
-     */
-    public function dirs(string $dir_root,string $dir_root_app = '')
-    {
-        /** 根目录 */
-        self::$dir_root      = $dir_root;
-        /** 应用目录 */
-        if($dir_root_app)
-        {
-            self::$dir_root_app  = $dir_root_app;
-        }else
-        {
-            self::$dir_root_app  = $dir_root.'app.'.self::$app.'/';
-        }
-    }
-
-    /**
-     * @param string $url_www
-     * @param string $url_mobile
-     * @param string $url_res
-     */
-    public function urls(string $url_www,string $url_mobile,string $url_mip,string $url_api,string $url_res,string $url_static,string $url_static_g,string $app_domain)
-    {
-        /** Www URL */
-        self::$url_www       = $url_www;
-        /** Mobile URL */
-        self::$url_mobile    = $url_mobile;
-        /** Mobile URL */
-        self::$url_mip       = $url_mip;
-        /** Api URL */
-        self::$url_api       = $url_api;
-        /** Res URL */
-        self::$url_res       = $url_res;
-        /** Static URL */
-        self::$url_static    = $url_static;
-        /** StaticG URL */
-        self::$url_static_g  = $url_static_g;
-
-        /** 项目主域名 */
-        self::$app_domain    = $app_domain;
-    }
-
-    /**
-     * @param array $routes
-     * @param array $routes_default
-     */
-    public function routes_data(array $routes = [],array $routes_default = [])
-    {
-        if($routes)
-        {
-            $this->routes = $routes;
-        }
-        if($routes_default)
-        {
-            $this->routes_default = $routes_default;
-        }
+        self::$tpl           = $val_0['tpl']?$val_0['tpl']:self::get_i18n()::tpl;
+        self::$tpl_default   = $val_0['tpl_default']?$val_0['tpl_default']:self::get_i18n()::tpl_default;
     }
 
     /** 路由数据 */
-    protected $routes = [
+    static protected $routes = [
         //         'www.866bet.com/api'  => ['app'=>'api', 'cls'=> 'site' ],         /* 数据接口 */
         //                 '138.vc/api'  => ['app'=>'api', 'cls'=> 'site' ],         /* 数据接口 */
         //        'www2.866bet.com/api'  => ['app'=>'api', 'cls'=> 'site' ],         /* 数据接口 */
     ];
 
     /** 路由数据(默认) */
-    protected $routes_default = ['app'=>'www', 'url' => '/'];
-
-    /** 路由模块数据  */
-    public $mod               = [];
+    static protected $routes_default = ['app'=>'www', 'url' => '/'];
 }
 
-
-class start
+/** 开始 */
+function start($argv)
 {
-    /**
-     * 世界从这里开始(路由)
-     * @param string $host
-     * @param array $mod
-     */
-    public function __construct(scfg &$scfg)
+    // 解析URL
+    if($argv && $argv[1])
     {
-        /** 重定义头 */
-        header('X-Powered-By: Ounun.org');
+        // error_reporting(E_ALL ^ E_NOTICE);
+        $mod    = $argv[1];
+        $mod    = explode(',', $mod);
+        $host   = $argv[2]?$argv[2]:'adm';
+        if('zrun_' != substr($mod[0],0,5) )
+        {
+            exit("error php shell only:zrun_*\n");
+        }
+    }else
+    {
+        $uri 	= url_original($_SERVER['REQUEST_URI']);
+        $mod	= url_to_mod($uri);
+    }
+    scfg::init($mod,$_SERVER["HTTP_HOST"]);
 
-        $mod        = $scfg->mod;
-        /** 加载libs/scfg.{self::$app}.ini.php文件 */
-        $filename   = scfg::$dir_root_app . 'libs/scfg.'.scfg::$app.'.ini.php';
+    /** 加载common */
+    file_exists(Dir_App.'common.php') && require Dir_App.'common.php';
+    /** 加载config */
+    file_exists(Dir_App.'config.php') && require Dir_App.'config.php';
+    /** 加载config-xxx */
+    if(Environment && file_exists(Dir_App.'config'.Environment.'.php'))
+    {
+        echo "f:".Dir_App.'config'.Environment.'.php'."\n";
+        require Dir_App.'config'.Environment.'.php';
+    }
+
+    /** 加载common */
+    file_exists(scfg::$dir_app.'common.php') && require scfg::$dir_app.'common.php';
+    /** 加载config */
+    file_exists(scfg::$dir_app.'config.php') && require scfg::$dir_app.'config.php';
+    /** 加载config-xxx */
+    if(Environment && file_exists(scfg::$dir_app.'config'.Environment.'.php'))
+    {
+        echo "f2:".scfg::$dir_app.'config'.Environment.'.php'."\n";
+        require scfg::$dir_app.'config'.Environment.'.php';
+    }
+
+    /** 开始 */
+    // 重定义头 ---------------------------------
+    header('X-Powered-By: Ounun.org');
+
+    // 设定 模块与方法
+    if(is_array($mod) && $mod[0])
+    {
+        $filename         = scfg::$dir_app . "module/{$mod[0]}.php";
         if(file_exists($filename))
         {
-            require $filename;
-        }
-
-        // 设定 模块与方法
-        if(is_array($mod) && $mod[0])
-        {
-            $filename         = scfg::$dir_root_app . "module/{$mod[0]}.class.php";
-            if(file_exists($filename))
+            $module		  = $mod[0];
+            if($mod[1])
             {
-                $module		  = $mod[0];
-                if($mod[1])
+                array_shift($mod);
+            }else
+            {
+                $mod	  = [scfg::def_met];
+            }
+        }
+        else
+        {
+            if($mod[1])
+            {
+                $filename           = scfg::$dir_app . "controller/{$mod[0]}/{$mod[1]}.class.php";
+                if(file_exists($filename))
                 {
-                    array_shift($mod);
+                    $module		    = $mod[0].'\\'.$mod[1];
+                    if($mod[2])
+                    {
+                        array_shift($mod);
+                        array_shift($mod);
+                    }else
+                    {
+                        $mod	    = [scfg::def_met];
+                    }
                 }else
                 {
-                    $mod	  = [scfg::def_met];
+                    $filename       = scfg::$dir_app . "controller/{$mod[0]}/index.class.php";
+                    if(file_exists(scfg::$dir_app . "controller/{$mod[0]}" ) && file_exists($filename))
+                    {
+                        $module	    = "{$mod[0]}\\index";
+                        array_shift($mod);
+                    }else
+                    {
+                        $module		= scfg::def_mod;
+                        $filename 	= scfg::$dir_app . "controller/index.class.php";
+                    }
+                }
+            }else
+            {
+                $filename       = scfg::$dir_app . "controller/{$mod[0]}/index.class.php";
+                if(file_exists($filename))
+                {
+                    $module		= "{$mod[0]}\\controller";
+                    $mod	    =  [scfg::def_met];
+                    // array_shift($mod);
+                }else
+                {
+                    // 默认模块
+                    // $mod	    = array(Ounun_Default_Method);
+                    $module		= scfg::def_mod;
+                    $filename 	= scfg::$dir_app . "controller/index.class.php";
                 }
             }
-            else
-            {
-                if($mod[1])
-                {
-                    $filename           = scfg::$dir_root_app . "module/{$mod[0]}/{$mod[1]}.class.php";
-                    if(file_exists($filename))
-                    {
-                        $module		    = $mod[0].'\\'.$mod[1];
-                        if($mod[2])
-                        {
-                            array_shift($mod);
-                            array_shift($mod);
-                        }else
-                        {
-                            $mod	    = [scfg::def_met];
-                        }
-                    }else
-                    {
-                        $filename       = scfg::$dir_root_app . "module/{$mod[0]}/system.class.php";
-                        if(file_exists(\scfg::$dir_root_app . "module/{$mod[0]}" ) && file_exists($filename))
-                        {
-                            $module	    = "{$mod[0]}\\system";
-                            array_shift($mod);
-                        }else
-                        {
-                            $module		= scfg::def_mod;
-                            $filename 	= scfg::$dir_root_app . "module/system.class.php";
-                        }
-                    }
-                }else
-                {
-                    $filename       = scfg::$dir_root_app . "module/{$mod[0]}/system.class.php";
-                    if(file_exists($filename))
-                    {
-                        $module		= "{$mod[0]}\\system";
-                        $mod	    =  [scfg::def_met];
-                        // array_shift($mod);
-                    }else
-                    {
-                        // 默认模块
-                        // $mod	    = array(Ounun_Default_Method);
-                        $module		= scfg::def_mod;
-                        $filename 	= scfg::$dir_root_app . "module/system.class.php";
-                    }
-                }
-            } // end \Dir_App . "module/" . $mod[0] . '.class.php';
-        }
-        else
-        {
-            // 默认模块 与 默认方法
-            $mod				= [scfg::def_met];
-            $module				=  scfg::def_mod;
-            $filename 			=  scfg::$dir_root_app . "module/system.class.php";
-        }
-        // 包括模块文件
-        require $filename;
-        // 初始化类
-        $module  				= "\\module\\{$module}";
-        if(class_exists($module,false))
-        {
-            new $module($mod);
-        }
-        else
-        {
-            header('HTTP/1.1 404 Not Found');
-            trigger_error("ERROR! Can't find Module:'{$module}'.", E_USER_ERROR);
-        }
+        } // end \Dir_App . "module/" . $mod[0] . '.class.php';
+    }
+    else
+    {
+        // 默认模块 与 默认方法
+        $mod				= [scfg::def_met];
+        $module				=  scfg::def_mod;
+        $filename 			=  scfg::$dir_app . "controller/index.class.php";
+    }
+    // 包括模块文件
+    require $filename;
+    // 初始化类
+    $module  				= "\\controller\\{$module}";
+    if(class_exists($module,false))
+    {
+        new $module($mod);
+    }
+    else
+    {
+        header('HTTP/1.1 404 Not Found');
+        trigger_error("ERROR! Can't find Module:'{$module}'.", E_USER_ERROR);
     }
 }
 
+/** 加载common.php */
+require __DIR__.'/common.php';
 /** 注册自动加载 */
 spl_autoload_register('\\ounun\\scfg::autoload');

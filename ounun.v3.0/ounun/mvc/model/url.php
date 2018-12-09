@@ -1,7 +1,7 @@
 <?php
-namespace cms;
+namespace ounun\mvc\model;
 
-class base
+class url
 {
     /** @var \ounun\mysqli */
     public $db;

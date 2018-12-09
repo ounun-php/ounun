@@ -1,6 +1,5 @@
 <?php
-
-namespace admin;
+namespace ounun\mvc\model\admin;
 
 
 use ounun\xxtea;

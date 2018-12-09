@@ -1,12 +1,5 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: dreamxyp
- * Date: 2018/6/6
- * Time: 21:06
- */
-
-namespace admin;
+namespace ounun\mvc\model\admin;
 
 
 class purview

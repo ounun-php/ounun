@@ -1,13 +1,13 @@
 <?php
 /** 命名空间 */
-namespace user\cms;
+namespace ounun\mvc\model;
 
 /**
  * YgcmsUC
  * Ygcms阳光CMS 用户中心
  * @author 一平 dreamxyp@gmail.com
  */
-class user_base
+class user
 {
     /** 通信私钥   */
     protected $_key_private = '';

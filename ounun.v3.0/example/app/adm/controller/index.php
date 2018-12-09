@@ -1,6 +1,6 @@
 <?php
 /** 命名空间 */
-namespace module;
+namespace controller;
 
 use admin\purview;
 
