@@ -4,7 +4,7 @@ namespace controller;
 
 use admin\purview;
 
-class system extends \adm
+class index extends \adm
 {
     /** 开始init */
 	public function index($mod)

@@ -145,7 +145,7 @@ class view extends base
 	{
 		if(null == self::$_stpl)
         {
-            $dir_tpl_root   = $dir_tpl_root  ?$dir_tpl_root  :scfg::$dir_root_app    . 'template/';
+            $dir_tpl_root   = $dir_tpl_root  ?$dir_tpl_root  :scfg::$dir_app    . 'template/';
             $dir_tpl_root_g = $dir_tpl_root_g?$dir_tpl_root_g:dirname(scfg::$lib_cms). '/cms.single.template.v1/';
             self::$_stpl    = new template($dir_tpl_root,$style_name,$style_name_default,$dir_tpl_root_g);
         }
@@ -544,16 +544,14 @@ class scfg
      */
     static public function autoload($class)
     {
-        echo "\$class:{$class}\n";
+        // echo "\$class:{$class}\n";
 
         // 类库映射
         if (!empty(self::$maps_class[$class]))
         {
             return self::$maps_class[$class];
         }
-
-        print_r(['self::$maps_class'=>self::$maps_class,'self::$maps_paths'=>self::$maps_paths]);
-
+        // print_r(['self::$maps_class'=>self::$maps_class,'self::$maps_paths'=>self::$maps_paths]);
         // 查找 PSR-4 prefix
         $filename  = strtr($class, '\\', '/') . '.php';
         $first     = $class[0];
@@ -563,14 +561,16 @@ class scfg
             {
                 if (0 === strpos($class, $prefix))
                 {
-                    $length = strlen($prefix);
+                    $length  = strlen($prefix);
+                    $prefix2 = strtr($prefix,'\\', '/');
                     foreach ($paths as $dir)
                     {
-                        $file = $dir  . substr($filename, $length);
-                        echo "\$file:{$file}\n";
+                        $file = $dir  . $prefix . substr($filename, $length);
+                        // echo "\$file1   :{$file} \n\$filename:{$filename}\n\n";
                         if(is_file($file))
                         {
                             require $file;
+                            break;
                         }
                     }
                 }
@@ -584,10 +584,11 @@ class scfg
             foreach (self::$maps_paths[''] as $dir)
             {
                 $file = $dir  . $filename;
-                echo "\$file:{$file}\n";
+                // echo "\$file2:{$file}\n";
                 if(is_file($file))
                 {
                     require $file;
+                    break;
                 }
             }
         }
@@ -627,7 +628,12 @@ class scfg
 
         // set_dirs
         self::set_dirs(Dir_Ounun,Dir_Root);
-        self::add_paths([self::$dir_ounun,self::$dir_app]);
+
+        // add_paths
+        self::add_paths([self::$dir_app],'controller');
+        self::add_paths([self::$dir_app],'model');
+        self::add_paths([self::$dir_ounun],'ounun');
+        self::add_paths([self::$dir_ounun],'plugins');
 
         /** @var string 模板 */
         self::$tpl           = $val_0['tpl']?$val_0['tpl']:self::get_i18n()::tpl;
@@ -673,7 +679,7 @@ function start($argv)
     /** 加载config-xxx */
     if(Environment && file_exists(Dir_App.'config'.Environment.'.php'))
     {
-        echo "f:".Dir_App.'config'.Environment.'.php'."\n";
+        // echo "f:".Dir_App.'config'.Environment.'.php'."\n";
         require Dir_App.'config'.Environment.'.php';
     }
 
@@ -684,7 +690,7 @@ function start($argv)
     /** 加载config-xxx */
     if(Environment && file_exists(scfg::$dir_app.'config'.Environment.'.php'))
     {
-        echo "f2:".scfg::$dir_app.'config'.Environment.'.php'."\n";
+        // echo "f2:".scfg::$dir_app.'config'.Environment.'.php'."\n";
         require scfg::$dir_app.'config'.Environment.'.php';
     }
 
@@ -711,7 +717,7 @@ function start($argv)
         {
             if($mod[1])
             {
-                $filename           = scfg::$dir_app . "controller/{$mod[0]}/{$mod[1]}.class.php";
+                $filename           = scfg::$dir_app . "controller/{$mod[0]}/{$mod[1]}.php";
                 if(file_exists($filename))
                 {
                     $module		    = $mod[0].'\\'.$mod[1];
@@ -725,7 +731,7 @@ function start($argv)
                     }
                 }else
                 {
-                    $filename       = scfg::$dir_app . "controller/{$mod[0]}/index.class.php";
+                    $filename       = scfg::$dir_app . "controller/{$mod[0]}/index.php";
                     if(file_exists(scfg::$dir_app . "controller/{$mod[0]}" ) && file_exists($filename))
                     {
                         $module	    = "{$mod[0]}\\index";
@@ -733,12 +739,12 @@ function start($argv)
                     }else
                     {
                         $module		= scfg::def_mod;
-                        $filename 	= scfg::$dir_app . "controller/index.class.php";
+                        $filename 	= scfg::$dir_app . "controller/index.php";
                     }
                 }
             }else
             {
-                $filename       = scfg::$dir_app . "controller/{$mod[0]}/index.class.php";
+                $filename       = scfg::$dir_app . "controller/{$mod[0]}/index.php";
                 if(file_exists($filename))
                 {
                     $module		= "{$mod[0]}\\controller";
@@ -749,17 +755,17 @@ function start($argv)
                     // 默认模块
                     // $mod	    = array(Ounun_Default_Method);
                     $module		= scfg::def_mod;
-                    $filename 	= scfg::$dir_app . "controller/index.class.php";
+                    $filename 	= scfg::$dir_app . "controller/index.php";
                 }
             }
-        } // end \Dir_App . "module/" . $mod[0] . '.class.php';
+        } // end \Dir_App . "module/" . $mod[0] . '.php';
     }
     else
     {
         // 默认模块 与 默认方法
         $mod				= [scfg::def_met];
         $module				=  scfg::def_mod;
-        $filename 			=  scfg::$dir_app . "controller/index.class.php";
+        $filename 			=  scfg::$dir_app . "controller/index.php";
     }
     // 包括模块文件
     require $filename;

@@ -1,223 +1,107 @@
 <?php
-/** 是否开发环境 **/
-define('IsDebug',                   file_exists('/Users/dreamxyp/Transcend/') );
-/** data目录 **/
-define('Dir_Data_ProJ',             Dir_Root.'proj.data/');
-/** cache目录 **/
-define('Dir_Cache',          	    Dir_Root.'proj.cache/');
-/** libs目录 **/
-// define('Dir_TemplateG',             dirname(Dir_Libs_Cms).'/cms.single.template.v1/');
 
-/** ***********************************************************************
- * cache_file
- ** ********************************************************************** */
-$GLOBALS['_scfg']['cache_file']  = [
-    'type' 			=> \ounun\cache::Type_File,
-    'mod'  			=> 'html',
-    'root' 			=> Dir_Cache,
-    'format_string' => false,
-    'large_scale' 	=> true,
-];
+// ------------------------------ APP ------------------------------
+/** 项目站名称 */
+define('Const_SiteName',  	 			    '偶黁(ounun.org)');
+/** 项目主域名 */
+define('Const_Domain',  	 		        'ounun.org');
+/** 项目代号    */
+define('Const_App',  	 	                'www');
 
 
-class scfg extends ounun_scfg
-{
-    /** 技支的语言 */
-    public static $langs  = [
-        "en"=>"English",
-     // "zh"=>"繁體中文",
-        "cn"=>"简体中文",
-     // "ja"=>"日本語",
-    ];
+/** 静态index  */
+define('Const_Static_Idx',  	 	         12);
+/** 内部服务器与中心服务器通信密码 */
+define('Const_Key_Conn_Private',  	        '512009757a6e7f57b78dcd5edf378e67');
+/** 百度统计 */
+define('Const_Stats_Baidu',  	 		    'defac56d41cf2b16cb5d1bfbfd8748ef');
+/** cnzz统计 */
+define('Const_Stats_Cnzz',  	 		    '');
+/** 备案号 */
+define('Const_Site_Benan',  	 		    '沪ICP备13037221号-14');
+/** Baidu API */
+define('Const_Baidu_Token',                 'rgC3MkBxK9gkQNkL');
+/** SiteId_Xzh API */
+define('Const_Baidu_Xzh_SiteId',            '');
+/** Const_Baidu_Xzh_Token API */
+define('Const_Baidu_Xzh_Token',             '');
 
-    /**
-     * 静态地址
-     * @param array|string $url
-     * @param string $pre_str
-     * @return string
-     */
-    public static function surl($url, string $pre_str = ""): string
-    {
-        return parent::surl($url, scfg::$url_static.$pre_str);
-    }
+/** 配制cache_file */
+\ounun\scfg::set_global([
+    'cache_file' =>
+        [
+            'type' 			=> \ounun\cache::Type_File,
+            'mod'  			=> 'html',
+            'root' 			=> Dir_Cache,
+            'format_string' => false,
+            'large_scale' 	=> true,
+        ],
+]);
 
-    /**
-     * 静态地址(G)
-     * @param $url
-     * @param string $pre_str
-     * @return string
-     */
-    public static function gurl($url, string $pre_str = ""): string
-    {
-        return parent::surl($url, scfg::$url_static_g.$pre_str);
-    }
+/** 配制database */
+\ounun\scfg::set_database([
+    'account' =>
+        [
+            'host'       => 'shihundb001pub.mysql.rds.aliyuncs.com:3306',
+            'database'   => 'v2com_moko8_adm',
+            'username'   => 'v2cms',
+            'password'   => 'kChs2r4s2r716Zd6',
+            'charset'    => 'utf8',
+        ],
+    'adm' =>
+        [
+            'host'       => 'shihundb001pub.mysql.rds.aliyuncs.com:3306',
+            'database'   => 'v2com_libs_v2',
+            'username'   => 'v2cms',
+            'password'   => 'kChs2r4s2r716Zd6',
+            'charset'    => 'utf8'
+        ],
+    'libs_v1' =>
+        [
+            'host'       => 'shihundb001pub.mysql.rds.aliyuncs.com:3306',
+            'database'   => 'v2com_libs_v1',
+            'username'   => 'v2cms',
+            'password'   => 'kChs2r4s2r716Zd6',
+            'charset'    => 'utf8'
+        ],
+]);
 
-    /**
-     * 配制文件
-     * @param string $host
-     * @param array $mod
-     */
-    public function __construct(array $mod,string $host,string $lang_default = 'cn',string $lang = 'cn',array $dirs = [],array $libs = [],array $routes = [])
-    {
-        if($mod && $mod[0] && self::$langs[$mod[0]])
-        {
-            $lang = array_shift($mod);
-        }
-        parent::__construct($mod,$host,$lang_default,$lang,$dirs,$libs,$routes);
-    }
-}
+/** 支持的语言 */
+\ounun\scfg::set_lang_support([
+    "en"=>"English",
+    // "zh"=>"繁體中文",
+    "cn"=>"简体中文",
+    // "ja"=>"日本語",
+]);
 
+/** 设定路由数据 */
+\ounun\scfg::set_routes(
+    [
+        // Const_App
+        'm.'.Const_Domain                  => ['app'=>Const_App,  'url'=>'/',     'tpl' => '_wap',       'tpl_default' => '_default' ],
+        'm.'.Const_Domain.':443'           => ['app'=>Const_App,  'url'=>'/',     'tpl' => '_wap',       'tpl_default' => '_default' ],
+        'mip.'.Const_Domain                => ['app'=>Const_App,  'url'=>'/',     'tpl' => '_mip',       'tpl_default' => '_wap'     ],
+        'mip.'.Const_Domain.':443'         => ['app'=>Const_App,  'url'=>'/',     'tpl' => '_mip',       'tpl_default' => '_wap'     ],
+        'api.'.Const_Domain                => ['app'=>Const_App,  'url'=>'/',     'tpl' => '_default'  ],
+        'api.'.Const_Domain.':443'         => ['app'=>Const_App,  'url'=>'/',     'tpl' => '_default'  ],
+        'www.'.Const_Domain                => ['app'=>Const_App,  'url'=>'/',     'tpl' => '_default'  ],
+        'www.'.Const_Domain.':443'         => ['app'=>Const_App,  'url'=>'/',     'tpl' => '_default'  ],
 
-/**
- * Class VodBase
- */
-class v extends \ounun_view
-{
-    /** @var \cms\cms_pics */
-    public static $cms;
-    /** @var \seo\base */
-    public static $seo;
+        'm2.'.Const_Domain                 => ['app'=>Const_App,  'url'=>'/',     'tpl' => '_wap',       'tpl_default' => '_default' ],
+        'mip2.'.Const_Domain               => ['app'=>Const_App,  'url'=>'/',     'tpl' => '_mip',       'tpl_default' => '_wap'     ],
+        'api2.'.Const_Domain               => ['app'=>Const_App,  'url'=>'/',     'tpl' => '_default'  ],
+        'www2.'.Const_Domain               => ['app'=>Const_App,  'url'=>'/',     'tpl' => '_default'  ],
+    ],                                        ['app'=>Const_App,  'url'=>'/',     'tpl' => '_default'  ]  // default
+);
 
-    /** @var \ounun\mysqli DB */
-    protected $_db_v  = null;
-
-    public static function db(string $key, $db_cfg = null): \ounun\mysqli
-    {
-        $key = IsDebug?"{$key}_debug":$key;
-
-        // echo "\$key:{$key}\n";
-        return parent::db($key, $db_cfg);
-    }
-
-    /** 初始化 */
-    public function init(string $url = '',bool $is_cache = true,bool $is_replace = true)
-    {
-        self::$seo       = new \seo\base($url);
-        self::$cms       = new \cms\cms_pics(self::$seo);
-
-//      $dir_tpl_root    = '';
-//      $dir_tpl_root_g  = '';
-        $dir_tpl_root    = '';
-        $dir_tpl_root_g  = '';
-        if(null == $this->_db_v)
-        {
-            $this->_db_v = self::db(\ounun_scfg::$app);
-        }
-        self::$cms->db   = $this->_db_v;
-        $this->init_complete($is_cache,$is_replace,$dir_tpl_root,$dir_tpl_root_g);
-    }
-
-    /**
-     * @param bool $is_cache
-     * @param bool $is_replace
-     * @param string $dir_tpl_root
-     */
-    public function init_complete(bool $is_cache = true,bool $is_replace = true,string $dir_tpl_root = "",string $dir_tpl_root_g = "")
-    {
-        $this->_global_replace();
-        $this->template(\scfg::$tpl,\scfg::$tpl_default,$dir_tpl_root,$dir_tpl_root_g);
-        if(IsDebug)
-        {
-            if($is_replace)
-            {
-                self::$_stpl->replace(self::$seo,false);
-            }
-        }else
-        {
-            if($is_cache)
-            {
-                if(self::$_html_cache)
-                {
-                    self::$_html_cache->replace(self::$seo);
-                }
-            }elseif($is_replace)
-            {
-                self::$_stpl->replace(self::$seo,$this->_html_trim);
-            }
-        }
-    }
-
-    /** Cache */
-    public function html_cache($key)
-    {
-        if(!IsDebug)
-        {
-            $cfg                = $GLOBALS['_scfg']['cache_file'];
-            $cfg['mod']         = \scfg::$app.\scfg::$tpl;
-            self::$_html_cache  = new \ounun\html(\scfg::$app,\scfg::$tpl,$cfg,$key,$this->_html_cache_time,$this->_html_trim,false);
-
-            self::$_html_cache->run(true);
-        }
-    }
-
-    /** 赋值(默认) */
-    protected function _global_replace()
-    {
-        $url_base            = substr($this->_page_url,1);
-        self::$seo->sets([
-            '{$url_www}'          => scfg::$url_www,
-            '{$url_wap}'          => scfg::$url_mobile,
-            '{$url_mip}'          => scfg::$url_mip,
-            '{$url_api}'          => scfg::$url_api,
-            '{$url_app}'          => scfg::url_page(),
-
-            '{$page_url}'         => $this->_page_url ,
-            '{$page_file}'        => $this->_page_file,
-
-            '{$canonical_pc}'     => scfg::$url_www.$url_base,
-            '{$canonical_mip}'    => scfg::$url_mip.$url_base,
-            '{$canonical_wap}'    => scfg::$url_mobile.$url_base,
-
-            '{$app}'              => scfg::$app,
-            '{$domain}'           => scfg::$app_domain,
-
-            '{$sres}'             => scfg::$url_res,
-            '{$static}'           => scfg::$url_static,
-            '{$static_g}'         => scfg::$url_static_g,
-            '"/static/'           => '"'.scfg::$url_static,
-        ]);
-    }
-}
-
-
-/** 开始 */
-function start($req,$host,$argv,string $lang_default,string $lang,string $dir_root,string $dir_root_app,string $lib_ounun,string $lib_cms,string $lib_app,array $routes=[],array $routes_default=[],array $base_urls=[])
-{
-    // 解析URL
-    if($argv && $argv[1])
-    {
-        // error_reporting(E_ALL ^ E_NOTICE);
-        $mod    = $argv[1];
-        $mod    = explode(',', $mod);
-        $host   = $argv[2]?$argv[2]:'adm';
-        if('zrun_' != substr($mod[0],0,5) )
-        {
-            exit("error php shell only:zrun_*\n");
-        }
-    }else
-    {
-        $uri 	= url_original($req);
-        $mod	= url_to_mod($uri);
-    }
-    /** 初始化scfg */
-    $dirs = [
-        'root'     => $dir_root,
-        'root_app' => $dir_root_app,
-    ];
-    $libs = [
-        'ounun'    => $lib_ounun,
-        'cms'      => $lib_cms,
-        'app'      => $lib_app,
-    ];
-    $route = [
-        'routes'          => $routes,
-        'routes_default'  => $routes_default,
-    ];
-    $scfg = new scfg($mod,$host,$lang_default,$lang,$dirs,$libs,$route);
-    if($base_urls)
-    {
-        $scfg->urls($base_urls['url_www'],$base_urls['url_wap'],$base_urls['url_mip'],$base_urls['url_api'],$base_urls['url_res'],$base_urls['url_static'],$base_urls['url_static_g'],$base_urls['app_domain']);
-    }
-    /** 开始 */
-    new ounun($scfg);
-}
+/** 设定路由数据 */
+\ounun\scfg::set_urls(
+    'https://www'.Const_Domain.'/',
+    'https://m.'.Const_Domain.'/',
+    'https://mip.'.Const_Domain.'/',
+    '//api.'.Const_Domain.'/',
+    '//s.'.Const_Domain.'/',
+    '//s.'.Const_Domain.'/a'.Const_Static_Idx.'/',
+    '//s.'.Const_Domain.'/i'.Const_Static_Idx.'/',
+    Const_Domain
+);

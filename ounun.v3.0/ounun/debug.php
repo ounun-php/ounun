@@ -3,12 +3,13 @@ namespace ounun;
 
 class debug
 {
-	/** 日志数组 */
-	private $_logs 	        = [];
+    /** 日志数组 */
+    private $_logs 	        = [];
     private $_logs_buffer 	= '';
+    private $_time       	= 0;
 
-	/** 输出文件名 */
-	private $_filename      = '';
+    /** 输出文件名 */
+    private $_filename      = '';
 
     /** 是否输出 buffer */
     private $_is_out_buffer = true;
@@ -22,6 +23,10 @@ class debug
     /** 是否输出 url */
     private $_is_out_url    = true;
 
+    /** 是否输出 run time */
+    private $_is_run_time = true;
+
+
     /**
      * 构造函数
      * Debug constructor.
@@ -31,20 +36,24 @@ class debug
      * @param bool $is_out_post     是否输出 post
      * @param bool $is_out_url      是否输出 url
      */
-	public function __construct($filename = 'ounun_debug.txt',
-                                $is_out_buffer=true,$is_out_get=true,$is_out_post=true,$is_out_url=true)
-	{
-		ob_start();
-		register_shutdown_function(array($this,'callback'));
+    public function __construct($filename = 'debug.txt',
+                                $is_out_buffer=true,$is_out_get=true,$is_out_post=true,$is_out_url=true,$is_run_time=true)
+    {
+        ob_start();
+        register_shutdown_function(array($this,'callback'));
 
-		$this->_filename	    = $filename;
+        $this->_filename	    = $filename;
         $this->_is_out_buffer   = $is_out_buffer;
         $this->_is_out_get      = $is_out_get;
         $this->_is_out_post     = $is_out_post;
         $this->_is_out_url      = $is_out_url;
-
-        $this->_header_idx      = 0;
-	}
+        $this->_is_run_time     = $is_run_time;
+        if($this->_is_run_time)
+        {
+            $this->_time        = -microtime(true);
+        }
+        self::$_header_idx      = 0;
+    }
 
     /**
      * 调试日志
@@ -52,12 +61,12 @@ class debug
      * @param mixed  $log          日志内容
      * @param bool   $is_replace   是否替换
      */
-	public function logs(string $k,$log,$is_replace = true)
-	{
-		if($k && $log)
-		{
+    public function logs(string $k,$log,$is_replace = true)
+    {
+        if($k && $log)
+        {
             // 直接替换
-			if($is_replace)
+            if($is_replace)
             {
                 $this->_logs[$k] = $log;
             }else
@@ -77,77 +86,82 @@ class debug
                     $this->_logs[$k] = $log;
                 }
             }
-		}
-	}
+        }
+    }
 
-	/** 停止调试 */
-	public function stop()
-	{
-		$this->_logs 		= [];
-		$this->_filename	= '';
-	}
+    /** 停止调试 */
+    public function stop()
+    {
+        $this->_logs 		= [];
+        $this->_filename	= '';
+    }
 
-	/** 内部内调 */
-	public function callback()
-	{
-		$buffer     = ob_get_contents();
-		ob_clean();
-		ob_implicit_flush(1);
-		if($this->_is_out_buffer)
+    /** 内部内调 */
+    public function callback()
+    {
+        $buffer     = ob_get_contents();
+        ob_clean();
+        ob_implicit_flush(1);
+        if($this->_is_out_buffer)
         {
             $this->_logs_buffer = $buffer;
         }
-		$this->write();
-		exit($buffer);
-	}
+        $this->write();
+        exit($buffer);
+    }
 
 
-	/** 析构调试相关 */
-	public function write()
-	{
-		if(!$this->_filename)
-		{
-			return ;
-		}
-		$filename = $this->_filename;
+    /** 析构调试相关 */
+    public function write()
+    {
+        if(!$this->_filename)
+        {
+            return ;
+        }
+        $filename = $this->_filename;
         $str      = 'DATE:'.date("Y-m-d H:i:s")."\n";
         if($this->_is_out_url)
         {
-            $str .= 'URL ://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI']."\n";
+            $str .= 'URL :'.((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on')?'https:':'http:').'//'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI']."\n";
         }
-		if($this->_is_out_get && $_GET)
-		{
-		    $t = [];
-		    foreach ($_GET as $k => $v)
+        if($this->_is_out_get && $_GET)
+        {
+            $t = [];
+            foreach ($_GET as $k => $v)
             {
                 $t[] = "{$k} => {$v}";
             }
             $str .= 'GET :'.implode("\n    ",$t)."\n";
-		}
-		if($this->_is_out_post && $_POST)
-		{
+        }
+        if($this->_is_out_post && $_POST)
+        {
             $str .= 'POST:'.var_export($_POST,true)."\n";
-		}
-		if($this->_logs)
-		{
+        }
+        if($this->_logs)
+        {
             $str .= 'LOGS:'.var_export($this->_logs,true)."\n";
-		}
+        }
+        if($this->_is_run_time)
+        {
+            $this->_time += microtime(true);
+            $str .= 'TIME:'.sprintf('%f', $this->_time)."\n";
+        }
         if($this->_is_out_buffer && $this->_logs_buffer)
         {
             $str .= '--- buffer start ---'."\n".$this->_logs_buffer."\n";
         }
-		$this->_logs            = [];
+        $this->_logs            = [];
         $this->_logs_buffer     = '';
-		if (file_exists($filename))
-		{
+        if (file_exists($filename))
+        {
             $str  = $str . "------------------\n" .file_get_contents($filename);
-		}
-		file_put_contents($filename, $str);
-	}
+        }
+        file_put_contents($filename, $str);
+    }
 
 
     /** header idx */
-    private static $_header_idx    = 0;
+    static private $_header_idx    = 0;
 
     /**
      * 在header输出头数据
@@ -155,7 +169,7 @@ class debug
      * @param mixed  $v
      * @param bool   $debug
      */
-    public  static function header(string $k, $v,bool $debug=false,string $funs='',string $line='')
+    static public  function header(string $k, $v,bool $debug=false,string $funs='',string $line='')
     {
         // static $idx = 0;
         if($debug && !headers_sent() )
@@ -186,3 +200,4 @@ class debug
         }
     }
 }
+
