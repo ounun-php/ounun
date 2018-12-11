@@ -202,7 +202,7 @@ class template
 
 
 
-    /** @var \seo\base 是否替换数据 null:不替换 不为空:就获得替换数据 */
+    /** @var \ounun\seo\base 是否替换数据 null:不替换 不为空:就获得替换数据 */
     protected  $_seo        = null;
 
     /** @var bool 是否去空格 换行 */
@@ -210,10 +210,10 @@ class template
 
     /**
      * 替换
-     * @param \seo\base $seo
+     * @param \ounun\seo\base $seo
      * @param bool $trim
      */
-    public function replace(\seo\base $seo,bool $trim = true)
+    public function replace(\ounun\seo\base $seo,bool $trim = true)
     {
         $this->_seo        = $seo;
         $this->_is_trim    = $trim;

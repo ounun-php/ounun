@@ -1,5 +1,5 @@
 <?php
-namespace seo\cfg;
+namespace ounun\seo\cfg;
 
 class data
 {

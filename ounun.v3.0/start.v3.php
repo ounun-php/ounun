@@ -34,207 +34,12 @@ class base
 	{
 	    if(null == $db_cfg)
         {
-            $db_cfg = $GLOBALS['_scfg']['db'][$key];
+            $db_cfg = scfg::$db[$key];
         }
 		self::$_db[$key] || self::$_db[$key] = new \ounun\mysqli($db_cfg);
 		// self::$_db[$key]->active();
 		return self::$_db[$key];
 	}
-}
-
-/**
- * 构造模块基类
- * Class ViewBase
- * @package ounun
- */
-class view extends base
-{
-    /**
-     * ounun_view constructor.
-     * @param $mod
-     */
-	public function __construct($mod)
-	{
-        if(!$mod)
-		{
-			$mod = [scfg::def_met];
-		}
-        $method  = $mod[0];
-		$this->$method( $mod );
-	}
-
-    /**
-     * 默认 首页
-     * @param array $mod
-     */
-    public function index($mod)
-    {
-        error404();
-    }
-
-    /**
-     * 默认 robots.txt文件
-     * @param array $mod
-     */
-    public function robots($mod)
-    {
-        url_check('/robots.txt');
-        header('Content-Type: text/plain');
-        if(file_exists(scfg::$dir_root_app.'robots.txt'))
-        {
-            readfile(scfg::$dir_root_app.'robots.txt');
-        }else
-        {
-            exit("User-agent: *\nDisallow:");
-        }
-    }
-
-    /**
-     * adm2.moko8.com/favicon.ico
-     */
-    public function favicon($mod)
-    {
-        go_url(scfg::$url_static.'favicon.ico',false,301);
-    }
-
-    /** @var int html_cache_time */
-    protected $_html_cache_time = 2678400; // 31天
-
-    /** @var bool html_trim  */
-    protected $_html_trim       = true;
-
-    /** @var string 当前面页(网址) */
-    protected $_page_url        = '';
-
-    /** @var string 当前面页(文件名) */
-    protected $_page_file       = '';
-
-    /** 初始化Page */
-    public function init_page(string $page_file = '',bool $is_cache = true,bool $is_replace = true,bool $ext_req = true,string $domain = '',int $html_cache_time = 0,bool $trim = true)
-    {
-        $this->_html_trim        = $trim;
-        $this->_page_file        = $page_file;
-        $this->_page_url         = scfg::url_page($this->_page_file);
-
-        if($this->_page_url)
-        {
-            url_check($this->_page_url,$ext_req,$domain);
-        }
-        if($is_cache)
-        {
-            if($html_cache_time > 0)
-            {
-                $this->_html_cache_time = $html_cache_time;
-            }
-            $this->html_cache($this->_page_url);
-        }
-
-        $this->init($this->_page_url,$is_cache,$is_replace);
-    }
-    /** 初始化 */
-    public function init(string $url = '',bool $is_cache = true,bool $is_replace = true){ }
-
-    /**
-     *  Template句柄容器
-	 *  @var  template
-     **/
-	protected static $_stpl = null;
-
-    /** 初始化HTMl模板类 */
-	public function template(string $style_name = '',string $style_name_default='',string $dir_tpl_root='',string $dir_tpl_root_g = '')
-	{
-		if(null == self::$_stpl)
-        {
-            $dir_tpl_root   = $dir_tpl_root  ?$dir_tpl_root  :scfg::$dir_app    . 'template/';
-            $dir_tpl_root_g = $dir_tpl_root_g?$dir_tpl_root_g:dirname(scfg::$lib_cms). '/cms.single.template.v1/';
-            self::$_stpl    = new template($dir_tpl_root,$style_name,$style_name_default,$dir_tpl_root_g);
-        }
-	}
-
-    /** @var \ounun\html */
-    protected static $_html_cache;
-
-    /** Cache */
-    public function html_cache($key) { }
-
-    /** @param bool $output 是否马上输出cache */
-    public function html_cache_stop(bool $output)
-    {
-        if(self::$_html_cache)
-        {
-            self::$_html_cache->stop($output);
-        }
-    }
-
-    /**
-     * 调试 相关
-     * @var \ounun\debug
-     */
-    public $debug	= null;
-
-    /**
-     * 调试日志
-     * @param $k
-     * @param $log
-     */
-    public function debug_logs(string $k,$log)
-    {
-        if($this->debug)
-        {
-            $this->debug->logs($k,$log);
-        }
-    }
-
-    /**
-     * 停止 调试
-     */
-    public function debug_stop()
-    {
-        if($this->debug)
-        {
-            $this->debug->stop();
-        }
-    }
-    
-    /**
-     * 返回一个 返回一个 模板文件地址(兼容)
-     * @param string $filename
-     * @return string
-     */
-    public function require_file(string $filename):string
-    {
-        // return $this->_stpl->file_require($filename);
-        // return self::$_stpl->file_fixed_comp($filename);
-        return self::$_stpl->file_require($filename);
-    }
-
-    /**
-     * 返回一个 模板文件地址(兼容)(公共)
-     * @param string $filename
-     * @return string
-     */
-    public function require_file_g(string $filename):string
-    {
-        return self::$_stpl->file_require_g($filename);
-    }
-
-    /**
-     * (兼容)返回一个 模板文件地址(绝对目录,相对root)
-     * @param $filename
-     */
-    static public function require_fixed_comp(string $filename):string
-    {
-        return self::$_stpl->file_fixed_comp($filename);
-    }
-
-    /**
-     * (兼容)返回一个 模板文件地址(相对目录)
-     * @param $filename
-     */
-    static public function require_cur_comp(string $filename):string
-    {
-        return self::$_stpl->file_cur_comp($filename);
-    }
 }
 
 /**
@@ -284,6 +89,8 @@ class scfg
     static public $url_res       = '';
     /** @var string Static URL */
     static public $url_static    = '';
+    /** @var string Upload URL */
+    static public $url_upload    = '';
     /** @var string StaticG URL */
     static public $url_static_g  = '';
 
@@ -293,6 +100,8 @@ class scfg
     static public $app_url       = '';
     /** @var string 域名Domain */
     static public $app_domain    = '';
+    /** @var string 对应cms类名  */
+    static public $app_cms;
 
     /** @var string 模板-样式 */
     static public $tpl           = '';
@@ -313,6 +122,14 @@ class scfg
         // "ja"=>"日本語",
     ];
 
+    /**
+     * 设定对应cms类名
+     * @param string $cms_classname
+     */
+    static public function set_app_cms_classname(string $cms_classname = '\\model\\cms_www')
+    {
+        self::$app_cms = $cms_classname;
+    }
     /**
      * 设定语言
      * @param string $lang
@@ -405,7 +222,7 @@ class scfg
      * @param string $url_static_g
      * @param string $app_domain
      */
-    static public function set_urls(string $url_www,string $url_wap,string $url_mip,string $url_api,string $url_res,string $url_static,string $url_static_g,string $app_domain)
+    static public function set_urls(string $url_www,string $url_wap,string $url_mip,string $url_api,string $url_res,string $url_static,string $url_upload,string $url_static_g,string $app_domain)
     {
         /** Www URL */
         self::$url_www       = $url_www;
@@ -419,9 +236,10 @@ class scfg
         self::$url_res       = $url_res;
         /** Static URL */
         self::$url_static    = $url_static;
+        /** Upload URL */
+        self::$url_upload    = $url_upload;
         /** StaticG URL */
         self::$url_static_g  = $url_static_g;
-
         /** 项目主域名 */
         self::$app_domain    = $app_domain;
     }
@@ -537,7 +355,6 @@ class scfg
         self::$maps_class[$class] = $filename;
     }
 
-
     /**
      * 自动加载的类
      * @param $class_name
@@ -565,7 +382,7 @@ class scfg
                     $prefix2 = strtr($prefix,'\\', '/');
                     foreach ($paths as $dir)
                     {
-                        $file = $dir  . $prefix . substr($filename, $length);
+                        $file = $dir  . $prefix2 . substr($filename, $length);
                         // echo "\$file1   :{$file} \n\$filename:{$filename}\n\n";
                         if(is_file($file))
                         {

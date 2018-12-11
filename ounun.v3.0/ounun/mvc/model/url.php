@@ -6,15 +6,6 @@ class url
     /** @var \ounun\mysqli */
     public $db;
 
-    /** @var  \seo\base */
-    protected $_seo;
-
-    /** base constructor. */
-    public function __construct(\seo\base $seo)
-    {
-        $this->_seo         = $seo;
-    }
-
     /**
      * @param array $data
      * @param int $len
@@ -23,7 +14,7 @@ class url
      */
     public function a(array $data, int $len=0, string $a_ext=''):string
     {
-        $tag  = $len?\util::msubstr($data['title'],0,$len,true) :$data['title'];
+        $tag  = $len?\ounun\util::msubstr($data['title'],0,$len,true) :$data['title'];
         return "<a href=\"{$data['url']}\" title=\"{$data['title']}\" {$a_ext}>{$tag}</a>";
     }
 
