@@ -15,7 +15,7 @@ class base
 	public function __call($method, $args)
 	{
 		header('HTTP/1.1 404 Not Found');
-        $this->debug = new \ounun\debug(scfg::$dir_root.'logs/error_404_'.date('Ymd').'.txt',false,false,false,true);
+        $this->debug = new \ounun\debug(scfg::$dir_root.'public/logs/error_404_'.date('Ymd').'.txt',false,false,false,true);
         error404("base \$method:{$method} \$args:[".implode(',',$args[0])."]");
 	}
 
@@ -54,9 +54,9 @@ class base
 class scfg
 {
     /** @var string 默认模块名称 */
-    const def_mod   = 'index';
+    const def_module   = 'index';
     /** @var string 默认操作名称 */
-    const def_met   = 'index';
+    const def_method   = 'index';
 
     /** @var array 公共配制数据  */
     static public $g             = [];
@@ -66,9 +66,6 @@ class scfg
     static public $maps_paths    = [];
     /** @var array 自动加载路径maps  */
     static public $maps_class    = [];
-    /** 路由模块数据  */
-    static public $mod           = [];
-
 
     /** @var string 根目录 */
     static public $dir_root      = '';
@@ -439,6 +436,7 @@ class scfg
         {
             $val_0 = self::$routes_default;
         }
+
         // $app
         self::$app           = $val_0['app'];
         self::$app_url       = $val_0['url'];
@@ -449,8 +447,7 @@ class scfg
         // add_paths
         self::add_paths([self::$dir_app],'controller');
         self::add_paths([self::$dir_app],'model');
-        self::add_paths([self::$dir_ounun],'ounun');
-        self::add_paths([self::$dir_ounun],'plugins');
+
 
         /** @var string 模板 */
         self::$tpl           = $val_0['tpl']?$val_0['tpl']:self::get_i18n()::tpl;
@@ -487,7 +484,6 @@ function start($argv)
         $uri 	= url_original($_SERVER['REQUEST_URI']);
         $mod	= url_to_mod($uri);
     }
-    scfg::init($mod,$_SERVER["HTTP_HOST"]);
 
     /** 加载common */
     file_exists(Dir_App.'common.php') && require Dir_App.'common.php';
@@ -510,6 +506,8 @@ function start($argv)
         // echo "f2:".scfg::$dir_app.'config'.Environment.'.php'."\n";
         require scfg::$dir_app.'config'.Environment.'.php';
     }
+    //
+    scfg::init($mod,$_SERVER["HTTP_HOST"]);
 
     /** 开始 */
     // 重定义头 ---------------------------------
@@ -527,7 +525,7 @@ function start($argv)
                 array_shift($mod);
             }else
             {
-                $mod	  = [scfg::def_met];
+                $mod	  = [scfg::def_method];
             }
         }
         else
@@ -544,7 +542,7 @@ function start($argv)
                         array_shift($mod);
                     }else
                     {
-                        $mod	    = [scfg::def_met];
+                        $mod	    = [scfg::def_method];
                     }
                 }else
                 {
@@ -555,7 +553,7 @@ function start($argv)
                         array_shift($mod);
                     }else
                     {
-                        $module		= scfg::def_mod;
+                        $module		= scfg::def_module;
                         $filename 	= scfg::$dir_app . "controller/index.php";
                     }
                 }
@@ -565,13 +563,13 @@ function start($argv)
                 if(file_exists($filename))
                 {
                     $module		= "{$mod[0]}\\controller";
-                    $mod	    =  [scfg::def_met];
+                    $mod	    =  [scfg::def_method];
                     // array_shift($mod);
                 }else
                 {
                     // 默认模块
                     // $mod	    = array(Ounun_Default_Method);
-                    $module		= scfg::def_mod;
+                    $module		= scfg::def_module;
                     $filename 	= scfg::$dir_app . "controller/index.php";
                 }
             }
@@ -580,8 +578,8 @@ function start($argv)
     else
     {
         // 默认模块 与 默认方法
-        $mod				= [scfg::def_met];
-        $module				=  scfg::def_mod;
+        $mod				= [scfg::def_method];
+        $module				=  scfg::def_module;
         $filename 			=  scfg::$dir_app . "controller/index.php";
     }
     // 包括模块文件

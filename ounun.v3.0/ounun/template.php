@@ -7,9 +7,6 @@ class template
     /** @var string 模板根目录 */
     protected $_dir_root;
 
-    /** @var string 模板根目录(公共库) */
-    protected $_dir_root_g;
-
     /** @var string 模板目录(当前) */
     protected $_dir_current;
 
@@ -22,35 +19,27 @@ class template
     /** @var string 模板文件所以目录(默认) */
     protected $_style_name_default;
 
+    /** @var bool 是否去空格 换行 */
+    protected $_is_trim    = false;
+
     /**
-     * 创建对像
-     * template constructor.
-     * @param string $dir_tpl_root         模板根目录
-     * @param string $style_name           模板样式目录
+     * 创建对像 template constructor.
+     * @param \v $v
+     * @param string $dir_tpl_root
+     * @param string $style_name           模板根目录
      * @param string $style_name_default   模板文件所以目录(默认)
-     * @param string $dir_tpl_root_g       模板根目录(公共库)
+     * @param bool $is_trim
      */
-    public function __construct($dir_tpl_root = '', $style_name = '', $style_name_default = '',$dir_tpl_root_g = '')
+    public function __construct(string $dir_tpl_root = '', string $style_name = '', string $style_name_default = '', bool $is_trim = false)
     {
-        if($dir_tpl_root)
-        {
-            $this->_dir_root            = $dir_tpl_root;
-        }
-        if($style_name)
-        {
-            $this->_style_name          = $style_name;
-        }
-        if($style_name_default)
-        {
-            $this->_style_name_default  = $style_name_default;
-        }
-        if($dir_tpl_root_g)
-        {
-            $this->_dir_root_g          = $dir_tpl_root_g;
-        }
-        // echo "\$this->_dir_root_g:{$this->_dir_root_g}<br />\n";
-        $this->_dir_current             = '';
-        $this->_style_current           = '';
+        $dir_tpl_root       && $this->_dir_root            = $dir_tpl_root;
+        $style_name         && $this->_style_name          = $style_name;
+        $style_name_default && $this->_style_name_default  = $style_name_default;
+
+        $this->_dir_current     = '';
+        $this->_style_current   = '';
+        $this->_is_trim         = $is_trim;
+        $this->replace();
     }
 
 
@@ -121,23 +110,6 @@ class template
         }
     }
 
-
-    /**
-     * 返回一个 模板文件地址(兼容)(公共)
-     * @param string $filename
-     * @return string
-     */
-    public function file_require_g(string $filename)
-    {
-        // 相对
-        $filename2     = "{$this->_dir_root_g}{$this->_style_name_default}/{$filename}";
-        if(file_exists($filename2))
-        {
-            return $filename2;
-        }
-        return "{$this->_dir_root_g}{$this->_style_name}/{$filename}";
-    }
-
     /**
      * 返回一个 模板文件地址(兼容)
      * @param string $filename
@@ -201,26 +173,18 @@ class template
     }
 
 
-
-    /** @var \ounun\seo\base 是否替换数据 null:不替换 不为空:就获得替换数据 */
-    protected  $_seo        = null;
-
-    /** @var bool 是否去空格 换行 */
-    protected  $_is_trim    = false;
-
     /**
      * 替换
-     * @param \ounun\seo\base $seo
      * @param bool $trim
      */
-    public function replace(\ounun\seo\base $seo,bool $trim = true)
+    public function replace()
     {
-        $this->_seo        = $seo;
-        $this->_is_trim    = $trim;
-        ob_start();
-        register_shutdown_function([$this,'callback'],false);
+        if(!\v::$cache_html || \v::$cache_html->stop)
+        {
+            ob_start();
+            register_shutdown_function([$this,'callback'],false);
+        }
     }
-
 
     /**
      * 创建缓存
@@ -240,15 +204,11 @@ class template
             $replacement = [''            ,''                        , ''             , ''            , ' '       ,'><'     ,''            ,'">'];
             $buffer      = preg_replace($pattern,$replacement,$buffer);
         }
-        if($this->_seo)
-        {
-            $data   = $this->_seo->tkd();
-            $val    = array_values($data);
-            $key    = array_keys($data);
 
-//          print_r($val);
-//          print_r($key);
-            $buffer = str_replace($key,$val,$buffer);
+        //
+        if(\v::$stpl_rd)
+        {
+            $buffer = strtr($buffer,\v::$stpl_rd);
         }
 
 //      $buffer     = gzencode($buffer, 9);

@@ -41,6 +41,14 @@ function ip():string
 }
 
 /**
+ * 输出script
+ * @param $str
+ */
+function script_write(string $str)
+{
+    return 'document.write('.json_encode_unescaped($str).')';
+}
+/**
  * 输出带参数的URL
  * @param string $url  URL
  * @param array $data  数据
@@ -657,11 +665,14 @@ class ret
  */
 class v extends \ounun\base
 {
-    /** @var \ounun\mvc\model\url */
+    /** @var \ounun\mvc\model\url cms */
     public static $cms;
 
-    /** @var \ounun\seo\base */
-    public static $seo;
+    /** @var array 模板替换数据组 */
+    public static $stpl_rd  = [];
+
+    /** @var  \ounun\template  Template句柄容器**/
+    protected static $_stpl = null;
 
     /**
      * ounun_view constructor.
@@ -671,17 +682,17 @@ class v extends \ounun\base
     {
         if(!$mod)
         {
-            $mod = [\ounun\scfg::def_met];
+            $mod = [\ounun\scfg::def_method];
         }
         $method  = $mod[0];
         $this->$method( $mod );
     }
 
-    /** @var int html_cache_time */
-    protected $_html_cache_time = 2678400; // 31天
+    /** @var int cache_html_time */
+    protected $_cache_html_time = 2678400; // 31天
 
     /** @var bool html_trim  */
-    protected $_html_trim       = true;
+    protected $_cache_html_trim = true;
 
     /** @var string 当前面页(网址) */
     protected $_page_url        = '';
@@ -692,121 +703,93 @@ class v extends \ounun\base
     /** @var \ounun\mysqli DB */
     protected $_db_v            = null;
 
-
-    /** 初始化Page */
-    public function init_page(string $page_file = '',bool $is_cache = true,bool $is_replace = true,bool $ext_req = true,string $domain = '',int $html_cache_time = 0,bool $trim = true)
+    /**
+     * 初始化Page
+     * @param string $page_file
+     * @param bool $is_cache_html
+     * @param bool $ext_req
+     * @param string $domain
+     * @param int $cache_html_time
+     * @param bool $html_trim
+     */
+    public function init_page(string $page_file = '', bool $is_cache_html = true, bool $ext_req = true, string $domain = '', int $cache_html_time = 0, bool $cache_html_trim = true)
     {
-        $this->_html_trim        = $trim;
+        // url_check
         $this->_page_file        = $page_file;
         $this->_page_url         = \ounun\scfg::url_page($this->_page_file);
+        url_check($this->_page_url,$ext_req,$domain);
 
-        if($this->_page_url)
+        // cache_html
+        if($is_cache_html)
         {
-            url_check($this->_page_url,$ext_req,$domain);
-        }
-        if($is_cache)
-        {
-            if($html_cache_time > 0)
-            {
-                $this->_html_cache_time = $html_cache_time;
-            }
-            $this->html_cache($this->_page_url);
+            $this->_cache_html_trim = $cache_html_trim;
+            $this->_cache_html_time = $cache_html_time > 300 ? $cache_html_time : $this->_cache_html_time;
+            $this->cache_html($this->_page_url);
         }
 
-        $this->init($is_cache,$is_replace);
-    }
-
-    /** 初始化 */
-    public function init(bool $is_cache = true,bool $is_replace = true)
-    {
+        // cms
         $cls       = \ounun\scfg::$app_cms;
         self::$cms = new $cls();
-        if(null == $this->_db_v)
-        {
-            $this->_db_v = self::db(\ounun\scfg::$app);
-        }
+
+        // template
+        self::$_stpl || self::$_stpl = new \ounun\template(\ounun\scfg::$dir_app . 'view/',\ounun\scfg::$tpl,\ounun\scfg::$tpl_default);
+
+        // db
+        $this->_db_v || $this->_db_v = self::db(\ounun\scfg::$app);
         self::$cms->db   = $this->_db_v;
-        //
-        $this->_url_replace();
-        $this->template(\ounun\scfg::$tpl,\ounun\scfg::$tpl_default);
-        if('' == Environment)
-        {
-            if($is_replace)
-            {
-                self::$_stpl->replace(self::$seo,false);
-            }
-        }else
-        {
-            if($is_cache)
-            {
-                if(self::$_html_cache)
-                {
-                    self::$_html_cache->replace(self::$seo);
-                }
-            }elseif($is_replace)
-            {
-                self::$_stpl->replace(self::$seo,$this->_html_trim);
-            }
-        }
+
+        // replace
+        $this->_replace_default();
     }
 
-
+    /** @var string title */
     protected $_seo_title;
+
+    /** @var string keywords */
     protected $_seo_keywords;
+
+    /** @var string description */
     protected $_seo_description;
+
+    /** @var string h1 */
     protected $_seo_h1;
+
+    /** @var string etag */
     protected $_seo_etag;
+
     /**
      * 设定TKD
-     * @param $title
-     * @param $keywords
-     * @param $description
+     * @param string $title
+     * @param string $keywords
+     * @param string $description
+     * @param string $h1
+     * @param string $etag
      */
-    public function set_tkd($title,$keywords,$description,$h1='')
+    public function set_tkd(string $title= '',string $keywords='',string $description='',string $h1='',string $etag='')
     {
-        $this->_seo_title       = $title;
-        $this->_seo_keywords    = $keywords;
-        $this->_seo_description = $description;
-        $this->_seo_h1          = $h1;
+        $title       && $this->_seo_title       = $title;
+        $keywords    && $this->_seo_keywords    = $keywords;
+        $description && $this->_seo_description = $description;
+        $h1          && $this->_seo_h1          = $h1;
+        $etag        && $this->_seo_etag        = $etag;
     }
 
-    /**
-     *  Template句柄容器
-     *  @var  \ounun\template
-     **/
-    protected static $_stpl = null;
-
-    /**
-     * 初始化HTMl模板类
-     * @param string $style_name
-     * @param string $style_name_default
-     */
-    public function template(string $style_name = '',string $style_name_default='')
-    {
-        if(null == self::$_stpl)
-        {
-            $dir_tpl_root   = \ounun\scfg::$dir_app . 'view/';
-            $dir_tpl_root_g = \ounun\scfg::$dir_app . 'view/';
-            self::$_stpl    = new \ounun\template($dir_tpl_root,$style_name,$style_name_default,$dir_tpl_root_g);
-        }
-    }
-
-    /** @var \ounun\html */
-    protected static $_html_cache;
+    /** @var \ounun\cache_html cache_html */
+    public static $cache_html;
 
     /**
      * Cache
      * @param $key
      */
-    public function html_cache($key)
+    public function cache_html($key)
     {
         if('' == Environment && \ounun\scfg::$g['cache_html'])
         {
             $cfg                = \ounun\scfg::$g['cache_html'];
             $cfg['mod']         = 'html_'.\ounun\scfg::$app.\ounun\scfg::$tpl;
-            self::$_html_cache  = new \ounun\html(\ounun\scfg::$app,\ounun\scfg::$tpl,$cfg,$key,$this->_html_cache_time,$this->_html_trim,'' == Environment );
-
-            self::$_html_cache->run(true);
+            $key2               = \ounun\scfg::$app.'_'.\ounun\scfg::$tpl.'_'.$key;
+            self::$cache_html   = new \ounun\cache_html($cfg,$key2,$this->_cache_html_time,$this->_cache_html_trim,'' == Environment );
+            self::$cache_html->run(true);
         }
     }
 
@@ -814,18 +797,16 @@ class v extends \ounun\base
      * 是否马上输出cache
      * @param bool $output
      */
-    public function html_cache_stop(bool $output)
+    public function cache_html_stop(bool $output)
     {
-        if(self::$_html_cache)
+        if(self::$cache_html)
         {
-            self::$_html_cache->stop($output);
+            self::$cache_html->stop($output);
+            self::$_stpl->replace();
         }
     }
 
-    /**
-     * 调试 相关
-     * @var \ounun\debug
-     */
+    /** @var \ounun\debug 调试 相关*/
     public $debug	= null;
 
     /**
@@ -860,16 +841,6 @@ class v extends \ounun\base
     public function require_file(string $filename):string
     {
         return self::$_stpl->file_require($filename);
-    }
-
-    /**
-     * 返回一个 模板文件地址(兼容)(公共)
-     * @param string $filename
-     * @return string
-     */
-    public function require_file_g(string $filename):string
-    {
-        return self::$_stpl->file_require_g($filename);
     }
 
     /**
@@ -927,10 +898,10 @@ class v extends \ounun\base
     }
 
     /** 赋值(默认) $seo + $url */
-    protected function _url_replace()
+    protected function _replace_default()
     {
-        $url_base            = substr($this->_page_url,1);
-        return [
+        $url_base        = substr($this->_page_url,1);
+        self::$stpl_rd += [
             '{$seo_title}'        => $this->_seo_title,
             '{$seo_keywords}'     => $this->_seo_keywords,
             '{$seo_description}'  => $this->_seo_description,
@@ -962,5 +933,15 @@ class v extends \ounun\base
             '/public/static/'     => \ounun\scfg::$url_static,
             '/public/upload/'     => \ounun\scfg::$url_upload,
         ];
+    }
+
+    /**
+     * 设定模板替换
+     * @param string $key
+     * @param string $value
+     */
+    static public function replace(string $key,string $value)
+    {
+        self::$stpl_rd[$key] = $value;
     }
 }
