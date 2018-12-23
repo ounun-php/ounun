@@ -75,7 +75,7 @@ class purview
     /** 邮件仙玉审核权限 */
     public $purview_check     = 40;
 
-    /** @var \admin\oauth   */
+    /** @var oauth   */
     public $oauth = null;
 
     /**

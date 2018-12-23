@@ -6,10 +6,10 @@
  * Time: 11:12
  */
 
-namespace app\adm\model;
+namespace model;
 
 
-class purview
+class purview extends \ounun\mvc\model\admin\purview
 {
     const cp_site      = 'cp_site';
 
@@ -24,19 +24,21 @@ class purview
 
     /** 网站后台配 */
     public $cfg  = [
-        '{$powered_corp_name}'         => "moko8.com",
-        '{$powered_corp_name_mini}'    => "moko8",
-        '{$powered_corp_url}'          => "http://adm.moko8.com/",
+        '{$powered_corp_name}'         => Const_Domain,
+        '{$powered_corp_name_mini}'    => Const_App,
+        '{$powered_corp_url}'          => 'https://adm.'.Const_Domain.'/',
 
-        '{$powered_studio_name}'       => "moko8.com",
-        '{$powered_studio_url}'        => "https://www.moko8.com/",
+        '{$powered_studio_name}'       => Const_Domain,
+        '{$powered_studio_url}'        => 'https://www.'.Const_Domain.'/',
     ];
 
     /** 游戏名 与 LOGO */
     public $cfg_name = [
-        'adm.moko8.com'      => ['dir'=>"logo/moko8/", 'name'=> "Moko8(release)"],
-        'adm2.moko8.com'      => ['dir'=>"logo/moko8/", 'name'=> "Moko8(local)"],
-        'adm3.moko8.com'      => ['dir'=>"logo/moko8/", 'name'=> "Moko8(dev)"],
+        'adm.moko8.com'       => ['dir'=>'logo/'.Const_App.'/', 'name'=> Const_SiteName.'(release)'],
+        'adm2.moko8.com'      => ['dir'=>'logo/'.Const_App.'/', 'name'=> Const_SiteName.'(local)'],
+        'adm3.moko8.com'      => ['dir'=>'logo/'.Const_App.'/', 'name'=> Const_SiteName.'(dev)'],
+
+        'adm2'                => ['dir'=>'logo/'.Const_App.'/', 'name'=> Const_SiteName.'(local)'],
     ];
 
     /** table */
@@ -78,14 +80,11 @@ class purview
         'task'      => self::_task ,
         'site'      => self::_site ,
 
-        'coll'      => self::_coll    ,
+        'coll'           => self::_coll    ,
         'site_content'   => self::_site_content ,
         'site_update'    => self::_site_update  ,
 
-        // 'discover'  => self::_discover ,
-        // 'report'    => self::_report ,
-        // 'content'   => self::_content ,
-        'sys'       => self::_sys ,
+        'sys'            => self::_sys ,
     ];
 
     /**
@@ -178,67 +177,6 @@ class purview
             //            ],
         ],
     ];
-
-    /* ****************************************************************
-     *  发现
-     * **************************************************************** */
-    //    const _discover = [
-    //        'name' 		=> '发现',
-    //        'default'	=> 'info/config.html?mod_id=2',
-    //        'sub'  => [
-    //
-    //            [
-    //                'name'	=> '新闻',
-    //                'data'	=> [
-    //                    'news' => [
-    //                        'name'	=> '新闻',
-    //                        'url'	=> 'discover/news.html',
-    //                        'key'	=>  self::p_all,
-    //                    ],
-    //                    'news_add' => [
-    //                        'name'	=> '新闻 - 发布',
-    //                        'url'	=> 'discover/news_add.html',
-    //                        'key'	=>  self::p_all,
-    //                    ],
-    //                ],
-    //            ],
-    //            [
-    //                'name'	=> 'Dapp应用',
-    //                'data'	=> [
-    //                    'dapp' => [
-    //                        'name'	=> 'Dapp应用',
-    //                        'url'	=> 'info/config.html?mod_id=3',
-    //                        'key'	=>  self::p_all,
-    //                    ],
-    //                    'config' => [
-    //                        'name'	=> '头部大图广告',
-    //                        'url'	=> 'info/config.html?mod_id=2',
-    //                        'key'	=>  self::p_all,
-    //                    ],
-    //                ],
-    //            ],
-    //        ],
-    //    ];
-
-    /* ****************************************************************
-     *  统计报表
-     * **************************************************************** */
-    //    const _report = [
-    //        'name' 		=> '报表',
-    //        'default'	=> 'report/',
-    //        'sub'  => [
-    //            'report' => [
-    //                'name'	=> '结算报表',
-    //                'url'	=> 'report/lists.html',
-    //                'key'	=>  self::p_all,
-    //            ],
-    //            'invite' => [
-    //                'name'	=> '邀请报表',
-    //                'url'	=> 'report/invite.html',
-    //                'key'	=>  self::p_all,
-    //            ],
-    //        ],
-    //    ];
 
     /* ****************************************************************
      *  定时任务

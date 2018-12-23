@@ -67,13 +67,13 @@ class oauth
             $ext          = $this->user_get_exts($rs,$rs['adm_id']);
             $rs['exts2']  = $ext;
             $is_google    = $this->_check_google($ext, $code);
-            //echo $this->_db->getSql();
+//            echo $this->_db->sql();
             // print_r($rs);
             // exit();
             if($is_google || $ext['google']['is'] == false )
             {
-                // echo "\$rs['password'] :{$rs['password']} == md5(\$password) :".md5($password)."<br />\n";
-                // exit();
+//                 echo "\$rs['password'] :{$rs['password']} == md5(\$password) :".md5($password)."<br />\n";
+//                 exit();
                 if( $rs['password'] == md5($password) )
                 {
                     // 清理一下

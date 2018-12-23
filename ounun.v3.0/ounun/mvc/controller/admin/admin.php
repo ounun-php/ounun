@@ -7,43 +7,50 @@ namespace ounun\mvc\controller\admin;
  * Time: 10:39
  */
 
+use \ounun\mvc\model\admin\oauth;
+use ounun\mvc\model\admin\purview;
+use \ounun\scfg;
+
 /********************************************************************
  * 后台基类
  ********************************************************************/
-class adm extends \v
+class admin extends \v
 {
-    /** @var \admin\oauth */
+    /** @var oauth */
     public static $auth;
 
     /** @var \ounun\mysqli */
     protected $_db_adm;
+    /** @var \ounun\mysqli */
+    protected $_db_site;
+    /** @var \ounun\mysqli */
+    protected $_db_libs;
 
-    public function __construct($mod)
-    {
-        // 初始化
-        $this->_db_adm  = self::db('adm');
-        self::$auth     = new \admin\oauth($this->_db_adm,new purview_adm(),'irc');
-        // 执行
-        parent::__construct($mod);
-    }
+    /** @var string 站点类型 */
+    protected $_site_type      = 'admin';
+
+    protected $_site_type_only = [];
 
     /**
      * 权限检测,没权限时就跳到 NoAccess
      * @param string $key
      * @return boolean
      */
-    protected function purview_check($key)
+    protected function purview_check($key,$nav=0)
     {
-        //echo 'this is a test'.$key;
         if( !self::$auth->purview->check_multi($key) )
         {
-            // 没权限就跳
-            \ounun::go_url('/no_access.html');
+            $data = [
+                'nav' => $nav,
+                'uri' => $_SERVER['REQUEST_URI']
+            ];
+            $url =  url('/no_access.html',$data);
+            go_url($url);  // 没权限就跳
         }
 
-        if(!self::$auth->session_get(\admin\purview::s_google) && 'sys@google' != $key)
+        if(!self::$auth->session_get( purview::s_google) && 'sys@google' != $key)
         {
-            \ounun::go_url('/sys_adm/google.html');
+            go_url('/sys_adm/google.html?nav='.$nav);
         }
     }
 
@@ -52,25 +59,7 @@ class adm extends \v
      */
     protected function select_check($nav)
     {
-        if(1 == $nav)
-        {
-            $cid  = self::$auth->cookie_get(\admin\purview::cp_cid);
-            if (!$cid)
-            {
-                $uri = \ounun::url_original($_SERVER['REQUEST_URI']);
-                \ounun::go_url("/select_tip.html?nav={$nav}&uri={$uri}");
-            }
-        }
-        elseif (2 == $nav)
-        {
-            $cid  = self::$auth->cookie_get(\admin\purview::cp_cid);
-            $sid  = self::$auth->cookie_get(\admin\purview::cp_sid);
-            if (!$cid || !$sid)
-            {
-                $uri = \ounun::url_original($_SERVER['REQUEST_URI']);
-                \ounun::go_url("/select_tip.html?nav={$nav}&uri={$uri}");
-            }
-        }
+
     }
 
     /**
@@ -80,41 +69,40 @@ class adm extends \v
      * @param int    $nav
      * @return bool
      */
-    protected function _nav_pur_check(string $page,string $purview_key,$page_title_sub = '默认标题子类', $page_title = '默认标题', $nav = 0)
+    protected function _nav_pur_check(string $page,string $purview_key,$page_title_sub = '系统', $page_title = '系统', $nav = 0)
     {
-        $data = [
-            '{$page_title}'     => $page_title,
-            '{$page_title_sub}' => $page_title_sub,
-            '{$page_nav}'       => $nav,
-        ];
-        $this->replace_sets($data);
-        $this->_nav_set_data();
         // 权限
-        $this->purview_check($purview_key);
+        $this->purview_check($purview_key,$nav);
+
         // 选服
         $this->select_check($nav);
-        //
 
         // print_r($this->_replace_data);
-        $this->init_page($page,false,true);
+        $this->init_page($page,false,true,'',0,false);
+
+        $this->_nav_set_data($page_title,$page_title_sub,$nav);
     }
 
     /**
      * 设定数据
      */
-    protected function _nav_set_data()
+    protected function _nav_set_data($page_title_sub= '系统',$page_title= '系统',$nav = 0)
     {
         $cfg_name = self::$auth->purview->cfg_name[$_SERVER['HTTP_HOST']];
-        $cfg_name = $cfg_name?$cfg_name:self::$auth->purview->cfg_name['adm3.happyuc.org'];
+        $cfg_name = $cfg_name?$cfg_name:self::$auth->purview->cfg_name['adm2'];
         // 标题
         $data = [
+            '{$page_title}'     => $page_title,
+            '{$page_title_sub}' => $page_title_sub,
+            '{$page_nav}'       => $nav,
+
             '{$page_url}'       => $_GET['uri'] ? $_GET['uri'] : $_SERVER['REQUEST_URI'],
 
             '{$site_name}'      => $cfg_name['name'],
             '{$site_logo_dir}'  => $cfg_name['dir'],
         ];
 
-        $this->replace_sets($data);
-        $this->replace_sets(self::$auth->purview->cfg);
+        scfg::set_tpl_array($data);
+        scfg::set_tpl_array(self::$auth->purview->cfg);
     }
 }

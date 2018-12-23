@@ -101,7 +101,8 @@ define('Const_Baidu_Xzh_Token',             '');
     'https://mip.'.Const_Domain.'/',
     '//api.'.Const_Domain.'/',
     '//s.'.Const_Domain.'/',
-    '//s.'.Const_Domain.'/a'.Const_Static_Idx.'/',
-    '//s.'.Const_Domain.'/i'.Const_Static_Idx.'/',
+    '//s.'.Const_Domain.'/s'.Const_Static_Idx.'/',
+    '//s.'.Const_Domain.'/u'.Const_Static_Idx.'/',
+    '//s.'.Const_Domain.'/g'.Const_Static_Idx.'/',
     Const_Domain
 );

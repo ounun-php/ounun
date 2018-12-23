@@ -1,7 +1,7 @@
 <?php 
-namespace ounun;
+namespace ounun\cache;
 
-class cache_html
+class html
 {
     /** Cache最小文件大小           */
     const Cache_Mini_Size       = 2024;
@@ -183,9 +183,10 @@ class cache_html
         if($filesize > self::Cache_Mini_Size)
         {
             // \debug::header('xypm_ok',$this->_cache->filename(),$this->_is_debug,__FUNCTION__,__LINE__);
-            if(\v::$stpl_rd)
+            if(scfg::$tpl_data)
             {
-                $buffer = strtr($buffer,\v::$stpl_rd);
+                scfg::$view->tpl_data_default();
+                $buffer = strtr($buffer,scfg::$tpl_data);
             }
 
             if($this->_is_trim)
@@ -245,7 +246,7 @@ class cache_html
 }
 
 
-class _cache_html extends cache
+class _cache_html extends \ounun\cache
 {
     private $_cache_time    = -1;
     private $_cache_time_t  = -1;

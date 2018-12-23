@@ -1,6 +1,8 @@
 <?php
 namespace ounun\mvc\controller\api;
 
+use ounun\scfg;
+
 class api extends \v
 {
     /**
@@ -11,12 +13,11 @@ class api extends \v
     {
         $this->init_page("/api/interface_mysql.html",false,false);
 
-        $secure                 = new secure(Const_Key_Conn_Private);
+        $secure                 = new \ounun\mvc\model\admin\secure(Const_Key_Conn_Private);
         list($check,$error_msg) = $secure->check($_GET,time());
         if($check)
         {
-            $key  = $_GET['release']?\ounun_scfg::$app:\ounun_scfg::$app."_debug";
-            $db   = $GLOBALS['_scfg']['db'][$key];
+            $db   = scfg::$db_cfg[\ounun\scfg::$app_name];
             $data = $secure->encode($db);
             $rs   = ['ret'=>$check,'data'=>$data];
         }else

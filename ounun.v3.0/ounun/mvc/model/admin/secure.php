@@ -2,8 +2,6 @@
 namespace ounun\mvc\model\admin;
 
 
-use ounun\xxtea;
-
 class secure
 {
     /** @var string 加密码KEY */
@@ -120,16 +118,16 @@ class secure
      * @param int $time_fault_tolerant
      * @return array [true,'ok'] | [false,Error]
      */
-    public function check(array $data,int $time_now,int $time_fault_tolerant = 600):array
+    public function check(array $data,int $time_now,int $time_fault_tolerant = 600):\ret
     {
         $time_diff    = $time_now - (int)$data['time'];
         if ($time_diff > $time_fault_tolerant)
         {
-            // return [false,"出错:运行超时"];
+            return new \ret(false,-1,"出错:运行超时");
         }
         if($time_diff < 0-$time_fault_tolerant/10)
         {
-            // return [false,"出错:运行超时(服务器时间有误:{$time_diff})"];
+            return new \ret(false,-1,"出错:运行超时(服务器时间有误:{$time_diff})");
         }
         $sign    = $data['sign'];
         unset($data['sign']);
@@ -146,9 +144,9 @@ class secure
         // print_r(['$sign2'=>$sign2,'$sign'=>$sign,'$sign2_s'=>$sign2_s]);
         if($sign && 32 == strlen($sign) && $sign2 == $sign)
         {
-            return [true,'ok'];
+            return new \ret(true,0,'ok');
         }
-        return [false,"出错:校验出错"];
+        return new \ret(false,-1,"出错:校验出错");
     }
 
     /**
@@ -158,7 +156,7 @@ class secure
     public function encode($data)
     {
         $data_json  = json_encode($data);
-        return xxtea::encrypt($data_json,$this->key);
+        return \ounun\xxtea::encrypt($data_json,$this->key);
     }
 
     /**
@@ -167,7 +165,7 @@ class secure
      */
     public function decode(string $data_json)
     {
-        $data_json2 = xxtea::decrypt($data_json,$this->key);
+        $data_json2 = \ounun\xxtea::decrypt($data_json,$this->key);
         return json_decode($data_json2,true);
     }
 }

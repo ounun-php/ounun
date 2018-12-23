@@ -9,7 +9,7 @@ class i18n
     /** 语言名称 */
     const lang_name        = '简本中文';
     /** @var string 根据域名 得到对应模板 */
-    const tpl              = '_default';
+    const tpl_style        = '_default';
     /** @var string 模板(默认) */
     const tpl_default      = '_default';
 }

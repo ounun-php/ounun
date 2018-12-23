@@ -1,0 +1,59 @@
+
+table.p_table_order {
+	font-family:arial;
+	/*background-color: #F6FBFF;*/
+	margin:5px 0pt 15px;
+	text-align:center;
+	font-size: 12px;
+	display:inline-table; border-collapse:collapse;
+	cellpadding:0;
+	cellspacing:0;
+}
+
+table.p_table_order thead tr td, table.p_table_order tfoot tr td {
+	/*background-color: #e6EEEE;*/
+	border: 1px solid #DDDDDD;
+	font-size: 12px;
+	padding: 4px;
+}
+
+table.p_table_order thead tr th, table.p_table_order tfoot tr th {
+	background-color: #e6EEEE;
+	border: 1px solid #DDDDDD;
+	font-size: 12px;
+	padding: 4px;
+	text-align:center;
+}
+
+table.p_table_order thead tr .header {
+	background-image: url(img/icon_mot.gif);
+	background-repeat: no-repeat;
+	background-position: center right;
+	cursor: pointer;
+}
+table.p_table_order tbody td {
+	color: #3D3D3D;
+	padding: 4px;
+	border: 1px solid #DDDDDD;
+	/*background-color: #FFF;*/
+	text-align:center;
+	vertical-align: top;
+
+}
+table.p_table_order tbody tr.odd td {
+	/*background-color:#F0F0F6;*/
+	text-align:center;
+}
+table.p_table_order thead tr .headerSortUp {
+	background-image: url(img/icon_asc.gif);
+}
+table.p_table_order thead tr .headerSortDown {
+	background-image: url(img/icon_desc.gif);
+}
+table.p_table_order thead tr .headerSortDown, table.p_table_order thead tr .headerSortUp {
+background-color: #8dbdd8;
+}
+
+.blue {
+        background:#bcd4ec;  
+}

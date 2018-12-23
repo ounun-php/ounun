@@ -4,9 +4,6 @@ namespace ounun;
 
 class template
 {
-    /** @var string 模板根目录 */
-    protected $_dir_root;
-
     /** @var string 模板目录(当前) */
     protected $_dir_current;
 
@@ -24,58 +21,49 @@ class template
 
     /**
      * 创建对像 template constructor.
-     * @param \v $v
-     * @param string $dir_tpl_root
      * @param string $style_name           模板根目录
      * @param string $style_name_default   模板文件所以目录(默认)
      * @param bool $is_trim
      */
-    public function __construct(string $dir_tpl_root = '', string $style_name = '', string $style_name_default = '', bool $is_trim = false)
+    public function __construct(string $style_name = '', string $style_name_default = '', bool $is_trim = false)
     {
-        $dir_tpl_root       && $this->_dir_root            = $dir_tpl_root;
         $style_name         && $this->_style_name          = $style_name;
         $style_name_default && $this->_style_name_default  = $style_name_default;
 
         $this->_dir_current     = '';
         $this->_style_current   = '';
         $this->_is_trim         = $is_trim;
+        // if($this->_is_trim)
+        // {
+        //     trigger_error("Template".':'.($this->_is_trim?'1':'0'), E_USER_ERROR);
+        //     exit(__FILE__.':'.($this->_is_trim?'1':'0'));
+        // }
         $this->replace();
-    }
-
-
-    /**
-     * 返回一个 模板文件地址(绝对目录,相对root)
-     * @param string $filename
-     * @return string
-     */
-    public function file_fixed(string $filename):string
-    {
-        return "{$this->_dir_root}{$this->_style_name}/{$filename}";
     }
 
     /**
      * (兼容)返回一个 模板文件地址(绝对目录,相对root)
      * @param string $filename
+     * @param array $styles
      * @return string
      */
-    public function file_fixed_comp(string $filename):string
+    public function tpl_fixed(string $filename,array $styles = []):string
     {
-        $filename2 = "{$this->_dir_root}{$this->_style_name}/{$filename}";
-        if(file_exists($filename2))
+        $styles = $styles ? $styles : [$this->_style_name,$this->_style_name_default];
+        foreach (scfg::$tpl_dirs as $dir)
         {
-            return $filename2;
+            foreach ($styles as $style)
+            {
+                $filename2 = "{$dir}{$style}/{$filename}";
+                if(file_exists($filename2))
+                {
+                    $this->_dir_current   = dirname($filename2).'/';
+                    $this->_style_current = $style;
+                    return $filename2;
+                }
+            }
         }
-        return "{$this->_dir_root}{$this->_style_name_default}/{$filename}";
-    }
-
-    /**
-     * 返回一个 模板文件地址(相对目录)
-     * @param string $filename
-     * @return string
-     */
-    public function file_cur(string $filename):string
-    {
-        return "{$this->_dir_root}{$this->_style_current}/{$this->_dir_current}{$filename}";
+        $this->error($filename);
     }
 
     /**
@@ -83,95 +71,45 @@ class template
      * @param string $filename
      * @return string
      */
-    public function file_cur_comp(string $filename):string
+    public function tpl_curr(string $filename):string
     {
-        if($this->_style_current)
+        // curr
+        if($this->_dir_current)
         {
-            $filename2 = "{$this->_dir_root}{$this->_style_current}/{$this->_dir_current}{$filename}";
+            $filename2 = "{$this->_dir_current}{$filename}";
             if(file_exists($filename2))
             {
                 return $filename2;
             }
-            if($this->_style_name == $this->_style_current)
+        }
+
+        // fixed
+        if($this->_style_current)
+        {
+            if($this->_style_current == $this->_style_name_default)
             {
-                return "{$this->_dir_root}{$this->_style_name_default}/{$this->_dir_current}{$filename}";
+                $styles = [$this->_style_name_default,$this->_style_name];
             }else
             {
-                return "{$this->_dir_root}{$this->_style_name}/{$this->_dir_current}{$filename}";
+                $styles = [$this->_style_name,$this->_style_name_default];
             }
         }else
         {
-            $filename2 = "{$this->_dir_root}{$this->_style_name}/{$this->_dir_current}{$filename}";
-            if(file_exists($filename2))
-            {
-                return $filename2;
-            }
-            return "{$this->_dir_root}{$this->_style_name_default}/{$this->_dir_current}{$filename}";
+            $styles = [$this->_style_name,$this->_style_name_default];
         }
+
+        return $this->tpl_fixed($filename,$styles);
     }
+
 
     /**
-     * 返回一个 模板文件地址(兼容)
-     * @param string $filename
-     * @return string
+     * 报错
+     * @param $filename
      */
-    public function file_require(string $filename)
+    protected function error($filename)
     {
-        // 相对
-        if($this->_style_current)
-        {
-            $filename2     = "{$this->_dir_root}{$this->_style_current}/{$this->_dir_current}{$filename}";
-            if(file_exists($filename2))
-            {
-                return $filename2;
-            }
-
-            if($this->_style_name == $this->_style_current)
-            {
-                return "{$this->_dir_root}{$this->_style_name_default}/{$this->_dir_current}{$filename}";
-            }else
-            {
-                return "{$this->_dir_root}{$this->_style_name}/{$this->_dir_current}{$filename}";
-            }
-        }
-        // 绝对
-        $filename2     = "{$this->_dir_root}{$this->_style_name}/{$filename}";
-        if( file_exists($filename2) )
-        {
-            $current                  = dirname($filename);
-            if('.' == $current || '' == $current || '/' == $current)
-            {
-                $this->_dir_current   = '';
-                $this->_style_current = $this->_style_name;
-            }
-            else
-            {
-                $this->_dir_current   = $current.'/';
-                $this->_style_current = $this->_style_name;
-            }
-            return $filename2;
-        }else
-        {
-            $filename2 = "{$this->_dir_root}{$this->_style_name_default}/{$filename}";
-            if( file_exists($filename2) )
-            {
-                $current            = dirname($filename);
-                if('.' == $current || '' == $current || '/' == $current)
-                {
-                    $this->_dir_current   = '';
-                    $this->_style_current = $this->_style_name_default;
-                }
-                else
-                {
-                    $this->_dir_current   = $current.'/';
-                    $this->_style_current = $this->_style_name_default;
-                }
-                return $filename2;
-            }
-        }
-        trigger_error("Can't find Template:{$filename2} \nstyle:{$this->_style_name} \nstyle_default:{$this->_style_name_default}", E_USER_ERROR);
+        trigger_error("Can't find Template:{$filename} \ndirs:[".implode(',',scfg::$tpl_dirs)."] \nstyle:{$this->_style_name} \nstyle_default:{$this->_style_name_default}", E_USER_ERROR);
     }
-
 
     /**
      * 替换
@@ -205,10 +143,11 @@ class template
             $buffer      = preg_replace($pattern,$replacement,$buffer);
         }
 
-        //
-        if(\v::$stpl_rd)
+        // 替换
+        if(scfg::$tpl_data)
         {
-            $buffer = strtr($buffer,\v::$stpl_rd);
+            scfg::$view->tpl_data_default();
+            $buffer = strtr($buffer,scfg::$tpl_data);
         }
 
 //      $buffer     = gzencode($buffer, 9);

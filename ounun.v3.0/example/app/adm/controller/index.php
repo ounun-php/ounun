@@ -2,24 +2,23 @@
 /** 命名空间 */
 namespace controller;
 
-use admin\purview;
+use model\purview;
 
-class index extends \adm
+class index extends adm
 {
     /** 开始init */
 	public function index($mod)
 	{
         // print_r(['$_SESSION'=>$_SESSION]);
-        // exit();
 		if (self::$auth->login_check())
 		{
-		    $this->_nav_set_data();
-            $this->init_page('/');
+            $this->init_page('/',false,true,'',0,false);
+            $this->_nav_set_data();
 
             $db     = self::db ( 'adm' );
-            $cid    = \adm::$auth->session_get(purview::s_cid);
+            $cid    = self::$auth->session_get(purview::s_cid);
 
-            require $this->require_file('index.html.php');
+            require \v::tpl_fixed('index.html.php');
 		}else
 		{
 		    // 还没登录
@@ -46,10 +45,10 @@ class index extends \adm
 		}else
 		{
 		    // 还没登录
+            $this->init_page('/login.html',false,true,'',0,false);
             $this->_nav_set_data();
-            $this->init_page('/login.html');
 
-            require $this->require_file('login.html.php');
+            require \v::tpl_fixed('login.html.php');
 		}
 	}
 
@@ -64,7 +63,6 @@ class index extends \adm
 		}else
 		{
 			echo msg ( $rs->data);
-
             go_url ('/',false,302,2);
 		}
 	}
@@ -79,17 +77,17 @@ class index extends \adm
 	/** 权限受限 */
 	public function no_access($mod)
 	{
+        $this->init_page('/no_access.html',false,true,'',0,false);
         $this->_nav_set_data();
-        $this->init_page('/no_access.html');
 
         //  echo $this->require_file('sys/no_access.html.php' );
-        require $this->require_file('sys_adm/no_access.html.php' );
+        require require \v::tpl_fixed('sys_adm/no_access.html.php' );
 	}
 
 	/** 提示 没有选择平台 与 服务器 */
 	public function select_tip($mod)
 	{
-		$this->template();
+        $this->init_page('/select_tip.html',false,true,'',0,false);
 		
 		$nav  = (int)$_GET['nav'];
 		if(1 == $nav &&  0 == self::$auth->session_get(purview::s_cid) )
@@ -103,7 +101,8 @@ class index extends \adm
 		{
 			$title_sub = '请选择“服务器”';
 		}
-        require $this->require_file( 'sys/select_tip.html.php' );
+        $this->_nav_set_data($title_sub,'系统',0);
+        require \v::tpl_fixed( 'sys/select_tip.html.php' );
 	}
 
 	/** 设定当前平台 与服务器 */
