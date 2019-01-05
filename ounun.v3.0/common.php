@@ -1,36 +1,30 @@
 <?php
 
 /** libs库文件目录 **/
-defined('Dir_Ounun')    || define('Dir_Ounun',     __DIR__.'/'       );
+defined('Dir_Ounun') || define('Dir_Ounun', __DIR__ . '/');
 /** libs目录 **/
-defined('Dir_Vendor')   || define('Dir_Vendor',    Dir_Root.'vendor/');
+defined('Dir_Vendor') || define('Dir_Vendor', Dir_Root . 'vendor/');
 /** data目录 **/
-defined('Dir_Extend')   || define('Dir_Extend',    Dir_Root.'extend/');
+defined('Dir_Extend') || define('Dir_Extend', Dir_Root . 'extend/');
 /** cache目录 **/
-defined('Dir_Cache')    || define('Dir_Cache',     Dir_Root.'cache/' );
+defined('Dir_Cache') || define('Dir_Cache', Dir_Root . 'cache/');
 /** app目录 **/
-defined('Dir_App')      || define('Dir_App',       Dir_Root.'app/'   );
+defined('Dir_App') || define('Dir_App', Dir_Root . 'app/');
 /** Environment目录 **/
-defined('Environment')  || define('Environment',   environment()     );
+defined('Environment') || define('Environment', environment());
 
 /**
  * 得到访客的IP
  * @return string IP
  */
-function ip():string
+function ip(): string
 {
-    if(isset($_SERVER['HTTP_CLIENT_IP']))
-    {
+    if (isset($_SERVER['HTTP_CLIENT_IP'])) {
         $hdr_ip = stripslashes($_SERVER['HTTP_CLIENT_IP']);
-    }
-    else
-    {
-        if(isset($_SERVER['HTTP_X_FORWARDED_FOR']))
-        {
+    } else {
+        if (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
             $hdr_ip = stripslashes($_SERVER['HTTP_X_FORWARDED_FOR']);
-        }
-        else
-        {
+        } else {
             $hdr_ip = stripslashes($_SERVER['REMOTE_ADDR']);
         }
     }
@@ -44,84 +38,66 @@ function ip():string
  */
 function script_write(string $str)
 {
-    return 'document.write('.json_encode_unescaped($str).')';
+    return 'document.write(' . json_encode_unescaped($str) . ')';
 }
 
 /**
  * 输出带参数的URL
- * @param string $url  URL
- * @param array $data  数据
- * @param array $exts  要替换的数据
- * @param array $skip  忽略的数据 如:page
+ * @param string $url URL
+ * @param array $data 数据
+ * @param array $exts 要替换的数据
+ * @param array $skip 忽略的数据 如:page
  * @return string
  */
-function url(string $url,array $data,array $exts=[],array $skip=[]):string
+function url(string $url, array $data, array $exts = [], array $skip = []): string
 {
     $rs = [];
-    if(is_array($data))
-    {
-        if($exts && is_array($exts))
-        {
-            foreach ($exts as $key => $value)
-            {
+    if (is_array($data)) {
+        if ($exts && is_array($exts)) {
+            foreach ($exts as $key => $value) {
                 $data[$key] = $value;
             }
         }
-        if($skip && is_array($skip))
-        {
-            foreach ($skip as $key=>$value)
-            {
-                if($value)
-                {
-                    if(is_array($value) && in_array($data[$key],$value,true))
-                    {
+        if ($skip && is_array($skip)) {
+            foreach ($skip as $key => $value) {
+                if ($value) {
+                    if (is_array($value) && in_array($data[$key], $value, true)) {
                         unset($data[$key]);
-                    }elseif($value == $data[$key])
-                    {
+                    } elseif ($value == $data[$key]) {
                         unset($data[$key]);
                     }
-                }else
-                {
+                } else {
                     unset($data[$key]);
                 }
             }
         }
-        $rs      = [];
+        $rs = [];
         $rs_page = '';
-        foreach ($data as $key => $value)
-        {
-            if('{page}' === $value )
-            {
+        foreach ($data as $key => $value) {
+            if ('{page}' === $value) {
                 $rs_page = $key . '={page}';
-            }elseif(is_array($value))
-            {
-                foreach ($value as $k2 => $v2)
-                {
-                    $rs[] = $key.'['.$k2.']='.urlencode($v2);
+            } elseif (is_array($value)) {
+                foreach ($value as $k2 => $v2) {
+                    $rs[] = $key . '[' . $k2 . ']=' . urlencode($v2);
                 }
-            }elseif($value || 0 === $value || '0' === $value )
-            {
-                $rs[] = $key.'='.urlencode($value);
+            } elseif ($value || 0 === $value || '0' === $value) {
+                $rs[] = $key . '=' . urlencode($value);
             }
         }
         // 已保正page 是最后项
-        if($rs_page)
-        {
+        if ($rs_page) {
             $rs[] = $rs_page;
         }
     }
-    $url  = trim($url);
-    if($rs)
-    {
-        if($url && strlen($url) > 1 )
-        {
-            if (strpos($url, '?') === false)
-            {
-                return $url.'?'.implode('&',$rs);
+    $url = trim($url);
+    if ($rs) {
+        if ($url && strlen($url) > 1) {
+            if (strpos($url, '?') === false) {
+                return $url . '?' . implode('&', $rs);
             }
-            return $url.'&'.implode('&',$rs);
+            return $url . '&' . implode('&', $rs);
         }
-        return implode('&',$rs);
+        return implode('&', $rs);
     }
     return $url;
 }
@@ -131,10 +107,9 @@ function url(string $url,array $data,array $exts=[],array $skip=[]):string
  * @param $uri
  * @return string URL
  */
-function url_original(string $uri =''):string
+function url_original(string $uri = ''): string
 {
-    if('' == $uri)
-    {
+    if ('' == $uri) {
         $uri = $_SERVER['REQUEST_URI'];
     }
     $tmp = explode('?', $uri, 2);
@@ -146,14 +121,13 @@ function url_original(string $uri =''):string
  * @param $uri string
  * @return array
  */
-function url_to_mod(string $uri):array
+function url_to_mod(string $uri): array
 {
-    $uri 	= \explode('/',     $uri, 					2);
-    $uri 	= \explode('.', 	 urldecode($uri[1]),	2);
-    $uri	= \explode('/', 	 $uri[0]  );
-    $mod	= [];
-    foreach ($uri as $v)
-    {
+    $uri = \explode('/', $uri, 2);
+    $uri = \explode('.', urldecode($uri[1]), 2);
+    $uri = \explode('/', $uri[0]);
+    $mod = [];
+    foreach ($uri as $v) {
         $v !== '' && $mod[] = $v;
     }
     return $mod;
@@ -165,36 +139,31 @@ function url_to_mod(string $uri):array
  * @param  $ext_req       bool       网址可否带参加数
  * @param  $domain        string     是否捡查 域名
  */
-function url_check(string $url_original = "",bool $ext_req = true,string $domain = '')
+function url_check(string $url_original = "", bool $ext_req = true, string $domain = '')
 {
     // URL去重
-    $url        = explode('?',$_SERVER['REQUEST_URI'],2);
-    $url_reset  = '';
-    if(false == $ext_req && $url[1])
-    {
-        $url_reset  = $url_original;
-    }elseif($url_original != $url[0])
-    {
-        $url_reset  = $url_original;
-        if($ext_req && $url[1])
-        {
-            $url_reset  = "{$url_reset}?{$url[1]}";
+    $url = explode('?', $_SERVER['REQUEST_URI'], 2);
+    $url_reset = '';
+    if (false == $ext_req && $url[1]) {
+        $url_reset = $url_original;
+    } elseif ($url_original != $url[0]) {
+        $url_reset = $url_original;
+        if ($ext_req && $url[1]) {
+            $url_reset = "{$url_reset}?{$url[1]}";
         }
     }
     // echo("\$url_reset:{$url_reset} \$url_original:{$url_original}\n");
     // exit("\$domain:{$domain}\n");
     // 域名
-    if($domain && $domain != $_SERVER['HTTP_HOST'])
-    {
+    if ($domain && $domain != $_SERVER['HTTP_HOST']) {
         // $domain  = $_SERVER['HTTP_HOST'];
-        $url_reset  = $url_reset?$url_reset:$_SERVER['REQUEST_URI'];
-        $url_reset  = "//{$domain}{$url_reset}";
+        $url_reset = $url_reset ? $url_reset : $_SERVER['REQUEST_URI'];
+        $url_reset = "//{$domain}{$url_reset}";
         // exit("\$url_reset:{$url_reset} \$domain:{$domain}\n");
-        go_url($url_reset,false,301);
-    }else if($url_reset)
-    {
+        go_url($url_reset, false, 301);
+    } else if ($url_reset) {
         // exit("\$url_reset:{$url_reset}\n");
-        go_url($url_reset,false,301);
+        go_url($url_reset, false, 301);
     }
     // exit("\$domain:{$domain}\n");
 }
@@ -205,21 +174,18 @@ function url_check(string $url_original = "",bool $ext_req = true,string $domain
  * @param string $note
  * @param bool $top
  */
-function go_note(string $url1,string $url2,string $note,bool $top=false):void
+function go_note(string $url1, string $url2, string $note, bool $top = false): void
 {
-    $top  = "\t" . ($top?'window.top.':'');
-    $note = $note?$note:'点击“确定”继续操作  点击“取消” 中止操作';
+    $top = "\t" . ($top ? 'window.top.' : '');
+    $note = $note ? $note : '点击“确定”继续操作  点击“取消” 中止操作';
     echo '<script type="text/javascript">' . "\n";
-    if($url2)
-    {
-        $url1 = $top . "location.href='{$url1}';\n" ;
-        $url2 = $top . "location.href='{$url2}';\n" ;
-        echo 'if(window.confirm(' . json_encode($note) . ')){' . "\n" . $url1 . '}else{' . "\n" . $url2. '}' . "\n";
-    }
-    else
-    {
-        $url1 = $top . "location.href='{$url1}';\n" ;
-        echo 'if(window.confirm(' . json_encode($note) . ')){' . "\n" . $url1 . '};'. "\n";
+    if ($url2) {
+        $url1 = $top . "location.href='{$url1}';\n";
+        $url2 = $top . "location.href='{$url2}';\n";
+        echo 'if(window.confirm(' . json_encode($note) . ')){' . "\n" . $url1 . '}else{' . "\n" . $url2 . '}' . "\n";
+    } else {
+        $url1 = $top . "location.href='{$url1}';\n";
+        echo 'if(window.confirm(' . json_encode($note) . ')){' . "\n" . $url1 . '};' . "\n";
     }
     echo '</script>' . "\n";
     exit();
@@ -229,25 +195,19 @@ function go_note(string $url1,string $url2,string $note,bool $top=false):void
  * @param $url
  * @param bool $top
  * @param int $head_code
- * @param int $delay      延时跳转(单位秒)
+ * @param int $delay 延时跳转(单位秒)
  */
-function go_url(string $url,bool $top=false,int $head_code=302,int $delay=0):void
+function go_url(string $url, bool $top = false, int $head_code = 302, int $delay = 0): void
 {
-    if($top)
-    {
+    if ($top) {
         echo '<script type="text/javascript">' . "\n";
         echo "window.top.location.href='{$url}';\n";
         echo '</script>' . "\n";
-    }
-    else
-    {
-        if(!headers_sent() && 0 == $delay)
-        {
-            header('Location: '.$url,null,$head_code);
-        }
-        else
-        {
-            echo '<meta http-equiv="refresh" content="'.((int)$delay).';url=' . $url . '">';
+    } else {
+        if (!headers_sent() && 0 == $delay) {
+            header('Location: ' . $url, null, $head_code);
+        } else {
+            echo '<meta http-equiv="refresh" content="' . ((int)$delay) . ';url=' . $url . '">';
         }
     }
     exit();
@@ -256,11 +216,9 @@ function go_url(string $url,bool $top=false,int $head_code=302,int $delay=0):voi
 /**
  * 返回
  */
-function go_back():void
+function go_back(): void
 {
-    echo '<script type="text/javascript">',"\n",
-    'window.history.go(-1);',"\n",
-    '</script>',"\n";
+    echo '<script type="text/javascript">', "\n", 'window.history.go(-1);', "\n", '</script>', "\n";
     exit();
 }
 
@@ -268,13 +226,11 @@ function go_back():void
  * @param $msg
  * @param $url
  */
-function go_msg(string $msg,string $url = ''):void
+function go_msg(string $msg, string $url = ''): void
 {
-    if($url)
-    {
-        exit(msg($msg).'<meta http-equiv="refresh" content="0.5;url=' . $url . '">');
-    }else
-    {
+    if ($url) {
+        exit(msg($msg) . '<meta http-equiv="refresh" content="0.5;url=' . $url . '">');
+    } else {
         echo msg($msg);
         go_back();
     }
@@ -286,9 +242,9 @@ function go_msg(string $msg,string $url = ''):void
  * @param $data
  * @return string
  */
-function json_encode_unescaped($data):string
+function json_encode_unescaped($data): string
 {
-    return \json_encode($data,JSON_UNESCAPED_UNICODE);
+    return \json_encode($data, JSON_UNESCAPED_UNICODE);
 }
 
 /**
@@ -298,7 +254,7 @@ function json_encode_unescaped($data):string
  */
 function json_decode_array(string $json_string)
 {
-    return \json_decode($json_string,true);
+    return \json_decode($json_string, true);
 }
 
 /**
@@ -308,9 +264,8 @@ function json_decode_array(string $json_string)
  */
 function exts_decode_php(string $exts_string)
 {
-    $exts     = [];
-    if($exts_string)
-    {
+    $exts = [];
+    if ($exts_string) {
         $exts = unserialize($exts_string);
     }
     return $exts;
@@ -323,9 +278,8 @@ function exts_decode_php(string $exts_string)
  */
 function exts_decode_json(string $exts_string)
 {
-    $exts     = [];
-    if($exts_string)
-    {
+    $exts = [];
+    if ($exts_string) {
         $exts = json_decode($exts_string);
     }
     return $exts;
@@ -337,7 +291,7 @@ function exts_decode_json(string $exts_string)
  * @param string $string to encode
  * @return string
  */
-function base64_url_encode(string $string = null):string
+function base64_url_encode(string $string = null): string
 {
     return strtr(base64_encode($string), '+/=', '-_~');
 }
@@ -348,7 +302,7 @@ function base64_url_encode(string $string = null):string
  * @param string $string to decode
  * @return string
  */
-function base64_url_decode(string $string = null):string
+function base64_url_decode(string $string = null): string
 {
     return base64_decode(strtr($string, '-_~', '+/='));
 }
@@ -359,23 +313,16 @@ function base64_url_decode(string $string = null):string
  * @param  $id int to encode
  * @return string
  */
-function short_url_encode(int $id = 0):string
+function short_url_encode(int $id = 0): string
 {
-    if($id < 10)
-    {
+    if ($id < 10) {
         return (string)$id;
     }
     $show = '';
-    while($id>0)
-    {
-        $s    = $id % 62;
-        $show = ($s>35
-                ? chr($s+61)
-                : ($s>9
-                    ? chr($s+55)
-                    : $s
-                )).$show;
-        $id    = floor($id/62);
+    while ($id > 0) {
+        $s = $id % 62;
+        $show = ($s > 35 ? chr($s + 61) : ($s > 9 ? chr($s + 55) : $s)) . $show;
+        $id = floor($id / 62);
     }
     return $show;
 }
@@ -386,15 +333,14 @@ function short_url_encode(int $id = 0):string
  * @param  $string string 字符串
  * @return int
  */
-function short_url_decode(string $string = ''):int
+function short_url_decode(string $string = ''): int
 {
-    $p  = 0;
-    while($string !== '')
-    {
-        $s      = substr($string,0,1);
-        $n      = is_numeric($s)?$s:ord($s);
-        $p      = $p*62 + (($n >= 97)?( $n - 61) :( $n >= 65 ? $n - 55 : $n )) ;
-        $string = substr($string,1);
+    $p = 0;
+    while ($string !== '') {
+        $s = substr($string, 0, 1);
+        $n = is_numeric($s) ? $s : ord($s);
+        $p = $p * 62 + (($n >= 97) ? ($n - 61) : ($n >= 65 ? $n - 55 : $n));
+        $string = substr($string, 1);
     }
     return $p;
 }
@@ -413,21 +359,16 @@ function short_url_decode(string $string = ''):int
  * @param bool $meta
  * @return string
  */
-function msg(string $msg, bool $outer = true, $meta = true):string
+function msg(string $msg, bool $outer = true, $meta = true): string
 {
     $rs = "\n" . 'alert(' . json_encode($msg) . ');' . "\n";
-    if($outer)
-    {
-        if($meta)
-        {
+    if ($outer) {
+        if ($meta) {
             $mt = '<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />' . "\n";
-        }else
-        {
+        } else {
             $mt = '';
         }
-        $rs = $mt. '<script type="text/javascript">' . "\n"
-            . $rs . "\n"
-            . '</script>' . "\n";
+        $rs = $mt . '<script type="text/javascript">' . "\n" . $rs . "\n" . '</script>' . "\n";
     }
     return $rs;
 }
@@ -438,16 +379,13 @@ function msg(string $msg, bool $outer = true, $meta = true):string
  * @param string $msg
  * @param bool $close
  */
-function msg_close(string $msg,bool $close=false):void
+function msg_close(string $msg, bool $close = false): void
 {
     $rs = "\n" . 'alert(' . json_encode($msg) . ');' . "\n";
     $mt = '<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />' . "\n";
-    $rs = $mt. '<script type="text/javascript">' . "\n"
-        . $rs . "\n"
-        . '</script>' . "\n";
+    $rs = $mt . '<script type="text/javascript">' . "\n" . $rs . "\n" . '</script>' . "\n";
     echo $rs;
-    if($close)
-    {
+    if ($close) {
         // 本页自动关闭.
         echo '<script type="text/javascript">window.opener = null; window.open("", "_self", ""); window.close(); </script>';
     }
@@ -460,11 +398,10 @@ function msg_close(string $msg,bool $close=false):void
  * @param string $data_dir
  * @return mixed
  */
-function data(string $data_mod,string $data_dir)
+function data(string $data_mod, string $data_dir)
 {
-    $filename  = "{$data_dir}data.{$data_mod}.ini.php";
-    if(file_exists($filename))
-    {
+    $filename = "{$data_dir}data.{$data_mod}.ini.php";
+    if (file_exists($filename)) {
         return require $filename;
     }
     return null;
@@ -473,33 +410,28 @@ function data(string $data_mod,string $data_dir)
 /**
  * HTTP缓存控制
  *
- * @param int 		$expires		缓存时间 0:为不缓存 单位:s
- * @param string 	$etag			ETag
- * @param int 		$LastModified	最后更新时间
+ * @param int $expires 缓存时间 0:为不缓存 单位:s
+ * @param string $etag ETag
+ * @param int $LastModified 最后更新时间
  */
-function expires(int $expires = 0,string $etag = '', int $LastModified = 0)
+function expires(int $expires = 0, string $etag = '', int $LastModified = 0)
 {
-    if($expires)
-    {
-        $time   = time();
+    if ($expires) {
+        $time = time();
         header("Expires: " . gmdate("D, d M Y H:i:s", $time + $expires) . " GMT");
         header("Cache-Control: max-age=" . $expires);
-        $LastModified && header("Last-Modified: " . gmdate("D, d M Y H:i:s", $LastModified) . " GMT");
-        if($etag)
-        {
-            if($etag == $_SERVER["HTTP_IF_NONE_MATCH"])
-            {
+        if($LastModified) {
+            header("Last-Modified: " . gmdate("D, d M Y H:i:s", $LastModified) . " GMT");
+        }
+        if ($etag) {
+            if ($etag == $_SERVER["HTTP_IF_NONE_MATCH"]) {
                 header("Etag: " . $etag, true, 304);
                 exit();
-            }
-            else
-            {
+            } else {
                 header("Etag: " . $etag);
             }
         }
-    }
-    else
-    {
+    } else {
         header("Expires: Mon, 26 Jul 1997 05:00:00 GMT");
         header("Cache-Control: no-cache, must-revalidate");
         header("Pragma: no-cache");
@@ -510,7 +442,7 @@ function expires(int $expires = 0,string $etag = '', int $LastModified = 0)
  * error 404
  * @param string $msg
  */
-function error404(string $msg=''):void
+function error404(string $msg = ''): void
 {
     header('HTTP/1.1 404 Not Found');
     exit('<html>
@@ -520,19 +452,19 @@ function error404(string $msg=''):void
             </head>
             <body bgcolor="white">
                 <div align="center">
-                    <h1>404 Not Found'.($msg?'('.$msg.')':'').'</h1>
+                    <h1>404 Not Found' . ($msg ? '(' . $msg . ')' : '') . '</h1>
                 </div>
                 <hr>
                 <div align="center"><a href="/">返回网站首页</a></div>
             </body>
             </html>
             <!-- a padding to disable MSIE and Chrome friendly error page -->
-            <!-- '.\ounun\scfg::$app_name.' -->
+            <!-- ' . \ounun\scfg::$app_name . ' -->
             <!-- a padding to disable MSIE and Chrome friendly error page -->
             <!-- a padding to disable MSIE and Chrome friendly error page -->
             <!-- a padding to disable MSIE and Chrome friendly error page -->
             <!-- a padding to disable MSIE and Chrome friendly error page -->
-            <!-- a padding to disable MSIE and Chrome friendly error page -->'."\n");
+            <!-- a padding to disable MSIE and Chrome friendly error page -->' . "\n");
 }
 
 /**
@@ -540,10 +472,10 @@ function error404(string $msg=''):void
  * @param $string
  * @return array
  */
-function explodes(string $delimiters,string $string)
+function explodes(string $delimiters, string $string)
 {
-    $ready  = \str_replace($delimiters, $delimiters[0], $string);
-    $launch = \explode($delimiters[0],  $ready);
+    $ready = \str_replace($delimiters, $delimiters[0], $string);
+    $launch = \explode($delimiters[0], $ready);
     return $launch;
 }
 
@@ -554,7 +486,7 @@ function explodes(string $delimiters,string $string)
  * @param string $string to encode
  * @return string
  */
-function safe(string $string):string
+function safe(string $string): string
 {
     return htmlspecialchars($string, ENT_QUOTES, 'utf-8');
 }
@@ -568,18 +500,17 @@ function safe(string $string):string
  * @param bool $spaces TRUE to allow spaces
  * @return string
  */
-function sanitize(string $string, bool $spaces = true):string
+function sanitize(string $string, bool $spaces = true): string
 {
     $search = [
-        '/[^\w\-\. ]+/u',			// Remove non safe characters
-        '/\s\s+/',					// Remove extra whitespace
-        '/\.\.+/', '/--+/', '/__+/'	// Remove duplicate symbols
+        '/[^\w\-\. ]+/u',   // Remove non safe characters
+        '/\s\s+/',          // Remove extra whitespace
+        '/\.\.+/',
+        '/--+/',
+        '/__+/'             // Remove duplicate symbols
     ];
-
     $string = preg_replace($search, [' ', ' ', '.', '-', '_'], $string);
-
-    if( ! $spaces)
-    {
+    if (!$spaces) {
         $string = preg_replace('/--+/', '-', str_replace(' ', '-', $string));
     }
     return trim($string, '-._ ');
@@ -591,7 +522,7 @@ function sanitize(string $string, bool $spaces = true):string
  * @param string $string to filter
  * @return string
  */
-function sanitize_url(string $string):string
+function sanitize_url(string $string): string
 {
     return urlencode(mb_strtolower(sanitize($string, false)));
 }
@@ -602,7 +533,7 @@ function sanitize_url(string $string):string
  * @param string $string to filter
  * @return string
  */
-function sanitize_filename(string $string):string
+function sanitize_filename(string $string): string
 {
     return sanitize($string, false);
 }
@@ -613,12 +544,11 @@ function sanitize_filename(string $string):string
  */
 function environment()
 {
-    if(isset($GLOBALS['_environment_']))
-    {
+    if (isset($GLOBALS['_environment_'])) {
         return $GLOBALS['_environment_'];
     }
-    $env_file                 = Dir_Root.'environment.txt';
-    $GLOBALS['_environment_'] = (file_exists($env_file) && filesize($env_file) >= 1 )? trim(file_get_contents($env_file)):'';
+    $env_file = Dir_Root . 'environment.txt';
+    $GLOBALS['_environment_'] = (file_exists($env_file) && filesize($env_file) >= 1) ? trim(file_get_contents($env_file)) : '';
     return $GLOBALS['_environment_'];
 }
 
@@ -633,7 +563,7 @@ class ret
     /**
      * @var bool 返回状态
      */
-    public $ret        = false;
+    public $ret = false;
     /**
      * @var int 错误代码
      */
@@ -641,7 +571,7 @@ class ret
     /**
      * @var mixed 返回数据
      */
-    public $data       = null;
+    public $data = null;
 
     /**
      * Ret constructor.
@@ -649,11 +579,11 @@ class ret
      * @param int $error_code
      * @param null $data
      */
-    public function __construct(bool $return,int $error_code=0,$data=null)
+    public function __construct(bool $return, int $error_code = 0, $data = null)
     {
-        $this->ret          = $return;
-        $this->error_code   = $error_code;
-        $this->data         = $data;
+        $this->ret = $return;
+        $this->error_code = $error_code;
+        $this->data = $data;
     }
 }
 
@@ -674,28 +604,27 @@ class v extends \ounun\base
      */
     public function __construct($mod)
     {
-        if(!$mod)
-        {
+        if (!$mod) {
             $mod = [\ounun\scfg::def_method];
         }
-        $method  = $mod[0];
-        $this->$method( $mod );
+        $method = $mod[0];
+        $this->$method($mod);
     }
 
     /** @var int cache_html_time */
     protected $_cache_html_time = 2678400; // 31天
 
-    /** @var bool html_trim  */
+    /** @var bool html_trim */
     protected $_cache_html_trim = true;
 
     /** @var string 当前面页(网址) */
-    protected $_page_url        = '';
+    protected $_page_url = '';
 
     /** @var string 当前面页(文件名) */
-    protected $_page_file       = '';
+    protected $_page_file = '';
 
     /** @var \ounun\mysqli DB */
-    protected $_db_v            = null;
+    protected $_db_v = null;
 
     /**
      * 初始化Page
@@ -709,24 +638,23 @@ class v extends \ounun\base
     public function init_page(string $page_file = '', bool $is_cache_html = true, bool $ext_req = true, string $domain = '', int $cache_html_time = 0, bool $cache_html_trim = true)
     {
         // url_check
-        $this->_page_file        = $page_file;
-        $this->_page_url         = \ounun\scfg::url_page($this->_page_file);
-        url_check($this->_page_url,$ext_req,$domain);
+        $this->_page_file = $page_file;
+        $this->_page_url = \ounun\scfg::url_page($this->_page_file);
+        url_check($this->_page_url, $ext_req, $domain);
 
         // cache_html
-        if($is_cache_html)
-        {
+        if ($is_cache_html) {
             $this->_cache_html_trim = $cache_html_trim;
             $this->_cache_html_time = $cache_html_time > 300 ? $cache_html_time : $this->_cache_html_time;
             $this->cache_html($this->_page_url);
         }
 
         // cms
-        $cls       = \ounun\scfg::$app_cms_classname;
+        $cls = \ounun\scfg::$app_cms_classname;
         self::$cms = new $cls();
 
         // template
-        self::$tpl   || self::$tpl   = new \ounun\template(\ounun\scfg::$tpl_style,\ounun\scfg::$tpl_default,$cache_html_trim);
+        self::$tpl || self::$tpl = new \ounun\template(\ounun\scfg::$tpl_style, \ounun\scfg::$tpl_default, $cache_html_trim);
 
         // db
         $this->_db_v || $this->_db_v = self::db(\ounun\scfg::$app_name);
@@ -759,13 +687,13 @@ class v extends \ounun\base
      * @param string $h1
      * @param string $etag
      */
-    public function tkd(string $title= '', string $keywords='', string $description='', string $h1='', string $etag='')
+    public function tkd(string $title = '', string $keywords = '', string $description = '', string $h1 = '', string $etag = '')
     {
-        $title       && $this->_seo_title       = $title;
-        $keywords    && $this->_seo_keywords    = $keywords;
+        $title && $this->_seo_title = $title;
+        $keywords && $this->_seo_keywords = $keywords;
         $description && $this->_seo_description = $description;
-        $h1          && $this->_seo_h1          = $h1;
-        $etag        && $this->_seo_etag        = $etag;
+        $h1 && $this->_seo_h1 = $h1;
+        $etag && $this->_seo_etag = $etag;
     }
 
     /** @var \ounun\cache\html cache_html */
@@ -777,12 +705,11 @@ class v extends \ounun\base
      */
     public function cache_html($key)
     {
-        if('' == Environment && \ounun\scfg::$g['cache_html'])
-        {
-            $cfg                = \ounun\scfg::$g['cache_html'];
-            $cfg['mod']         = 'html_'.\ounun\scfg::$app_name.\ounun\scfg::$tpl_style;
-            $key2               = \ounun\scfg::$app_name.'_'.\ounun\scfg::$tpl_style.'_'.$key;
-            self::$cache_html   = new \ounun\cache\html($cfg,$key2,$this->_cache_html_time,$this->_cache_html_trim,'' == Environment );
+        if ('' == Environment && \ounun\scfg::$g['cache_html']) {
+            $cfg = \ounun\scfg::$g['cache_html'];
+            $cfg['mod'] = 'html_' . \ounun\scfg::$app_name . \ounun\scfg::$tpl_style;
+            $key2 = \ounun\scfg::$app_name . '_' . \ounun\scfg::$tpl_style . '_' . $key;
+            self::$cache_html = new \ounun\cache\html($cfg, $key2, $this->_cache_html_time, $this->_cache_html_trim, '' == Environment);
             self::$cache_html->run(true);
         }
     }
@@ -793,26 +720,24 @@ class v extends \ounun\base
      */
     public function cache_html_stop(bool $output)
     {
-        if(self::$cache_html)
-        {
+        if (self::$cache_html) {
             self::$cache_html->stop($output);
             self::$tpl->replace();
         }
     }
 
-    /** @var \ounun\debug 调试 相关*/
-    public $debug	= null;
+    /** @var \ounun\debug 调试 相关 */
+    public $debug = null;
 
     /**
      * 调试日志
      * @param $k
      * @param $log
      */
-    public function debug_logs(string $k,$log)
+    public function debug_logs(string $k, $log)
     {
-        if($this->debug)
-        {
-            $this->debug->logs($k,$log);
+        if ($this->debug) {
+            $this->debug->logs($k, $log);
         }
     }
 
@@ -821,22 +746,21 @@ class v extends \ounun\base
      */
     public function debug_stop()
     {
-        if($this->debug)
-        {
+        if ($this->debug) {
             $this->debug->stop();
         }
     }
 
 
     /** @var  \ounun\template  Template句柄容器 */
-    public static $tpl               = null;
+    public static $tpl = null;
 
     /**
      * (兼容)返回一个 模板文件地址(绝对目录,相对root)
      * @param string $filename
      * @return string
      */
-    static public function tpl_fixed(string $filename):string
+    static public function tpl_fixed(string $filename): string
     {
         return self::$tpl->tpl_fixed($filename);
     }
@@ -846,7 +770,7 @@ class v extends \ounun\base
      * @param string $filename
      * @return string
      */
-    static public function tpl_curr(string $filename):string
+    static public function tpl_curr(string $filename): string
     {
         return self::$tpl->tpl_curr($filename);
     }
@@ -854,38 +778,36 @@ class v extends \ounun\base
     /** 赋值(默认) $seo + $url */
     public function tpl_data_default()
     {
-        $url_base        = substr($this->_page_url,1);
+        $url_base = substr($this->_page_url, 1);
         \ounun\scfg::$tpl_data += [
-            '{$seo_title}'        => $this->_seo_title,
-            '{$seo_keywords}'     => $this->_seo_keywords,
-            '{$seo_description}'  => $this->_seo_description,
-            '{$seo_h1}'           => $this->_seo_h1,
-            '{$etag}'             => $this->_seo_etag,
+            '{$seo_title}' => $this->_seo_title,
+            '{$seo_keywords}' => $this->_seo_keywords,
+            '{$seo_description}' => $this->_seo_description,
+            '{$seo_h1}' => $this->_seo_h1,
+            '{$etag}' => $this->_seo_etag,
+            '{$page_url}' => $this->_page_url,
+            '{$page_file}' => $this->_page_file,
 
-            '{$page_url}'         => $this->_page_url ,
-            '{$page_file}'        => $this->_page_file,
-
-            '{$url_www}'          => \ounun\scfg::$url_www,
-            '{$url_wap}'          => \ounun\scfg::$url_wap,
-            '{$url_mip}'          => \ounun\scfg::$url_mip,
-            '{$url_api}'          => \ounun\scfg::$url_api,
-            '{$url_app}'          => \ounun\scfg::url_page(),
-
+            '{$url_www}' => \ounun\scfg::$url_www,
+            '{$url_wap}' => \ounun\scfg::$url_wap,
+            '{$url_mip}' => \ounun\scfg::$url_mip,
+            '{$url_api}' => \ounun\scfg::$url_api,
+            '{$url_app}' => \ounun\scfg::url_page(),
 
 
-            '{$canonical_pc}'     => \ounun\scfg::$url_www.$url_base,
-            '{$canonical_mip}'    => \ounun\scfg::$url_mip.$url_base,
-            '{$canonical_wap}'    => \ounun\scfg::$url_wap.$url_base,
+            '{$canonical_pc}' => \ounun\scfg::$url_www . $url_base,
+            '{$canonical_mip}' => \ounun\scfg::$url_mip . $url_base,
+            '{$canonical_wap}' => \ounun\scfg::$url_wap . $url_base,
 
-            '{$app}'              => \ounun\scfg::$app_name,
-            '{$domain}'           => \ounun\scfg::$app_domain,
+            '{$app}' => \ounun\scfg::$app_name,
+            '{$domain}' => \ounun\scfg::$app_domain,
 
-            '{$sres}'             => \ounun\scfg::$url_res,
-            '{$static}'           => \ounun\scfg::$url_static,
-            '{$upload}'           => \ounun\scfg::$url_upload,
-            '{$static_g}'         => \ounun\scfg::$url_static_g,
-            '/public/static/'     => \ounun\scfg::$url_static,
-            '/public/upload/'     => \ounun\scfg::$url_upload,
+            '{$sres}' => \ounun\scfg::$url_res,
+            '{$static}' => \ounun\scfg::$url_static,
+            '{$upload}' => \ounun\scfg::$url_upload,
+            '{$static_g}' => \ounun\scfg::$url_static_g,
+            '/public/static/' => \ounun\scfg::$url_static,
+            '/public/upload/' => \ounun\scfg::$url_upload,
         ];
     }
 
@@ -906,11 +828,9 @@ class v extends \ounun\base
     {
         url_check('/robots.txt');
         header('Content-Type: text/plain');
-        if(file_exists(\ounun\scfg::$dir_app.'robots.txt'))
-        {
-            readfile(\ounun\scfg::$dir_app.'robots.txt');
-        }else
-        {
+        if (file_exists(\ounun\scfg::$dir_app . 'robots.txt')) {
+            readfile(\ounun\scfg::$dir_app . 'robots.txt');
+        } else {
             exit("User-agent: *\nDisallow:");
         }
     }
@@ -920,6 +840,6 @@ class v extends \ounun\base
      */
     public function favicon($mod)
     {
-        go_url(\ounun\scfg::$url_static.'favicon.ico',false,301);
+        go_url(\ounun\scfg::$url_static . 'favicon.ico', false, 301);
     }
 }

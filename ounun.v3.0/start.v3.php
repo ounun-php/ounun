@@ -32,10 +32,8 @@ class base
 	 */
 	public static function db(string $key,$db_cfg = null):\ounun\mysqli
 	{
-        if(empty(self::$_db[$key]))
-        {
-            if(null == $db_cfg)
-            {
+        if(empty(self::$_db[$key])) {
+            if(null == $db_cfg) {
                 $db_cfg = scfg::$db_cfg[$key];
             }
             self::$_db[$key] = new \ounun\mysqli($db_cfg);
@@ -146,11 +144,9 @@ class scfg
     {
         $lang && self::$lang = $lang;
         $lang_default && self::$lang_default = $lang_default;
-        if($lang  == self::$lang_default)
-        {
+        if($lang  == self::$lang_default) {
             self::$i18n     = "\\model\\i18n";
-        }else
-        {
+        } else {
             self::$i18n     = "\\model\\i18n\\{$lang}";
         }
     }
@@ -161,10 +157,8 @@ class scfg
      */
     static public function set_lang_support(array $langs = [])
     {
-        if($langs)
-        {
-            foreach ($langs as $lang=>$lang_name)
-            {
+        if($langs) {
+            foreach ($langs as $lang=>$lang_name) {
                 self::$langs[$lang] = $lang_name;
             }
         }
@@ -176,10 +170,8 @@ class scfg
      */
     static public function set_global(array $cfgs = [])
     {
-        if($cfgs)
-        {
-            foreach ($cfgs as $cfg=>$data)
-            {
+        if($cfgs) {
+            foreach ($cfgs as $cfg=>$data) {
                 self::$g[$cfg] = $data;
             }
         }
@@ -192,10 +184,8 @@ class scfg
      */
     static public function set_database(array $database_cfg = [])
     {
-        if($database_cfg)
-        {
-            foreach ($database_cfg as $db_key=>$db_cfg)
-            {
+        if($database_cfg) {
+            foreach ($database_cfg as $db_key=>$db_cfg) {
                 self::$db_cfg[$db_key] = $db_cfg;
             }
         }
@@ -204,15 +194,12 @@ class scfg
     /** 设定路由数据 */
     static public function set_routes(array $routes,array $routes_default = [])
     {
-        if($routes)
-        {
-            foreach ($routes as $k=>$v)
-            {
+        if($routes) {
+            foreach ($routes as $k=>$v) {
                 self::$routes[$k] = $v;
             }
         }
-        if($routes_default)
-        {
+        if($routes_default) {
             self::$routes_default = $routes_default;
         }
     }
@@ -268,11 +255,9 @@ class scfg
         // 根目录
         $dir_root   && self::$dir_root  = $dir_root;
         // APP目录
-        if($dir_app)
-        {
+        if($dir_app) {
             self::$dir_app = $dir_app;
-        }elseif(!self::$dir_app)
-        {
+        }elseif(!self::$dir_app) {
             self::$dir_app = Dir_App.self::$app_name.'/';
         }
     }
@@ -283,8 +268,7 @@ class scfg
      */
     static public function set_tpl_dirs(string $tpl_dir)
     {
-        if( !in_array($tpl_dir,self::$tpl_dirs) )
-        {
+        if( !in_array($tpl_dir,self::$tpl_dirs) ) {
             self::$tpl_dirs[] = $tpl_dir;
         }
     }
@@ -305,10 +289,8 @@ class scfg
      */
     static public function set_tpl_array(array $data)
     {
-        if($data && is_array($data))
-        {
-            foreach ($data as $key => $value)
-            {
+        if($data && is_array($data)) {
+            foreach ($data as $key => $value) {
                 self::$tpl_data[$key] = $value;
             }
         }
@@ -323,21 +305,16 @@ class scfg
     /** @var string 当前面页 Url */
     static public function url_page(string $url='',$lang='')
     {
-        if(!$lang)
-        {
+        if(!$lang) {
             $lang = self::$lang;
         }
-        if($url !== '' && $url[0] == '/')
-        {
-            if($lang == self::$lang_default)
-            {
+        if($url !== '' && $url[0] == '/') {
+            if($lang == self::$lang_default) {
                 return self::$app_path.substr($url,1);
             }
             return '/'.$lang.self::$app_path.substr($url,1);
-        }else
-        {
-            if($lang == self::$lang_default)
-            {
+        } else {
+            if($lang == self::$lang_default) {
                 return self::$app_path.$url;
             }
             return '/'.$lang.self::$app_path.$url;
@@ -353,8 +330,7 @@ class scfg
      */
     static public function surl($url,string $static_root = '/static/'):string
     {
-        if($url && is_array($url) )
-        {
+        if($url && is_array($url) ) {
             $url = count($url) > 1 ? '??'.implode(',',$url) : $url[0];
         }
         return "{$static_root}{$url}";
@@ -368,18 +344,14 @@ class scfg
      */
     static public function add_paths(string $path,string $namespace_prefix = '',bool $cut_path = false)
     {
-        if($path)
-        {
+        if($path) {
             $len = strlen($path);
-            if($namespace_prefix)
-            {
+            if($namespace_prefix) {
                 $first  = explode('\\', $namespace_prefix)[0];
-            }else
-            {
+            }else {
                 $first  = '';
             }
-            if(!self::$maps_paths  ||  !self::$maps_paths[$first]  ||  !in_array($path,self::$maps_paths[$first]) )
-            {
+            if(!self::$maps_paths  ||  !self::$maps_paths[$first]  ||  !in_array($path,self::$maps_paths[$first]) ) {
                 self::$maps_paths[$first][] = [
                     'path'      => $path,
                     'len'       => $len ,
@@ -407,8 +379,7 @@ class scfg
     static public function load_class($class)
     {
         // 类库映射
-        if (!empty(self::$maps_class[$class]))
-        {
+        if (!empty(self::$maps_class[$class])) {
             require self::$maps_class[$class];
             return;
         }
@@ -417,18 +388,13 @@ class scfg
         // 查找 PSR-4 prefix
         $filename  = strtr($class, '\\', '/') . '.php';
         $firsts    = [explode('\\', $class)[0],''];
-        foreach ($firsts as $first)
-        {
-            if (isset(self::$maps_paths[$first]))
-            {
-                foreach (self::$maps_paths[$first] as $v)
-                {
-                    if (0 === strpos($class, $v['namespace']))
-                    {
+        foreach ($firsts as $first) {
+            if (isset(self::$maps_paths[$first])) {
+                foreach (self::$maps_paths[$first] as $v) {
+                    if (0 === strpos($class, $v['namespace'])) {
                         $file = $v['path'].($v['cut']?substr($filename, $v['len']):$filename);
                         // echo " load_class  -> \$class :{$class}  \t\$filename:{$filename}  \t\$file1:{$file} \n";
-                        if(is_file($file))
-                        {
+                        if(is_file($file)) {
                             require $file;
                             return;
                         }
@@ -446,14 +412,11 @@ class scfg
     static public function load_controller($controller_file)
     {
         $controller = self::$maps_paths['controller'];
-        if($controller && is_array($controller))
-        {
-            foreach ($controller as $v)
-            {
+        if($controller && is_array($controller)) {
+            foreach ($controller as $v) {
                 $filename  = $v['path'] . $controller_file;
                 // echo "\$filename:{$filename}\n";
-                if(file_exists($filename))
-                {
+                if(file_exists($filename)) {
                     return $filename;
                 }
             }
@@ -474,8 +437,7 @@ class scfg
         file_exists($dir.'config.php') && require $dir.'config.php';
         // echo 'load_config -> '.__LINE__.':'.(file_exists($dir.'config.php')?'1':'0').' '.$dir.'config.php'."\n";
         /** 加载config-xxx */
-        if(Environment && file_exists($dir.'config'.Environment.'.php'))
-        {
+        if(Environment && file_exists($dir.'config'.Environment.'.php')) {
             require $dir.'config'.Environment.'.php';
             // echo 'load_config -> '.__LINE__.':'.(file_exists($dir.'config'.Environment.'.php')?'1':'0').' '.$dir.'config'.Environment.'.php'."\n";
         }
@@ -499,11 +461,9 @@ class scfg
 function start(array $mod,string $host)
 {
     // 语言
-    if($mod && $mod[0] && scfg::$langs[$mod[0]])
-    {
+    if($mod && $mod[0] && scfg::$langs[$mod[0]]) {
         $lang = array_shift($mod);
-    }else
-    {
+    } else {
         $lang = scfg::$lang ? scfg::$lang : scfg::$lang_default;
     }
     scfg::set_lang($lang);
@@ -512,15 +472,12 @@ function start(array $mod,string $host)
     \ounun\scfg::load_config(Dir_App);
 
     // Routes
-    if($mod && $mod[0] && scfg::$routes["{$host}/{$mod[0]}"])
-    {
+    if($mod && $mod[0] && scfg::$routes["{$host}/{$mod[0]}"]) {
         $mod_0 = array_shift($mod);
         $val_0 = scfg::$routes["{$host}/{$mod_0}"];
-    }elseif(scfg::$routes[$host])
-    {
+    }elseif(scfg::$routes[$host]) {
         $val_0 = scfg::$routes[$host];
-    }else
-    {
+    }else {
         $val_0 = scfg::$routes_default;
     }
 
@@ -545,68 +502,50 @@ function start(array $mod,string $host)
     header('X-Powered-By: Ounun.org');
 
     // 设定 模块与方法
-    if(is_array($mod) && $mod[0])
-    {
+    if(is_array($mod) && $mod[0]) {
         $filename         = scfg::load_controller("controller/{$mod[0]}.php");
-        if(file_exists($filename))
-        {
+        if(file_exists($filename)) {
             $module		  = $mod[0];
-            if($mod[1])
-            {
+            if($mod[1]) {
                 array_shift($mod);
-            }else
-            {
+            } else {
                 $mod	  = [scfg::def_method];
             }
-        }
-        else
-        {
-            if($mod[1])
-            {
+        } else {
+            if($mod[1]) {
                 $filename           = scfg::load_controller("controller/{$mod[0]}/{$mod[1]}.php");
-                if(file_exists($filename))
-                {
+                if(file_exists($filename)) {
                     $module		    = $mod[0].'\\'.$mod[1];
-                    if($mod[2])
-                    {
+                    if($mod[2]) {
                         array_shift($mod);
                         array_shift($mod);
-                    }else
-                    {
+                    }else {
                         $mod	    = [scfg::def_method];
                     }
-                }else
-                {
+                } else {
                     $filename       = scfg::load_controller("controller/{$mod[0]}/index.php");
-                    if(file_exists($filename))
-                    {
+                    if(file_exists($filename)) {
                         $module	    = "{$mod[0]}\\index";
                         array_shift($mod);
-                    }else
-                    {
+                    } else {
                         $module		= scfg::def_module;
                         $filename 	= scfg::load_controller("controller/index.php");
                     }
                 }
-            }else
-            {
+            } else {
                 $filename       = scfg::load_controller("controller/{$mod[0]}/index.php");
-                if(file_exists($filename))
-                {
+                if(file_exists($filename)) {
                     $module		= "{$mod[0]}\\index";
                     $mod	    =  [scfg::def_method];
                     // array_shift($mod);
-                }else
-                {
+                } else {
                     // 默认模块
                     $module		= scfg::def_module;
                     $filename 	= scfg::load_controller("controller/index.php");
                 }
             }
         } // end \Dir_App . "module/" . $mod[0] . '.php';
-    }
-    else
-    {
+    } else {
         // 默认模块 与 默认方法
         $mod				= [scfg::def_method];
         $module				=  scfg::def_module;
@@ -619,9 +558,7 @@ function start(array $mod,string $host)
     if(class_exists($module,false))
     {
         new $module($mod);
-    }
-    else
-    {
+    } else {
         header('HTTP/1.1 404 Not Found');
         trigger_error("ERROR! Can't find Module:'{$module}'.", E_USER_ERROR);
     }
@@ -641,8 +578,7 @@ function start_cmd($argv)
     $mod    = $argv[1];
     $mod    = explode(',', $mod);
     $host   = $argv[2]?$argv[2]:'adm';
-    if('zrun_' != substr($mod[0],0,5) )
-    {
+    if('zrun_' != substr($mod[0],0,5) ) {
         exit("error php shell only:zrun_*\n");
     }
     start($mod,$host);

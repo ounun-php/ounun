@@ -30,7 +30,7 @@ define('Const_Baidu_Xzh_Token',             '');
 \ounun\scfg::set_global([
     'cache_file' =>
         [
-            'type' 			=> \ounun\core::Type_File,
+            'type' 			=> \ounun\cache\core::Type_File,
             'mod'  			=> 'html',
             'root' 			=> Dir_Cache,
             'format_string' => false,
