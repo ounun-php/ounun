@@ -1,5 +1,5 @@
 <?php
-namespace ounun\seo\cfg;
+namespace ounun\seo\config;
 
 
 class domain

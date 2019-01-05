@@ -36,8 +36,8 @@ class user
             list($yg, ,$openid_en,$time_en,$type,$hex) = explode('.',$_COOKIE['_']);
             if($yg == 'yg' && $openid_en && $time_en && $hex)
             {
-                $openid   = \ounun\short_url_decode($openid_en);
-                $time     = \ounun\short_url_decode($time_en);
+                $openid   = \short_url_decode($openid_en);
+                $time     = \short_url_decode($time_en);
                 $now_time = time();
                 if($time > $now_time)
                 {
@@ -66,18 +66,18 @@ class user
      * @param int $type 0:不限  n:小时
      * @return string
      */
-    public function login($openid,$oauth_type,$type=0)
+    public function login($openid,$oauth_type,$type=0,$pre='yg')
     {
         $cstr      = '';
         if($openid)
         {
             $time       = time();
             $str        = $openid.$time.$type.$this->_key_private;
-            $openid_en  = \ounun\short_url_encode($openid);
-            $time_en    = \ounun\short_url_encode($time);
+            $openid_en  = \short_url_encode($openid);
+            $time_en    = \short_url_encode($time);
             $ot         = $this->_oauth_types($oauth_type);
             $ot         = implode('-',$ot);
-            $cstr       = "yg.{$ot}.{$openid_en}.{$time_en}.{$type}.".substr(md5($str),12,6).substr(sha1($str),16,10);
+            $cstr       = "{$pre}.{$ot}.{$openid_en}.{$time_en}.{$type}.".substr(md5($str),12,6).substr(sha1($str),16,10);
             setcookie('_',$cstr,$time*2,'/',$this->_domain);
         }
         return $cstr;

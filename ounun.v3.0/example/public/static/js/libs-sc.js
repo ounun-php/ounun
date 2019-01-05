@@ -121,20 +121,29 @@ var $url    = {
     get : function(name) {
         var get = [ location.search, location.hash ].join('&');
         var start = get.indexOf(name + '=');
-        if (start == -1)
+        if (start == -1){
             return '';
+        }
         var len = start + name.length + 1;
         var end = get.indexOf('&', len);
-        if (end == -1)
+        if (end == -1){
             end = get.length;
+        }
         return decodeURIComponent(get.substring(len, end));
+    },
+    hash:function(datas)
+    {
+        var rs = [];
+        for ( var k in datas){
+            rs.push(k + '=' + encodeURIComponent(datas[k]));
+        }
+        window.location.hash = window.location.hash?window.location.hash + rs.join('&') :rs.join('&');
     },
     encode : function(datas, url) {
         var rs = [];
         for ( var k in datas)
-            rs.push(k + '=' + encodeURIComponent(o[k]));
-        return (url ? url + (url.indexOf('?') == -1 ? '?' : '&') : '')
-            + rs.join('&');
+            rs.push(k + '=' + encodeURIComponent(datas[k]));
+        return (url ? url + (url.indexOf('?') == -1 ? '?' : '&') : '') + rs.join('&');
     },
     decode : function(str) {
         str = (str.indexOf('?') == -1 ? str : str.split("?")[1]).split("&");

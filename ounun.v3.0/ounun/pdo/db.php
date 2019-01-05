@@ -1,12 +1,5 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: dreamxyp
- * Date: 2018/5/30
- * Time: 18:09
- */
-
-namespace pdo;
+namespace ounun\pdo;
 
 use PDO;
 

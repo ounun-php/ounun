@@ -1,11 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: dreamxyp
- * Date: 2018/8/5
- * Time: 13:34
- */
-
 namespace ounun\api_sdk;
 
 

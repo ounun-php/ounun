@@ -1,8 +1,9 @@
 <?php
-namespace seo;
+namespace ounun\seo;
 
 /** 本插件所在目录 */
 define('Dir_Plugins_Pinyin',           realpath(__DIR__) .'/');
+
 /**
  * 汉字转拼音
  */

@@ -1,11 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: dreamxyp
- * Date: 2018/12/23
- * Time: 21:36
- */
-
 namespace ounun\cache;
 
 
@@ -31,7 +24,7 @@ class config
 
     /** @var array  */
     protected $_cache_data = [];
-    /** @var \ounun\cache */
+    /** @var core */
     protected $_cache;
     /** @var \ounun\mysqli */
     protected $_db;
@@ -47,7 +40,7 @@ class config
     public function __construct(\ounun\mysqli $db,array $cache_scfg,string $tag)
     {
         $this->_db      = $db;
-        $this->_cache   = new \ounun\cache();
+        $this->_cache   = new core();
         $this->_cache->config($cache_scfg,"cfg_{$tag}");
     }
 

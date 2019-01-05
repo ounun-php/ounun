@@ -1,4 +1,6 @@
-<?php require v::tpl_fixed('_head.html.php')?>
+<?php
+use \ounun\mvc\controller\task\manage;
+require v::tpl_fixed('_head.html.php')?>
 <div class="container" id="cpcontainer">
     <div class="itemtitle">
         <h3 style="padding-left: 5px;">
@@ -65,7 +67,7 @@
                 <td>类型：</td>
                 <td>
                     <select name="type" id="task_type" onchange="onchange_type(this.value,false);">
-                        <?php foreach (\task\manage::type as $k => $v){?>
+                        <?php foreach (manage::type as $k => $v){?>
                             <option value="<?php echo $k?>"><?php echo "[{$k}]{$v}"?></option>
                         <?php }?>
                     </select>
@@ -76,7 +78,7 @@
                 <td>模式:</td>
                 <td>
                     <select name="args[mode]" id="args_mode">
-                        <?php foreach (\task\manage::mode as $k => $v){?>
+                        <?php foreach (manage::mode as $k => $v){?>
                             <option value="<?php echo $k?>"><?php echo "[{$k}]{$v}"?></option>
                         <?php }?>
                     </select>

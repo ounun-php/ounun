@@ -2,6 +2,7 @@
 namespace controller;
 
 
+use model\purview;
 /**
  * 任务
  * @author dreamxyp
@@ -15,8 +16,8 @@ class task extends adm
      */
     public function index($mod)
     {
-        // $this->_site_type_only = [\adm_purv::app_type_admin];
-        $this->_nav_pur_check('task/','task@index', '定时任务','任务',\adm_purv::nav_site);
+        // $this->_site_type_only = [purview::app_type_admin];
+        $this->_nav_pur_check('task/','task@index', '定时任务','任务',purview::nav_site);
 
         // $db_www      = self::db('libs');
         $table          = '`z_task`';
@@ -33,13 +34,13 @@ class task extends adm
             {
                 $rs =  $this->_db_site->row("SELECT * FROM {$table}  where `task_id` = :task_id limit 0,1;",$_GET);
             }
-            require $this->require_file('_task/task_add.html.php');
+            require \v::tpl_fixed('_task/task_add.html.php');
             exit();
         }elseif($_GET && $_GET['task_id'] && 'del' == $_GET['act'])
         {
             $this->_db_site->delete($table,'  `task_id` = :task_id  ',$_GET);
 
-            \ounun::go_url(\ounun\page_util::page('/task/'));
+            go_url(\ounun\page_util::page('/task/'));
         }
 
         /** 分页 */
@@ -54,14 +55,14 @@ class task extends adm
         $pg         = new \ounun\page( $this->_db_site,$table,$url,$where,$where_bind,'count(*)',\status::page_cfg,$rows);
         $ps         = $pg->init($page,"");
 
-        $site_info  = ['site_tag'=>self::$auth->cookie_get(\adm_purv::cp_site),'zqun_tag'=>self::$auth->cookie_get(\adm_purv::cp_zqun)];
+        $site_info  = ['site_tag'=>self::$auth->cookie_get(purview::cp_site),'zqun_tag'=>self::$auth->cookie_get(purview::cp_zqun)];
         $zqun_cc    = $this->_db_v->fetch_assoc('SELECT `zqun_tag`, `dir` FROM `adm_zqun` where `zqun_tag` = :zqun_tag ;',$site_info,'zqun_tag');
         // echo $this->_db_v->sql()."<br />\n";
 
         $cmd_serv   = "{$zqun_cc[$site_info['zqun_tag']]['dir']}/app.{$site_info['site_tag']}/index.php";
         $cmd_local  = str_replace("/www/wwwroot/cms.","~/Transcend/www.cms.",$cmd_serv);
         $datas      = $this->_db_site->data_array("select * from {$table} {$where} ORDER BY `task_id` DESC limit {$pg->limit_start()},{$rows}", $where_bind);
-        require $this->require_file('_task/task.html.php');
+        require \v::tpl_fixed('_task/task.html.php');
     }
 
     protected function _task_post(array $post,string $table)
@@ -92,7 +93,7 @@ class task extends adm
         }
 //        echo $db_www->sql().'<br />';
 //        exit();
-        \ounun::go_url(\ounun\page_util::page('/task/'));
+        go_url(\ounun\page_util::page('/task/'));
     }
 
     /**
@@ -102,15 +103,15 @@ class task extends adm
     public function logs($mod)
     {
         // 权限
-        // $this->_site_type_only = [\adm_purv::app_type_admin];
-        $this->_nav_pur_check('task/logs.html','task@logs', '任务日志','任务',\adm_purv::nav_site);
+        // $this->_site_type_only = [purview::app_type_admin];
+        $this->_nav_pur_check('task/logs.html','task@logs', '任务日志','任务',purview::nav_site);
 
         // $db_www = self::db('libs');
         $table  = '`z_task_logs`';
         if($_GET && $_GET['id'] && 'del' == $_GET['act'])
         {
             $this->_db_site->delete($table,' `id` = :id  ',$_GET);
-            \ounun::go_url($this->_page_url);
+            go_url($this->_page_url);
         }
 
         /** 分页 */
@@ -138,6 +139,6 @@ class task extends adm
         {
             $tasks[$v['task_id']] = $v['task_name'];
         }
-        require $this->require_file('_task/task_logs.html.php');
+        require \v::tpl_fixed('_task/task_logs.html.php');
     }
 }

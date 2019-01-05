@@ -1,5 +1,6 @@
 <?php
-namespace seo;
+namespace ounun\seo;
+
 /**
  * 汉字转拼音
  */
@@ -7,13 +8,13 @@ class wei
 {
 	public static function wei($str)
 	{
-		return strtr($str,cfg\data::wei);
+		return strtr($str,config\data::wei);
 	}
 	
 	public static function test()
 	{
-		echo count(cfg\data::wei),"<br />\n";
-		$d = cfg\data::wei;
+		echo count(config\data::wei),"<br />\n";
+		$d = config\data::wei;
 		$f = file_get_contents('42537.txt');
 		$f = explode("\n", $f);
 		foreach ($f as $v)

@@ -10,7 +10,7 @@ namespace ounun;
  * @package ounun
  */
 class session implements \SessionHandlerInterface, \SessionUpdateTimestampHandlerInterface {
-    /** @var \pdo\db */
+    /** @var mysqli */
     private $_db;
 
     /** @var string  */
@@ -24,11 +24,11 @@ class session implements \SessionHandlerInterface, \SessionUpdateTimestampHandle
 
     /**
      * session constructor.
-     * @param \pdo\db $db
+     * @param mysqli $db
      * @param string $session_table
      * @param string $session_name
      */
-    public function __construct(\pdo\db $db,string $session_table,string $session_name)
+    public function __construct(mysqli $db,string $session_table,string $session_name)
     {
         $this->_db            = $db;
         $this->_session_table = $session_table;
@@ -134,7 +134,7 @@ class session implements \SessionHandlerInterface, \SessionUpdateTimestampHandle
 //            }
 //            $session_id        = \uniqid($uniqid_prefix,true);
 //            $this->_session_id = \substr($session_id,0,24).\substr($session_id,25);
-            $this->_session_id = \util::uniqid();
+            $this->_session_id = string\util::uniqid();
         }
         return $this->_session_id;
     }
@@ -162,10 +162,12 @@ class session implements \SessionHandlerInterface, \SessionUpdateTimestampHandle
     }
 
     /**
-     * @param \pdo\db $db
+     * @param mysqli $db
      * @param string $session_table
+     * @param string $session_name
+     * @return session
      */
-    public static function start(\pdo\db $db,string $session_table = 'session',string $session_name='PHPSESSID'):session
+    public static function start(mysqli $db,string $session_table = 'session',string $session_name='PHPSESSID'):session
     {
         $handler = new session($db,$session_table,$session_name);
         session_set_save_handler($handler, true);

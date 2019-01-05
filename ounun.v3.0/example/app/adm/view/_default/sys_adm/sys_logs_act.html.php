@@ -3,8 +3,8 @@
     <div class="itemtitle">
         <h3 style="padding-left: 5px;">{$page_title_sub}</h3>
         <ul class="tab1">
-            <li<?php echo empty($_GET['status'])?' class="current"':''?>><a href="<?php echo \ounun::url(\ounun::url_original(),$_GET,['status'=>0]);?>"><span>错误</span></a></li>
-            <li<?php echo $_GET['status'] == '1'?' class="current"':''?>><a href="<?php echo \ounun::url(\ounun::url_original(),$_GET,['status'=>1]);?>"><span>正常</span></a></li>
+            <li<?php echo empty($_GET['status'])?' class="current"':''?>><a href="<?php echo url( url_original(),$_GET,['status'=>0]);?>"><span>错误</span></a></li>
+            <li<?php echo $_GET['status'] == '1'?' class="current"':''?>><a href="<?php echo url( url_original(),$_GET,['status'=>1]);?>"><span>正常</span></a></li>
         </ul>
     </div>
     <form name="cpform" method="get" id="cpform" >

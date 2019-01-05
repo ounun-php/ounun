@@ -7,9 +7,9 @@
  * 創建時間:2006-10-30
  * @example
  */
-namespace ounun;
+namespace ounun\page;
 
-class page
+class base
 {
     /** @var string  提示串  */
     protected $_cfg_note   	= '总共有{total}条数据,共{total_page}页,第{page}页';

@@ -82,10 +82,10 @@
                         <img src="/static/adm/aliyun-app400.png" height="388" /> <img src="/static/adm/aliyun-app500.png" height="388" />
                         <br /><br />
                         <?php
-                        $project_no     = Const_Project_NO;
-                        $adm_account_id = \adm::$auth->session_get(\adm_purv::s_id);
-                        $site_name      = $this->_replace_data['{$site_name}'];
-                        $adm_account    = \adm::$auth->session_get(\adm_purv::s_account);
+                        $project_no     = Const_App;
+                        $adm_account_id = \controller\adm::$auth->session_get(\model\purview::s_id);
+                        $site_name      = \ounun\scfg::$tpl_data['{$site_name}'];
+                        $adm_account    = \controller\adm::$auth->session_get(\model\purview::s_account);
                         ?>
                         <img height="388" src="<?php echo (new \plugins\google\auth_code() )->get_qrcode_google_url("{$site_name}#{$adm_account}#{$project_no}#".date("Y-m-d")."#{$adm_account_id}",$cs,$adm_account."《{$site_name}》") ?>"><br />
                         <br />

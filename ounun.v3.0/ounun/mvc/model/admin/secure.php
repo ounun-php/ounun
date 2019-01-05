@@ -1,7 +1,6 @@
 <?php
 namespace ounun\mvc\model\admin;
 
-
 class secure
 {
     /** @var string 加密码KEY */

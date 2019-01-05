@@ -1,8 +1,10 @@
 <?php
-namespace module;
+namespace controller;
 
 
+use extend\cache_config;
 use ounun\mvc\model\admin\secure;
+use model\purview;
 
 /**
  * 同步接口
@@ -16,8 +18,8 @@ class api_interface extends adm
      */
     public function mysql($mod)
     {
-        // $this->_site_type_only = [\adm_purv::app_type_admin];
-        $this->_nav_pur_check('api_interface/mysql.html','site@site_list', '接口','系统',\adm_purv::nav_null);
+        // $this->_site_type_only = [purview::app_type_admin];
+        $this->_nav_pur_check('api_interface/mysql.html','site@site_list', '接口','系统',purview::nav_null);
 
         // $db_libs         = self::db('libs');
         $table           = ' `adm_site_info` ';
@@ -51,10 +53,10 @@ class api_interface extends adm
                             $rs = $this->_db_v->update($table,$bind," `site_tag` = :site_tag ",$_GET);
                             if($rs)
                             {
-                                \scfg_cache::instance($this->_db_v)->site_clean();
+                                cache_config::instance($this->_db_v)->site_clean();
                             }
                             $url_back = "/site/site_add.html?site_tag={$_GET['site_tag']}";
-                            \ounun::go_url($url_back);
+                            go_url($url_back);
                         }else
                         {
                             $error_msg = "出错:解码出错:({$json['data']})";
@@ -81,6 +83,6 @@ class api_interface extends adm
         {
             $url_back = "/site/site_add.html?site_tag={$_GET['site_tag']}";
         }
-        \ounun::go_msg($error_msg,$url_back);
+        go_msg($error_msg,$url_back);
     }
 }

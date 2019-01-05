@@ -1,7 +1,5 @@
 <?php
-
 namespace ounun;
-
 
 class logs
 {

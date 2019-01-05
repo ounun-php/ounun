@@ -1,4 +1,6 @@
-<?php require v::tpl_fixed('_head.html.php')?>
+<?php
+use \ounun\mvc\controller\task\manage;
+require v::tpl_fixed('_head.html.php')?>
 <style type="text/css">
     .rem{color: #666666;font-size: 12px;}
     .close{color: #8C8D8E;font-size: 12px;}
@@ -27,10 +29,10 @@
                 <td><?php echo $v['task_id'];?></td>
                 <td><?php echo $v['task_name'];?></td>
                 <td style="color: <?php echo $v['type']?'#CC0000':'#EF0000'?>">
-                    最小间隔:<strong><?php echo $v['interval']?></strong>秒 <span style="color: <?php echo $v['type']?'#CC0000':'#EF0000'?>"><?php echo \task\manage::type[$v['type']];?></span>
+                    最小间隔:<strong><?php echo $v['interval']?></strong>秒 <span style="color: <?php echo $v['type']?'#CC0000':'#EF0000'?>"><?php echo manage::type[$v['type']];?></span>
                 </td>
                 <td>
-                    <?php if(\task\manage::type_crontab == $v['type']){ ?>
+                    <?php if(manage::type_crontab == $v['type']){ ?>
                         定时:<?php echo $v['crontab']?>
 
                     <?php }else{?>
@@ -40,7 +42,7 @@
                 <td>
                     <?php
                     $args = json_decode($v['args'],true);
-                    echo "<span style='color: #CCCCCC'>模式:</span>".\task\manage::mode[$args['mode']]." <span style='color: #CCCCCC'>参数:</span>".$args['data'];
+                    echo "<span style='color: #CCCCCC'>模式:</span>".manage::mode[$args['mode']]." <span style='color: #CCCCCC'>参数:</span>".$args['data'];
                     if($args['exts'])
                     {
                         echo "<div style='color: #0000FF;'>{$args['exts']}</div>";

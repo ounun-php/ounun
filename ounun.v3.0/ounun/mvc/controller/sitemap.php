@@ -1,9 +1,9 @@
 <?php
-namespace module;
+namespace ounun\mvc\controller;
 
 use ounun\api_sdk\com_baidu;
 
-class base_sitemap extends \v
+class sitemap extends \v
 {
     /**
      * 网站地址

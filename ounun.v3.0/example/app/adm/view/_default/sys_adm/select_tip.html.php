@@ -3,7 +3,7 @@
     <div class="floattopempty"></div>
     <table class="tb tb2 " id="tips">
         <tr>
-            <th class="partition">你好, <?php echo \adm::$auth->session_get(\adm_purv::s_account);?> <span style="color: red;">{$page_title_sub} </span>！</th>
+            <th class="partition">你好, <?php echo \adm::$auth->session_get(\model\purview::s_account);?> <span style="color: red;">{$page_title_sub} </span>！</th>
         </tr>
     </table>
 </div>

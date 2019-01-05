@@ -1,5 +1,5 @@
 <?php
-namespace module;
+namespace ounun\cmd;
 
 /**
  * /usr/bin/php /Users/dreamxyp/Transcend/www/com.ygcms.mm.2015/index.php zrun_back,run_1m    //   每分钟调一次    **:*1 或 **:*0
@@ -21,9 +21,9 @@ namespace module;
  * Class zrun_cmd
  * @package module
  */
-use ounun\mvc\controller\task\manage;
+use ounun\cmd\task\manage;
 
-class base_zrun_cmd extends \v
+class base extends \v
 {
 
     /** @var \ounun\mysqli DB */

@@ -13,18 +13,18 @@ class sys_adm extends adm
     public function password($mod)
     {
         // 权限
-        $this->_nav_pur_check('sys_adm/password.html','sys@password', '密码更新','管理员',\adm_purv::nav_null);
+        $this->_nav_pur_check('sys_adm/password.html','sys@password', '密码更新','管理员',purview::nav_null);
 
         // 修改密码
         if($_POST)
         {
             $rs         = self::$auth->user_modify_passwd($_POST['oldpwd'],$_POST['newpwd'],$_POST['google']);
-            echo \ounun::msg($rs->data);
-            \ounun::go_back();
+            echo msg($rs->data);
+            go_back();
         }
         else
         {
-            require $this->require_file('sys_adm/sys_password.html.php');
+            require \v::tpl_fixed('sys_adm/sys_password.html.php');
         }
     }
 
@@ -35,7 +35,7 @@ class sys_adm extends adm
     public function google($mod)
     {
         // 权限/选服
-        $this->_nav_pur_check('sys_adm/google.html','sys@google', '谷歌(洋葱)动态验证','管理员',\adm_purv::nav_null);
+        $this->_nav_pur_check('sys_adm/google.html','sys@google', '谷歌(洋葱)动态验证','管理员',purview::nav_null);
 
         // 修改密码
         if($_POST)
@@ -50,16 +50,16 @@ class sys_adm extends adm
                 $rs = self::$auth->user_set_exts_google(false,null,$_POST['password'],$_POST['google']);
             }
             // 跳回原来的页面
-            echo \ounun::msg($rs->data);
+            echo msg($rs->data);
             // 跳回原来的页面
-            \ounun::go_back();
+            go_back();
         }
         else
         {
             $ext  = self::$auth->user_get_exts();
             // 赋值
             // $this->assign('ext',			$ext);
-            require $this->require_file('sys_adm/sys_google.html.php');
+            require \v::tpl_fixed('sys_adm/sys_google.html.php');
         }
     }
 
@@ -70,9 +70,9 @@ class sys_adm extends adm
     public function welcome($mod)
     {
         // 权限/选服
-        $this->_nav_pur_check('sys_adm/welcome.html','sys@google', '欢迎','管理员',\adm_purv::nav_null);
+        $this->_nav_pur_check('sys_adm/welcome.html','sys@google', '欢迎','管理员',purview::nav_null);
 
-        require $this->require_file('sys_adm/sys_welcome.html.php');
+        require \v::tpl_fixed('sys_adm/sys_welcome.html.php');
     }
 
 	/**
@@ -82,14 +82,14 @@ class sys_adm extends adm
 	public function adm_add($mod)
 	{
         // 权限/选服
-        $this->_nav_pur_check('sys_adm/adm_add.html','sys@adm_add', '添加管理人员','管理员管理',\adm_purv::nav_null);
+        $this->_nav_pur_check('sys_adm/adm_add.html','sys@adm_add', '添加管理人员','管理员管理',purview::nav_null);
 
 		// 插入管理员
 		if($_POST)
 		{
             $rs = self::$auth->user_add((int)$_POST['adm_type'],(int)$_POST['adm_cid'],(string)$_POST['adm_account'],(string)$_POST['password'],(string)$_POST['adm_tel'],(string)$_POST['adm_note']);
-            echo \ounun::msg($rs->data);
-            \ounun::go_back();
+            echo msg($rs->data);
+            go_back();
 		}
 		/////////////////////////////////////////////////////////////////////////
         // 自己的权限
@@ -107,7 +107,7 @@ class sys_adm extends adm
 			}
 		}
 
-        require $this->require_file('sys_adm/sys_adm_add.html.php');
+        require \v::tpl_fixed('sys_adm/sys_adm_add.html.php');
 	}
 
 
@@ -161,14 +161,14 @@ class sys_adm extends adm
 	public function adm_list($mod)
 	{
         // 权限
-        $this->_nav_pur_check('sys_adm/adm_list.html','sys@adm_list', '管理员列表','管理员管理',\adm_purv::nav_null);
+        $this->_nav_pur_check('sys_adm/adm_list.html','sys@adm_list', '管理员列表','管理员管理',purview::nav_null);
 
 		//if (isset($_GET['del']) && isset($_GET['id']))
 		if ('del' == $_GET['act'] && $_GET['adm_id'])
 		{
             $rs   = self::$auth->user_del($_GET['adm_id']);
-            echo \ounun::msg($rs->data);
-            \ounun::go_back();
+            echo msg($rs->data);
+            go_back();
 		}
 
         // 列表
@@ -197,7 +197,7 @@ class sys_adm extends adm
 //      $this->assign('user_list',		$user_list);
 //      $this->output('sys_adm/sys_adm_list.html.php');
 
-        require $this->require_file('sys_adm/sys_adm_list.html.php');
+        require \v::tpl_fixed('sys_adm/sys_adm_list.html.php');
 	}
 
 	/**
@@ -207,14 +207,14 @@ class sys_adm extends adm
 	public function logs_act($mod)
 	{
         // 权限
-        $this->_nav_pur_check('sys_adm/logs_act.html','sys@logs_act', '操作日志','管理员日志',\adm_purv::nav_null);
+        $this->_nav_pur_check('sys_adm/logs_act.html','sys@logs_act', '操作日志','管理员日志',purview::nav_null);
 
         $table   = self::$auth->purview->db_logs_act;
         if ($_GET['act'] == 'del')
         {
             $this->_db_adm->delete($table,'`id`= :id ',$_GET);
             // 跳回原来的页面
-            \ounun::go_back();
+            go_back();
         }
 
         $where   = [];
@@ -245,14 +245,14 @@ class sys_adm extends adm
 
 
 
-        $url     = \ounun::url(\ounun::url_original(),$_GET,['page'=>'{page}']);
+        $url     = url( url_original(),$_GET,['page'=>'{page}']);
 
         $pg      = new \ounun\page($this->_db_adm,$table,$url,$where,$where_bind,'count(*)',\status::page_cfg,$rows);
         $ps      = $pg->init($page,"");
 
         $data	 = $this->_db_adm->data_array("select * from {$table} {$where} ORDER BY `id` DESC limit {$pg->limit_start()},{$rows}", $where_bind);
 
-        require $this->require_file('sys_adm/sys_logs_act.html.php');
+        require \v::tpl_fixed('sys_adm/sys_logs_act.html.php');
 	}
 
 	/**
@@ -262,14 +262,14 @@ class sys_adm extends adm
 	public function logs_login($mod)
 	{
         // 权限
-        $this->_nav_pur_check('sys_adm/logs_login.html','sys@logs_login', '登录日志','日志',\adm_purv::nav_null);
+        $this->_nav_pur_check('sys_adm/logs_login.html','sys@logs_login', '登录日志','日志',purview::nav_null);
 
         $table   = self::$auth->purview->db_logs_login; //$this->table_logs_login;
 		if ($_GET['act'] == 'del')
 		{
             $this->_db_adm->delete($table,'`id`= :id ',$_GET);
 			// 跳回原来的页面
-            \ounun::go_back();
+            go_back();
 		}
 
         $where           = [];
@@ -287,7 +287,7 @@ class sys_adm extends adm
         $rows       = 20;
         $where_bind = $_GET;
 
-        $url     = \ounun::url(\ounun::url_original(),$_GET,['page'=>'{page}']);
+        $url     = url( url_original(),$_GET,['page'=>'{page}']);
 
         $pg      = new \ounun\page($this->_db_adm,$table,$url,$where,$where_bind,'count(*)',\status::page_cfg,$rows);
         $ps      = $pg->init($page,"");
@@ -296,6 +296,6 @@ class sys_adm extends adm
 
         // echo $this->_db_adm->sql()."\n";
 
-        require $this->require_file('sys_adm/sys_logs_login.html.php');
+        require \v::tpl_fixed('sys_adm/sys_logs_login.html.php');
 	}
 }

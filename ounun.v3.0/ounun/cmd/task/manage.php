@@ -1,6 +1,5 @@
 <?php
-
-namespace ounun\mvc\controller\task;
+namespace ounun\cmd\task;
 
 
 class manage

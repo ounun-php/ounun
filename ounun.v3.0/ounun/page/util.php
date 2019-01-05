@@ -1,7 +1,7 @@
 <?php
-namespace ounun;
+namespace ounu\page;
 
-class page_util
+class util
 {
     static public function url(array $paras=[],array $page_paras=[],string $url_original='')
     {

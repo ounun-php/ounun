@@ -1,5 +1,5 @@
 <?php
-namespace hash;
+namespace ounun\hash;
 
 class keccak
 {

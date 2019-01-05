@@ -30,9 +30,7 @@ var $webp = {
     },
     _check:-1,
 
-    /**
-     * 全站 对不支持的 图片src进行替换
-     */
+    /** 全站 对不支持的 图片src进行替换 */
     replace:function()
     {
         if(!this.check())
@@ -80,18 +78,29 @@ var $url    = {
     get : function(name) {
         var get = [ location.search, location.hash ].join('&');
         var start = get.indexOf(name + '=');
-        if (start == -1)
+        if (start == -1){
             return '';
+        }
         var len = start + name.length + 1;
         var end = get.indexOf('&', len);
-        if (end == -1)
+        if (end == -1){
             end = get.length;
+        }
         return decodeURIComponent(get.substring(len, end));
+    },
+    hash:function(datas)
+    {
+        var rs = [];
+        for ( var k in datas){
+            rs.push(k + '=' + encodeURIComponent(datas[k]));
+        }
+        window.location.hash = window.location.hash?window.location.hash + rs.join('&') :rs.join('&');
     },
     encode : function(datas, url) {
         var rs = [];
-        for ( var k in datas)
-            rs.push(k + '=' + encodeURIComponent(o[k]));
+        for ( var k in datas){
+            rs.push(k + '=' + encodeURIComponent(datas[k]));
+        }
         return (url ? url + (url.indexOf('?') == -1 ? '?' : '&') : '') + rs.join('&');
     },
     decode : function(str) {
@@ -139,8 +148,7 @@ var $cookie = function(name, value, options) {
         var path   = options.path   ? '; path=' + options.path : '';
         var domain = options.domain ? '; domain=' + options.domain : '';
         var secure = options.secure ? '; secure' : '';
-        document.cookie = [ name, '=', encodeURIComponent(value), expires,
-            path, domain, secure ].join('');
+        document.cookie = [ name, '=', encodeURIComponent(value), expires,path, domain, secure ].join('');
     } else { // only name given, get cookie
         var cookieValue = '';
         if (document.cookie && document.cookie != '') {

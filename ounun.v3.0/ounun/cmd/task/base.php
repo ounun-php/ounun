@@ -1,11 +1,5 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: dreamxyp
- * Date: 2018/9/7
- * Time: 10:32
- */
-namespace ounun\mvc\controller\task;
+namespace ounun\cmd\task;
 
 
 class base

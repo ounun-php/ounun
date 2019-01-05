@@ -1,8 +1,6 @@
 <?php
 namespace ounun\mvc\controller\api;
 
-use ounun\scfg;
-
 class api extends \v
 {
     /**
@@ -17,7 +15,7 @@ class api extends \v
         list($check,$error_msg) = $secure->check($_GET,time());
         if($check)
         {
-            $db   = scfg::$db_cfg[\ounun\scfg::$app_name];
+            $db   = \ounun\scfg::$db_cfg[\ounun\scfg::$app_name];
             $data = $secure->encode($db);
             $rs   = ['ret'=>$check,'data'=>$data];
         }else

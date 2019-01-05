@@ -1,5 +1,5 @@
 <?php
-namespace ounun;
+namespace ounun\string;
 
 class util
 {
@@ -9,7 +9,7 @@ class util
      * @param  string $delimiter 数字和单位分隔符
      * @return string            格式化后的带单位的大小
      */
-    public static function format_bytes($size, $delimiter = '') {
+    static public function format_bytes($size, $delimiter = '') {
         $units = array('B', 'KB', 'MB', 'GB', 'TB', 'PB');
         for ($i = 0; $size >= 1024 && $i < 5; $i++) $size /= 1024;
         return round($size, 2) . $delimiter . $units[$i];
@@ -20,7 +20,7 @@ class util
      * @param string $str
      * @return string
      */
-    public static function u2g(string $str):string
+    static public function utf82gbk(string $str):string
     {
         return \mb_convert_encoding($str,'GBK','UTF-8');
     }
@@ -30,7 +30,7 @@ class util
      * @param $str
      * @return string
      */
-    public static function g2u(string $str):string
+    static public function gbk2utf8(string $str):string
     {
         return \mb_convert_encoding($str,'UTF-8','GBK');
     }
@@ -40,7 +40,7 @@ class util
      * @param string $str
      * @return string
      */
-    public static function nr(string $str):string
+    static public function nr(string $str):string
     {
         $str = str_replace(["<nr/>", "<rr/>"], ["\n", "\r"], $str);
         return trim($str);
@@ -51,7 +51,7 @@ class util
      * @param $str
      * @return string
      */
-    public static function nb(string $str):string
+    static public function nb(string $str):string
     {
         $str = str_replace("　", ' ', str_replace("&nbsp;", ' ', $str));
         $str = preg_replace('/[\r\n\t ]{1,}/', ' ', $str);
@@ -66,7 +66,7 @@ class util
      * @param bool $suffix
      * @return string
      */
-    public static function msubstr(string $str,int $length,int $start=0,bool $suffix=false):string
+    static public function msubstr(string $str,int $length,int $start=0,bool $suffix=false):string
     {
         if($length)
         {
@@ -87,7 +87,7 @@ class util
      * @param bool $suffix
      * @return string
      */
-    public static  function msubstr2(string $str,int $length,int $start=0,string $charset="utf-8",bool $suffix=true):string
+    static public function msubstr2(string $str,int $length,int $start=0,string $charset="utf-8",bool $suffix=true):string
     {
         $re['utf-8']  = "/[\x01-\x7f]|[\xc2-\xdf][\x80-\xbf]|[\xe0-\xef][\x80-\xbf]{2}|[\xf0-\xff][\x80-\xbf]{3}/";
         $re['gb2312'] = "/[\x01-\x7f]|[\xb0-\xf7][\xa0-\xfe]/";
@@ -125,7 +125,7 @@ class util
      * @param string $tags
      * @return string
      */
-    public static function h(string $text, string $tags = ''):string
+    static public function h(string $text, string $tags = ''):string
     {
         $text = trim($text);
         //完全过滤注释
@@ -195,32 +195,7 @@ class util
      * @param int $mode
      * @return array
      */
-//    public static function build_count_rand(int $number,int $length = 4,int $mode = 1):array
-//    {
-//        if ($mode == 1 && $length < strlen($number))
-//        {
-//            // 不足以生成一定数量的不重复数字
-//            return false;
-//        }
-//        $rand = array();
-//        for ($i = 0; $i < $number; $i++)
-//        {
-//            $rand[] = rand_string($length, $mode);
-//        }
-//        $unqiue = array_unique($rand);
-//        if (count($unqiue) == count($rand))
-//        {
-//            return $rand;
-//        }
-//        $count = count($rand) - count($unqiue);
-//        for ($i = 0; $i < $count * 3; $i++)
-//        {
-//            $rand[] = rand_string($length, $mode);
-//        }
-//        $rand = array_slice(array_unique($rand), 0, $number);
-//        return $rand;
-//    }
-    public static function uniqid():string
+    static public function uniqid():string
     {
         $uniqid_prefix     = '';
         $uniqid_filename   = '/tmp/php_session_uniqid.txt';
@@ -249,7 +224,7 @@ class util
      * @param string $val
      * @return string
      */
-    public static function remove_xss(string $val):string
+    static public function remove_xss(string $val):string
     {
         $val     = preg_replace('/([\x00-\x08,\x0b-\x0c,\x0e-\x19])/', '', $val);
         $search  = 'abcdefghijklmnopqrstuvwxyz';
@@ -303,7 +278,7 @@ class util
      * @param int $dec
      * @return string
      */
-    public static function byte_format(int $size, int $dec = 2):string
+    static public function byte_format(int $size, int $dec = 2):string
     {
         $a = ["B", "KB", "MB", "GB", "TB", "PB"];
         $pos = 0;
@@ -320,7 +295,7 @@ class util
      * @param array $array
      * @return array
      */
-    public static function arrays2array(array $array):array
+    static public function arrays2array(array $array):array
     {
         static $result_array = array();
         foreach ($array as $value)
@@ -342,7 +317,7 @@ class util
      * @param int $day_nums
      * @return int
      */
-    public static function xtime(int $day_nums):int
+    static public function xtime(int $day_nums):int
     {
         $day_time = time() - $day_nums * 3600 * 24;
         return strtotime(date("Y-m-d 00:00:00", $day_time));
@@ -354,7 +329,7 @@ class util
      * @param string $color
      * @return string
      */
-    public static function color_text(string $str,string $color=''):string
+    static public function color_text(string $str,string $color=''):string
     {
         if($color)
         {
@@ -372,7 +347,7 @@ class util
      * @param string $color
      * @return string
      */
-    public static function color_date(string $type='Y-m-d H:i:s',int $time,string $color='red',int $interval=86400):string
+    static public function color_date(string $type='Y-m-d H:i:s',int $time=0,string $color='red',int $interval=86400):string
     {
         if((time()-$time)>$interval)
         {
@@ -388,7 +363,7 @@ class util
      * @param $s0
      * @return int|string
      */
-    public static function letter_first($s0)
+    static public function letter_first($s0)
     {
         $firstchar_ord = ord(strtoupper($s0{0}));
         if (($firstchar_ord>=65 && $firstchar_ord<=91) || ($firstchar_ord>=48 && $firstchar_ord<=57))
@@ -457,13 +432,12 @@ class util
         return $str_cn;
     }
 
-
     /**
      * IP隐藏第3段
      * @param $ip
      * @return string
      */
-    public static function ip_hide($ip)
+    static public function ip_hide($ip)
     {
         $ip     = explode('.',$ip);
         $ip[2]  = '*';

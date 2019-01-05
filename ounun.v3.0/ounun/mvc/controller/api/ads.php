@@ -1,11 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: dreamxyp
- * Date: 2018/12/15
- * Time: 23:12
- */
-
 namespace ounun\mvc\controller\api;
 
 
