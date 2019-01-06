@@ -1,6 +1,5 @@
 <?php
-/** 命名空间 */
-namespace controller;
+namespace app\www\controller;
 
 class index extends \v
 {

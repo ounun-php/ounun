@@ -145,9 +145,9 @@ class scfg
         $lang && self::$lang = $lang;
         $lang_default && self::$lang_default = $lang_default;
         if($lang  == self::$lang_default) {
-            self::$i18n     = "\\model\\i18n";
+            self::$i18n     = '\\app\\'.scfg::$app_name.'\\model\\i18n';
         } else {
-            self::$i18n     = "\\model\\i18n\\{$lang}";
+            self::$i18n     = '\\app\\'.scfg::$app_name.'\\model\\i18n\\'.$lang;
         }
     }
 
@@ -345,11 +345,13 @@ class scfg
     static public function add_paths(string $path,string $namespace_prefix = '',bool $cut_path = false)
     {
         if($path) {
-            $len = strlen($path);
+
             if($namespace_prefix) {
                 $first  = explode('\\', $namespace_prefix)[0];
+                $len    = strlen($namespace_prefix)+1;
             }else {
                 $first  = '';
+                $len    = 0;
             }
             if(!self::$maps_paths  ||  !self::$maps_paths[$first]  ||  !in_array($path,self::$maps_paths[$first]) ) {
                 self::$maps_paths[$first][] = [
@@ -384,7 +386,7 @@ class scfg
             return;
         }
 
-        // print_r(['self::$maps_class'=>self::$maps_class,'self::$maps_paths'=>self::$maps_paths]);
+        // print_r(['$class'=>$class,'self::$maps_class'=>self::$maps_class,'self::$maps_paths'=>self::$maps_paths]);
         // 查找 PSR-4 prefix
         $filename  = strtr($class, '\\', '/') . '.php';
         $firsts    = [explode('\\', $class)[0],''];
@@ -392,8 +394,11 @@ class scfg
             if (isset(self::$maps_paths[$first])) {
                 foreach (self::$maps_paths[$first] as $v) {
                     if (0 === strpos($class, $v['namespace'])) {
-                        $file = $v['path'].($v['cut']?substr($filename, $v['len']):$filename);
-                        // echo " load_class  -> \$class :{$class}  \t\$filename:{$filename}  \t\$file1:{$file} \n";
+                        $file = $v['path'].(($v['cut'] && $v['len'])?substr($filename, $v['len']):$filename);
+//                        echo " load_class  -> \$class :{$class}  \$len:{$v['len']}\n".
+//                             "                \t\t\$path:{$v['path']}\n".
+//                             "                \t\t\$filename:{$filename}\n".
+//                             "                \t\t\$file1:{$file} \n";
                         if(is_file($file)) {
                             require $file;
                             return;
@@ -411,7 +416,7 @@ class scfg
      */
     static public function load_controller($controller_file)
     {
-        $controller = self::$maps_paths['controller'];
+        $controller = self::$maps_paths['app'];
         if($controller && is_array($controller)) {
             foreach ($controller as $v) {
                 $filename  = $v['path'] . $controller_file;
@@ -420,6 +425,7 @@ class scfg
                     return $filename;
                 }
             }
+            //$dirs = "\ndirs:[".implode("],[",array_column($controller,'path'))."]";
         }
         return '';
     }
@@ -466,9 +472,7 @@ function start(array $mod,string $host)
     } else {
         $lang = scfg::$lang ? scfg::$lang : scfg::$lang_default;
     }
-    scfg::set_lang($lang);
-
-    // Dir
+    // load_config 0 Dir
     \ounun\scfg::load_config(Dir_App);
 
     // Routes
@@ -484,14 +488,16 @@ function start(array $mod,string $host)
     // set_dirs
     scfg::set_dirs(Dir_Ounun,Dir_Root,$val_0['app'],$val_0['url']);
 
+    // set_lang
+    scfg::set_lang($lang);
+
     // set_tpl_dirs
-    scfg::set_tpl_dirs(\ounun\scfg::$dir_app.'view/');
+    scfg::set_tpl_dirs( scfg::$dir_app.'view/');
 
     // add_paths
-    scfg::add_paths(scfg::$dir_app,'controller');
-    scfg::add_paths(scfg::$dir_app,'model');
+    scfg::add_paths(scfg::$dir_app,'app\\'.scfg::$app_name,true);
 
-    // scfg::$dir_app
+    // load_config 1 scfg::$dir_app
     scfg::load_config(scfg::$dir_app);
 
     // 模板
@@ -552,16 +558,20 @@ function start(array $mod,string $host)
         $filename 			=  scfg::load_controller("controller/index.php");
     }
     // 包括模块文件
-    require $filename;
-    // 初始化类
-    $module  				= "\\controller\\{$module}";
-    if(class_exists($module,false))
-    {
-        new $module($mod);
+    if($filename){
+        require $filename;
+        $module  				= '\\app\\'.scfg::$app_name.'\\controller\\'.$module ;
+        if(class_exists($module,false)){
+            new $module($mod);
+            exit();
+        } else {
+            $error = "Can't find Module:'{$module}'.";
+        }
     } else {
-        header('HTTP/1.1 404 Not Found');
-        trigger_error("ERROR! Can't find Module:'{$module}'.", E_USER_ERROR);
+        $error = "Can't find controller:{$module} filename:".$filename;
     }
+    header('HTTP/1.1 404 Not Found');
+    trigger_error($error, E_USER_ERROR);
 }
 
 /** Web */

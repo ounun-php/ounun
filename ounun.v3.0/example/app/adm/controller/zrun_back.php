@@ -1,5 +1,5 @@
 <?php
-namespace controller;
+namespace app\adm\controller;
 
 class zrun_back extends \v
 {

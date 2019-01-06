@@ -1,8 +1,7 @@
 <?php
-namespace controller;
+namespace app\adm\controller;
 
-
-use model\purview;
+use app\adm\model\purview;
 
 class sys_adm extends adm
 {

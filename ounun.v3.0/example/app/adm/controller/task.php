@@ -1,8 +1,8 @@
 <?php
-namespace controller;
+namespace app\adm\controller;
 
 
-use model\purview;
+use app\adm\model\purview;
 /**
  * 任务
  * @author dreamxyp

@@ -82,7 +82,7 @@
                         <img src="/static/adm/aliyun-app400.png" height="388" /> <img src="/static/adm/aliyun-app500.png" height="388" />
                         <br /><br />
                         <?php
-                        $project_no     = Const_App;
+                        $project_no     = Const_Code;
                         $adm_account_id = \controller\adm::$auth->session_get(\model\purview::s_id);
                         $site_name      = \ounun\scfg::$tpl_data['{$site_name}'];
                         $adm_account    = \controller\adm::$auth->session_get(\model\purview::s_account);

@@ -1,5 +1,5 @@
 <?php
-use \ounun\mvc\controller\task\manage;
+use \ounun\cmd\task\manage;
 require v::tpl_fixed('_head.html.php')?>
 <div class="container" id="cpcontainer">
     <div class="itemtitle">

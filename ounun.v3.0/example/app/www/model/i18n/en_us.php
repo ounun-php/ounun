@@ -1,5 +1,5 @@
 <?php
-namespace model\i18n;
+namespace app\www\model\i18n;
 
 // "en_us"=>"English",
 class en_US extends \model\i18n

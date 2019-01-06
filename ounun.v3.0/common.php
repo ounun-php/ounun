@@ -639,7 +639,7 @@ class v extends \ounun\base
     {
         // url_check
         $this->_page_file = $page_file;
-        $this->_page_url = \ounun\scfg::url_page($this->_page_file);
+        $this->_page_url  = \ounun\scfg::url_page($this->_page_file);
         url_check($this->_page_url, $ext_req, $domain);
 
         // cache_html

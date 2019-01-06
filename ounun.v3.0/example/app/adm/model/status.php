@@ -1,5 +1,5 @@
 <?php
-namespace model;
+namespace app\adm\model;
 
 class status
 {

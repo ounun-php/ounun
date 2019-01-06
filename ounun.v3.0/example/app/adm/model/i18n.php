@@ -1,5 +1,5 @@
 <?php
-namespace model;
+namespace app\adm\model;
 
 // "zh_cn"=>"简本中文",
 class i18n extends \ounun\mvc\model\i18n

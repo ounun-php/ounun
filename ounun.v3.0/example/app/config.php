@@ -6,7 +6,7 @@ define('Const_SiteName',  	 			    '偶黁(ounun.org)');
 /** 项目主域名 */
 define('Const_Domain',  	 		        'ounun.org');
 /** 项目代号    */
-define('Const_App',  	 	                'www');
+define('Const_Code',  	 	                'ounun');
 
 
 /** 静态index  */
@@ -25,6 +25,14 @@ define('Const_Baidu_Token',                 'rgC3MkBxK9gkQNkL');
 define('Const_Baidu_Xzh_SiteId',            '');
 /** Const_Baidu_Xzh_Token API */
 define('Const_Baidu_Xzh_Token',             '');
+
+/** 设定对应cms类名 */
+\ounun\scfg::set_cms_classname('\\extend\\cms_www');
+
+/** 设定自动加载目录 */
+\ounun\scfg::add_paths(Dir_Ounun,'ounun');
+\ounun\scfg::add_paths(Dir_Ounun,'plugins');
+\ounun\scfg::add_paths(Dir_Root ,'extend');
 
 /** 配制cache_file */
 \ounun\scfg::set_global([
@@ -78,20 +86,19 @@ define('Const_Baidu_Xzh_Token',             '');
 \ounun\scfg::set_routes(
     [
         // Const_App
-        'm.'.Const_Domain                  => ['app'=>Const_App,  'url'=>'/',     'tpl' => '_wap',       'tpl_default' => '_default' ],
-        'm.'.Const_Domain.':443'           => ['app'=>Const_App,  'url'=>'/',     'tpl' => '_wap',       'tpl_default' => '_default' ],
-        'mip.'.Const_Domain                => ['app'=>Const_App,  'url'=>'/',     'tpl' => '_mip',       'tpl_default' => '_wap'     ],
-        'mip.'.Const_Domain.':443'         => ['app'=>Const_App,  'url'=>'/',     'tpl' => '_mip',       'tpl_default' => '_wap'     ],
-        'api.'.Const_Domain                => ['app'=>Const_App,  'url'=>'/',     'tpl' => '_default'  ],
-        'api.'.Const_Domain.':443'         => ['app'=>Const_App,  'url'=>'/',     'tpl' => '_default'  ],
-        'www.'.Const_Domain                => ['app'=>Const_App,  'url'=>'/',     'tpl' => '_default'  ],
-        'www.'.Const_Domain.':443'         => ['app'=>Const_App,  'url'=>'/',     'tpl' => '_default'  ],
+        'm.'.Const_Domain                  => ['app'=> 'www',  'url'=>'/',     'tpl' => '_wap',       'tpl_default' => '_default' ],
+        'mip.'.Const_Domain                => ['app'=> 'www',  'url'=>'/',     'tpl' => '_mip',       'tpl_default' => '_wap'     ],
+        'www.'.Const_Domain                => ['app'=> 'www',  'url'=>'/',     'tpl' => '_default'  ],
+        'api.'.Const_Domain                => ['app'=> 'api',  'url'=>'/',     'tpl' => '_default'  ],
+        'adm.'.Const_Domain                => ['app'=> 'adm',  'url'=>'/',     'tpl' => '_default'  ],
 
-        'm2.'.Const_Domain                 => ['app'=>Const_App,  'url'=>'/',     'tpl' => '_wap',       'tpl_default' => '_default' ],
-        'mip2.'.Const_Domain               => ['app'=>Const_App,  'url'=>'/',     'tpl' => '_mip',       'tpl_default' => '_wap'     ],
-        'api2.'.Const_Domain               => ['app'=>Const_App,  'url'=>'/',     'tpl' => '_default'  ],
-        'www2.'.Const_Domain               => ['app'=>Const_App,  'url'=>'/',     'tpl' => '_default'  ],
-    ],                                        ['app'=>Const_App,  'url'=>'/',     'tpl' => '_default'  ]  // default
+        'm'  .Environment.'.'.Const_Domain               => ['app'=> 'www',  'url'=>'/',     'tpl' => '_wap',       'tpl_default' => '_default' ],
+        'mip'.Environment.'.'.Const_Domain               => ['app'=> 'www',  'url'=>'/',     'tpl' => '_mip',       'tpl_default' => '_wap'     ],
+        'www'.Environment.'.'.Const_Domain               => ['app'=> 'www',  'url'=>'/',     'tpl' => '_default'  ],
+        'api'.Environment.'.'.Const_Domain               => ['app'=> 'api',  'url'=>'/',     'tpl' => '_default'  ],
+        'adm'.Environment.'.'.Const_Domain               => ['app'=> 'adm',  'url'=>'/',     'tpl' => '_default'  ],
+    ],
+    ['app'=> 'www',  'url'=>'/',     'tpl' => '_default'  ]  // default
 );
 
 /** 设定路由数据 */

@@ -1,3 +1,4 @@
+<?php use \app\adm\controller\adm;?>
 <!DOCTYPE html>
 <html>
 <head>
@@ -40,7 +41,7 @@
                     <input name="admin_google" tabindex="3" type="text" class="txt" placeholder="动态验证(虚拟MFA),可不填" autocomplete="off" />
                 </p>
                 <p class="logintitle">提　示:</p>
-                <p class="loginform"><?php echo \controller\adm::$auth->purview->max_ip;?>次登录失败,封帐号或IP</p>
+                <p class="loginform"><?php echo adm::$auth->purview->max_ip;?>次登录失败,封帐号或IP</p>
                 <p class="loginnofloat">
                     <input value="登录后台"  tabindex="4" type="submit" class="btn" />
                 </p>

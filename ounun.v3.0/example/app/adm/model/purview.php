@@ -1,12 +1,5 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: dreamxyp
- * Date: 2018/12/10
- * Time: 11:12
- */
-
-namespace model;
+namespace app\adm\model;
 
 
 class purview extends \ounun\mvc\model\admin\purview
@@ -25,7 +18,7 @@ class purview extends \ounun\mvc\model\admin\purview
     /** 网站后台配 */
     public $cfg  = [
         '{$powered_corp_name}'         => Const_Domain,
-        '{$powered_corp_name_mini}'    => Const_App,
+        '{$powered_corp_name_mini}'    => Const_Code,
         '{$powered_corp_url}'          => 'https://adm.'.Const_Domain.'/',
 
         '{$powered_studio_name}'       => Const_Domain,
@@ -34,11 +27,11 @@ class purview extends \ounun\mvc\model\admin\purview
 
     /** 游戏名 与 LOGO */
     public $cfg_name = [
-        'adm.moko8.com'       => ['dir'=>'logo/'.Const_App.'/', 'name'=> Const_SiteName.'(release)'],
-        'adm2.moko8.com'      => ['dir'=>'logo/'.Const_App.'/', 'name'=> Const_SiteName.'(local)'],
-        'adm3.moko8.com'      => ['dir'=>'logo/'.Const_App.'/', 'name'=> Const_SiteName.'(dev)'],
+        'adm.moko8.com'       => ['dir'=>'logo/'.Const_Code.'/', 'name'=> Const_SiteName.'(release)'],
+        'adm2.moko8.com'      => ['dir'=>'logo/'.Const_Code.'/', 'name'=> Const_SiteName.'(local)'],
+        'adm3.moko8.com'      => ['dir'=>'logo/'.Const_Code.'/', 'name'=> Const_SiteName.'(dev)'],
 
-        'adm2'                => ['dir'=>'logo/'.Const_App.'/', 'name'=> Const_SiteName.'(local)'],
+        'adm2'                => ['dir'=>'logo/'.Const_Code.'/', 'name'=> Const_SiteName.'(local)'],
     ];
 
     /** table */

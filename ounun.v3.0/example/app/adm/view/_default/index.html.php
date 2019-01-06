@@ -1,3 +1,8 @@
+<?php
+use \app\adm\controller\adm;
+use \app\adm\model\purview;
+use \ounun\scfg;
+?>
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
@@ -13,8 +18,8 @@
 		var nav_key             = nav_hash[1];
             nav_hash            = nav_hash[0];
 
-		var nav_default			= nav_hash?nav_hash:<?php echo json_encode(\controller\adm::$auth->purview->purview[\controller\adm::$auth->purview->purview_default]['default']);//$purview[$adm_purview_default]['default']);?>;
-        var nav_default_key     = nav_key ?nav_key :'<?php echo \controller\adm::$auth->purview->purview_default;?>';
+		var nav_default			= nav_hash?nav_hash:<?php echo json_encode(adm::$auth->purview->purview[adm::$auth->purview->purview_default]['default']);//$purview[$adm_purview_default]['default']);?>;
+        var nav_default_key     = nav_key ?nav_key :'<?php echo adm::$auth->purview->purview_default;?>';
         var menukey             = '';
 
         <?php
@@ -47,7 +52,7 @@
 
         // print_r($GLOBALS['_scfg']['libs']);
         ?>
-        var scfg_libs           = <?php echo json_encode(\ounun\scfg::$g['libs'],JSON_UNESCAPED_UNICODE)?>;
+        var scfg_libs           = <?php echo json_encode(scfg::$g['libs'],JSON_UNESCAPED_UNICODE)?>;
         var scfg                = <?php echo json_encode($scfg,JSON_UNESCAPED_UNICODE);?>;
 		var json_curr_url		= '';
 		var json_nav			= 0;
@@ -286,11 +291,11 @@
 	<tr>
 		<td colspan="2" height="90">
             <div class="mainhd">
-                <a href="<?php echo \ounun\scfg::url_page('/')?>" class="logo logo_bg" target="_blank">《{$site_name}》管理中心</a>
+                <a href="<?php echo scfg::url_page('/')?>" class="logo logo_bg" target="_blank">《{$site_name}》管理中心</a>
 				<div class="uinfo" id="frameuinfo">
 					<p>
-						你好, <?php echo \controller\adm::$auth->purview->purview_group[\controller\adm::$auth->session_get(\model\purview::s_type)];?>
-						<em><?php echo \controller\adm::$auth->session_get(\model\purview::s_account);?></em>
+						你好, <?php echo adm::$auth->purview->purview_group[ adm::$auth->session_get( purview::s_type)];?>
+						<em><?php echo adm::$auth->session_get( purview::s_account);?></em>
 						[<a href="/out.html" target="_top">退出</a>]
 					</p>
 					<p class="btnlink">
@@ -300,7 +305,7 @@
 				<div class="navbg"></div>
 				<?php
 				$purview_uuid  = 0;
-				$purview       = \controller\adm::$auth->purview->purview;
+				$purview       = adm::$auth->purview->purview;
 				$purview_keys  = array_keys($purview);
 				?>
 				<div class="nav">

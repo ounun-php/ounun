@@ -1,10 +1,10 @@
 <?php
-namespace controller;
+namespace app\adm\controller;
 
 use ounun\mvc\model\admin\oauth;
-use model\purview;
-use extend\cache_config;
 use ounun\scfg;
+use extend\cache_config;
+use app\adm\model\purview;
 
 class adm extends \ounun\mvc\controller\admin\admin
 {

@@ -1,10 +1,9 @@
 <?php
-namespace controller;
+namespace app\adm\controller;
 
-
-use extend\cache_config;
 use ounun\mvc\model\admin\secure;
-use model\purview;
+use extend\cache_config;
+use app\adm\model\purview;
 
 /**
  * 同步接口

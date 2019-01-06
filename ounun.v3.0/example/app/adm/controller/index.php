@@ -1,8 +1,8 @@
 <?php
 /** 命名空间 */
-namespace controller;
+namespace app\adm\controller;
 
-use model\purview;
+use app\adm\model\purview;
 
 class index extends adm
 {
