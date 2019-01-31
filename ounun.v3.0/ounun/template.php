@@ -33,11 +33,6 @@ class template
         $this->_dir_current     = '';
         $this->_style_current   = '';
         $this->_is_trim         = $is_trim;
-        // if($this->_is_trim)
-        // {
-        //     trigger_error("Template".':'.($this->_is_trim?'1':'0'), E_USER_ERROR);
-        //     exit(__FILE__.':'.($this->_is_trim?'1':'0'));
-        // }
         $this->replace();
     }
 
@@ -50,6 +45,7 @@ class template
     public function tpl_fixed(string $filename,array $styles = []):string
     {
         $styles = $styles ? $styles : [$this->_style_name,$this->_style_name_default];
+        // print_r(['scfg::$tpl_dirs'=>scfg::$tpl_dirs,'$styles'=>$styles]);
         foreach (scfg::$tpl_dirs as $dir)
         {
             foreach ($styles as $style)
@@ -59,6 +55,7 @@ class template
                 {
                     $this->_dir_current   = dirname($filename2).'/';
                     $this->_style_current = $style;
+                    // echo "filename:{$filename2}\n";
                     return $filename2;
                 }
             }
@@ -79,6 +76,7 @@ class template
             $filename2 = "{$this->_dir_current}{$filename}";
             if(file_exists($filename2))
             {
+                // echo "filename:{$filename2}\n";
                 return $filename2;
             }
         }
@@ -144,15 +142,9 @@ class template
         }
 
         // 替换
-        if(scfg::$tpl_data)
-        {
-            scfg::$view->tpl_data_default();
-            $buffer = strtr($buffer,scfg::$tpl_data);
-        }
+        scfg::$view->tpl_replace_str_default();
+        $buffer     = strtr($buffer,scfg::$tpl_replace_str);
 
-//      $buffer     = gzencode($buffer, 9);
-//      header('Content-Encoding: gzip');
-//      header('Content-Length: '. strlen($buffer));
         exit($buffer);
     }
 }

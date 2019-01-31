@@ -1,5 +1,7 @@
 <?php
 namespace ounun;
+use ounun\cmd\console;
+
 /**
  * 基类的基类
  * Class Base
@@ -7,17 +9,7 @@ namespace ounun;
  */
 class base
 {
-	/**
-	 * 没定的方法
-	 * @param string $method
-	 * @param String $arg
-	 */
-	public function __call($method, $args)
-	{
-		header('HTTP/1.1 404 Not Found');
-        $this->debug = new \ounun\debug(scfg::$dir_root.'public/logs/error_404_'.date('Ymd').'.txt',false,false,false,true);
-        error404("\$method:{$method} \$args:".json_encode($args)."");
-	}
+
 
 	/**
 	 * DB 相关
@@ -104,20 +96,20 @@ class scfg
     static public $app_cms_classname;
 
     /** @var string 模板-样式 */
-    static public $tpl_style     = '';
+    static public $tpl_style       = '';
     /** @var string 模板-样式[默认] */
-    static public $tpl_default   = '';
+    static public $tpl_default     = '';
     /** @var array Template view目录 */
-    static public $tpl_dirs      = [];
+    static public $tpl_dirs        = [];
     /** @var array 模板替换数据组 */
-    static public $tpl_data      = [];
+    static public $tpl_replace_str = [];
 
-    /** @var \model\i18n 语言包 */
+    /** @var \app\www\model\i18n 语言包 */
     static public $i18n;
     /** @var string 当前语言 */
-    static public $lang         = 'zh_CN';
+    static public $lang         = 'zh_cn';
     /** @var string 默认语言 */
-    static public $lang_default = 'zh_CN';
+    static public $lang_default = 'zh_cn';
     /** @var array 支持的语言 */
     public static $langs  = [
         "en_us"=>"English",
@@ -278,9 +270,9 @@ class scfg
      * @param string $key
      * @param string $value
      */
-    static public function set_tpl_data(string $key, string $value)
+    static public function set_replace_str(string $key, string $value)
     {
-        self::$tpl_data[$key] = $value;
+        self::$tpl_replace_str[$key] = $value;
     }
 
     /**
@@ -291,12 +283,12 @@ class scfg
     {
         if($data && is_array($data)) {
             foreach ($data as $key => $value) {
-                self::$tpl_data[$key] = $value;
+                self::$tpl_replace_str[$key] = $value;
             }
         }
     }
 
-    /** @return \model\i18n 语言包 */
+    /** @return \app\www\model\i18n 语言包 */
     static public function get_i18n()
     {
         return self::$i18n;
@@ -585,13 +577,13 @@ function start_web()
 /** Cmd */
 function start_cmd($argv)
 {
-    $mod    = $argv[1];
-    $mod    = explode(',', $mod);
-    $host   = $argv[2]?$argv[2]:'adm';
-    if('zrun_' != substr($mod[0],0,5) ) {
-        exit("error php shell only:zrun_*\n");
-    }
-    start($mod,$host);
+    // load_config 0 Dir
+    \ounun\scfg::load_config(Dir_App);
+    // cmds
+    $cmds = file_exists(Dir_App.'cmd.php') ? require Dir_App.'cmd.php' : [];
+    // console
+    $c = new console($cmds);
+    $c->run($argv);
 }
 
 /** 加载common.php */

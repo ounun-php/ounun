@@ -183,11 +183,8 @@ class html
         if($filesize > self::Cache_Mini_Size)
         {
             // \debug::header('xypm_ok',$this->_cache->filename(),$this->_is_debug,__FUNCTION__,__LINE__);
-            if(scfg::$tpl_data)
-            {
-                scfg::$view->tpl_data_default();
-                $buffer = strtr($buffer,scfg::$tpl_data);
-            }
+            \ounun\scfg::$view->tpl_replace_str_default();
+            $buffer = strtr($buffer,\ounun\scfg::$tpl_replace_str);
 
             if($this->_is_trim)
             {
@@ -240,6 +237,7 @@ class html
         $this->stop = true;
         if($output)
         {
+            \v::$tpl->replace();
             $this->run_output();
         }
     }

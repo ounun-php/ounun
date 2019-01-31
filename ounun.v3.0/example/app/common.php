@@ -40,3 +40,14 @@ function i18n()
 {
     return \ounun\scfg::get_i18n();
 }
+
+/**
+ * @return array Cmd
+ */
+function cmds()
+{
+    echo "\\ounun\\cmd\\def\\help::class:".\ounun\cmd\def\help::class ."\n";
+    return [
+
+    ];
+}

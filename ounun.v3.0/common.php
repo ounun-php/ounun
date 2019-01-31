@@ -595,6 +595,18 @@ class ret
  */
 class v extends \ounun\base
 {
+    /**
+     * 没定的方法
+     * @param string $method
+     * @param String $arg
+     */
+    public function __call($method, $args)
+    {
+        header('HTTP/1.1 404 Not Found');
+        $this->debug = new \ounun\debug(\ounun\scfg::$dir_root.'public/logs/error_404_'.date('Ymd').'.txt',false,false,false,true);
+        error404("\$method:{$method} \$args:".json_encode($args)."");
+    }
+
     /** @var \ounun\mvc\model\url cms */
     public static $cms;
 
@@ -643,18 +655,18 @@ class v extends \ounun\base
         url_check($this->_page_url, $ext_req, $domain);
 
         // cache_html
+        $this->_cache_html_trim     = '' == Environment ? $cache_html_trim : false;
         if ($is_cache_html) {
-            $this->_cache_html_trim = $cache_html_trim;
             $this->_cache_html_time = $cache_html_time > 300 ? $cache_html_time : $this->_cache_html_time;
             $this->cache_html($this->_page_url);
         }
 
         // cms
-        $cls = \ounun\scfg::$app_cms_classname;
+        $cls       = \ounun\scfg::$app_cms_classname;
         self::$cms = new $cls();
 
         // template
-        self::$tpl || self::$tpl = new \ounun\template(\ounun\scfg::$tpl_style, \ounun\scfg::$tpl_default, $cache_html_trim);
+        self::$tpl   || self::$tpl   = new \ounun\template(\ounun\scfg::$tpl_style, \ounun\scfg::$tpl_default, $this->_cache_html_trim);
 
         // db
         $this->_db_v || $this->_db_v = self::db(\ounun\scfg::$app_name);
@@ -709,7 +721,7 @@ class v extends \ounun\base
             $cfg = \ounun\scfg::$g['cache_html'];
             $cfg['mod'] = 'html_' . \ounun\scfg::$app_name . \ounun\scfg::$tpl_style;
             $key2 = \ounun\scfg::$app_name . '_' . \ounun\scfg::$tpl_style . '_' . $key;
-            self::$cache_html = new \ounun\cache\html($cfg, $key2, $this->_cache_html_time, $this->_cache_html_trim, '' == Environment);
+            self::$cache_html = new \ounun\cache\html($cfg, $key2, $this->_cache_html_time, $this->_cache_html_trim, '' != Environment);
             self::$cache_html->run(true);
         }
     }
@@ -775,11 +787,13 @@ class v extends \ounun\base
         return self::$tpl->tpl_curr($filename);
     }
 
-    /** 赋值(默认) $seo + $url */
-    public function tpl_data_default()
+    /**
+     * 赋值(默认) $seo + $url
+     */
+    public function tpl_replace_str_default()
     {
         $url_base = substr($this->_page_url, 1);
-        \ounun\scfg::$tpl_data += [
+        \ounun\scfg::$tpl_replace_str += [
             '{$seo_title}' => $this->_seo_title,
             '{$seo_keywords}' => $this->_seo_keywords,
             '{$seo_description}' => $this->_seo_description,

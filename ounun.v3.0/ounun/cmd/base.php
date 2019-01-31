@@ -23,7 +23,7 @@ namespace ounun\cmd;
  */
 use ounun\cmd\task\manage;
 
-class base extends \v
+class base extends \ounun\base
 {
 
     /** @var \ounun\mysqli DB */

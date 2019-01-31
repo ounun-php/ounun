@@ -1,5 +1,5 @@
 <?php
-namespace app\adm\controller;
+namespace app\adm\cmd;
 
 /**
  * /usr/bin/php /Users/dreamxyp/Transcend/www/com.ygcms.mm.2015/index.php zrun_back,run_1m    //   每分钟调一次    **:*1 或 **:*0
@@ -25,7 +25,7 @@ namespace app\adm\controller;
 use extend\oss;
 use ounun\api_sdk\com_showapi;
 
-class zrun_cmd extends \ounun\cmd\base
+class coll extends \ounun\cmd\cmd
 {
     /**
      * zrun_cmd constructor.

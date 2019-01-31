@@ -1,4 +1,10 @@
 #!/usr/bin/env php
 <?php
-/** 加载框架引导文件 */
-require __DIR__ . '/public/index.php';
+/** 根目录 **/
+define('Dir_Root' ,   __DIR__.'/'    );
+/** libs库文件目录 **/
+define('Dir_Ounun',  '/data/ounun.v3.0/');
+/** 加载Ounun.php文件 */
+require Dir_Ounun . 'start.v3.php';
+/** 开始 */
+\ounun\start_cmd($argv);

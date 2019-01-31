@@ -86,17 +86,17 @@ define('Const_Baidu_Xzh_Token',             '');
 \ounun\scfg::set_routes(
     [
         // Const_App
-        'm.'.Const_Domain                  => ['app'=> 'www',  'url'=>'/',     'tpl' => '_wap',       'tpl_default' => '_default' ],
-        'mip.'.Const_Domain                => ['app'=> 'www',  'url'=>'/',     'tpl' => '_mip',       'tpl_default' => '_wap'     ],
-        'www.'.Const_Domain                => ['app'=> 'www',  'url'=>'/',     'tpl' => '_default'  ],
-        'api.'.Const_Domain                => ['app'=> 'api',  'url'=>'/',     'tpl' => '_default'  ],
-        'adm.'.Const_Domain                => ['app'=> 'adm',  'url'=>'/',     'tpl' => '_default'  ],
+        'm.'.Const_Domain                    => ['app'=> 'www',  'url'=>'/',     'tpl_style' => '_wap',       'tpl_default' => '_default' ],
+        'mip.'.Const_Domain                  => ['app'=> 'www',  'url'=>'/',     'tpl_style' => '_mip',       'tpl_default' => '_wap'     ],
+        'www.'.Const_Domain                  => ['app'=> 'www',  'url'=>'/',     'tpl_style' => '_default'  ],
+        'api.'.Const_Domain                  => ['app'=> 'api',  'url'=>'/',     'tpl_style' => '_default'  ],
+        'adm.'.Const_Domain                  => ['app'=> 'adm',  'url'=>'/',     'tpl_style' => '_default'  ],
 
-        'm'  .Environment.'.'.Const_Domain               => ['app'=> 'www',  'url'=>'/',     'tpl' => '_wap',       'tpl_default' => '_default' ],
-        'mip'.Environment.'.'.Const_Domain               => ['app'=> 'www',  'url'=>'/',     'tpl' => '_mip',       'tpl_default' => '_wap'     ],
-        'www'.Environment.'.'.Const_Domain               => ['app'=> 'www',  'url'=>'/',     'tpl' => '_default'  ],
-        'api'.Environment.'.'.Const_Domain               => ['app'=> 'api',  'url'=>'/',     'tpl' => '_default'  ],
-        'adm'.Environment.'.'.Const_Domain               => ['app'=> 'adm',  'url'=>'/',     'tpl' => '_default'  ],
+        'm'  .Environment.'.'.Const_Domain   => ['app'=> 'www',  'url'=>'/',     'tpl_style' => '_wap',       'tpl_default' => '_default' ],
+        'mip'.Environment.'.'.Const_Domain   => ['app'=> 'www',  'url'=>'/',     'tpl_style' => '_mip',       'tpl_default' => '_wap'     ],
+        'www'.Environment.'.'.Const_Domain   => ['app'=> 'www',  'url'=>'/',     'tpl_style' => '_default'  ],
+        'api'.Environment.'.'.Const_Domain   => ['app'=> 'api',  'url'=>'/',     'tpl_style' => '_default'  ],
+        'adm'.Environment.'.'.Const_Domain   => ['app'=> 'adm',  'url'=>'/',     'tpl_style' => '_default'  ],
     ],
     ['app'=> 'www',  'url'=>'/',     'tpl' => '_default'  ]  // default
 );
