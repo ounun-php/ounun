@@ -619,7 +619,8 @@ class v extends \ounun\base
         if (!$mod) {
             $mod = [\ounun\scfg::def_method];
         }
-        $method = $mod[0];
+        $method             = $mod[0];
+        \ounun\scfg::$view  = $this;
         $this->$method($mod);
     }
 
@@ -671,9 +672,6 @@ class v extends \ounun\base
         // db
         $this->_db_v || $this->_db_v = self::db(\ounun\scfg::$app_name);
         self::$cms->db = $this->_db_v;
-
-        // scfg
-        \ounun\scfg::$view = $this;
     }
 
     /** @var string title */
