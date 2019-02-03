@@ -142,7 +142,7 @@ class template
         }
 
         // 替换
-        scfg::$view->tpl_replace_str_default();
+        \ounun\scfg::$view->tpl_replace_str_default();
         $buffer     = strtr($buffer,scfg::$tpl_replace_str);
 
         exit($buffer);
