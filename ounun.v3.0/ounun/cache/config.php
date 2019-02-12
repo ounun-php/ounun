@@ -13,14 +13,14 @@ class config
      * @param string $tag
      * @return config
      */
-    //    static protected function instance( $db, $cache_scfg, $tag='tag')
-    //    {
-    //        if(!self::$_inst[$tag])
-    //        {
-    //            self::$_inst[$tag] = new cache($db,$cache_scfg,$tag);
-    //        }
-    //        return self::$_inst[$tag];
-    //    }
+//    static protected function instance( $db, $cache_scfg, $tag='tag')
+//    {
+//        if(!self::$_inst[$tag])
+//        {
+//            self::$_inst[$tag] = new cache($db,$cache_scfg,$tag);
+//        }
+//        return self::$_inst[$tag];
+//    }
 
     /** @var array  */
     protected $_cache_data = [];
@@ -78,7 +78,7 @@ class config
             //$this->_cd[$tag_key]->mtime = time();
             //debug_header('$last_modify',$last_modify,true);
             //debug_header('$this_mtime',$this->_cd[$tag_key]->mtime,true);
-            if (!$c)
+            if ($c == null)
             {
                 //debug_header('$this_mtime2',222,true);
                 $this->_cache_data[$tag_key] = $this->$mysql_method($args);

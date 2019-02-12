@@ -98,7 +98,8 @@ class redis extends base
 
     /**
      * 设定数据Value
-     * @param $val       */
+     * @param $val
+     */
     public function val($val)
     {
         $this->_is_read  = true;
@@ -108,7 +109,8 @@ class redis extends base
     /**
      * 读取数据
      * @param $keys
-     * @return mixed|null */
+     * @return mixed|null
+     */
     public function read()
     {
         if($this->_is_read)
@@ -130,7 +132,8 @@ class redis extends base
 
     /**
      * 写入已设定的数据
-     * @return bool       */
+     * @return bool
+     */
     public function write()
     {
         if(false == $this->_is_read)

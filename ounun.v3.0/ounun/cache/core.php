@@ -26,6 +26,7 @@ class core
     {
         $this->_type   = 0;
     }
+
 	/**
 	 * 设定 Cache配制
 	 * @param array $config Cache配制
