@@ -385,12 +385,22 @@ class scfg
         foreach ($firsts as $first) {
             if (isset(self::$maps_paths[$first])) {
                 foreach (self::$maps_paths[$first] as $v) {
-                    if (0 === strpos($class, $v['namespace'])) {
+                    if ('' == $v['namespace']){
+                        $file = $v['path'].$filename;
+//                      echo " load_class2  -> \$class :{$class}  \$len:{$v['len']}\n".
+//                           "                \t\t\$path:{$v['path']}\n".
+//                           "                \t\t\$filename:{$filename}\n".
+//                           "                \t\t\$file1:{$file} \n";
+                        if(is_file($file)) {
+                            require $file;
+                            return;
+                        }
+                    }elseif (0 === strpos($class, $v['namespace'])) {
                         $file = $v['path'].(($v['cut'] && $v['len'])?substr($filename, $v['len']):$filename);
-//                        echo " load_class  -> \$class :{$class}  \$len:{$v['len']}\n".
-//                             "                \t\t\$path:{$v['path']}\n".
-//                             "                \t\t\$filename:{$filename}\n".
-//                             "                \t\t\$file1:{$file} \n";
+//                      echo " load_class  -> \$class :{$class}  \$len:{$v['len']}\n".
+//                           "                \t\t\$path:{$v['path']}\n".
+//                           "                \t\t\$filename:{$filename}\n".
+//                           "                \t\t\$file1:{$file} \n";
                         if(is_file($file)) {
                             require $file;
                             return;
