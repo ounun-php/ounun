@@ -1,5 +1,5 @@
 <?php
-namespace app\adm\model;
+namespace app\cp\model;
 
 
 class purview extends \ounun\mvc\model\admin\purview
@@ -27,13 +27,11 @@ class purview extends \ounun\mvc\model\admin\purview
 
     /** 游戏名 与 LOGO */
     public $cfg_name = [
-        'adm'                     => ['dir'=>'logo/'.Const_Code.'/', 'name'=> Const_SiteName.'(release)'],
-        'adm-dev'                 => ['dir'=>'logo/'.Const_Code.'/', 'name'=> Const_SiteName.'(dev)'],
-        'adm2'                    => ['dir'=>'logo/'.Const_Code.'/', 'name'=> Const_SiteName.'(local)'],
+        'adm.moko8.com'       => ['dir'=>'logo/'.Const_Code.'/', 'name'=> Const_SiteName.'(release)'],
+        'adm2.moko8.com'      => ['dir'=>'logo/'.Const_Code.'/', 'name'=> Const_SiteName.'(local)'],
+        'adm3.moko8.com'      => ['dir'=>'logo/'.Const_Code.'/', 'name'=> Const_SiteName.'(dev)'],
 
-        'adm.'.Const_Domain       => ['dir'=>'logo/'.Const_Code.'/', 'name'=> Const_SiteName.'(release)'],
-        'adm-dev.'.Const_Domain   => ['dir'=>'logo/'.Const_Code.'/', 'name'=> Const_SiteName.'(dev)'],
-        'adm2.'.Const_Domain      => ['dir'=>'logo/'.Const_Code.'/', 'name'=> Const_SiteName.'(local)'],
+        'adm2'                => ['dir'=>'logo/'.Const_Code.'/', 'name'=> Const_SiteName.'(local)'],
     ];
 
     /** table */
