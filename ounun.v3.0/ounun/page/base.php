@@ -47,7 +47,7 @@ class base
     /**
      * 创建一个分页类
      * page constructor.
-     * @param mysqli $db
+     * @param \ounun\mysqli $db
      * @param string $table
      * @param string $url
      * @param string $where_str

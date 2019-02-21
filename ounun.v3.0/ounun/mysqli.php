@@ -34,7 +34,7 @@ class mysqli
     protected $_username = '';
     protected $_password = '';
     protected $_host     = '';
-    protected $_post     = 0;
+    protected $_post     = 3306;
 
     /**
      * 创建MYSQL类
@@ -170,9 +170,9 @@ class mysqli
      * @param null   $bind
      * @return bool|\mysqli_result
      */
-    public function conn(string $sql = '', $bind = null, bool $is_active = true)
+    public function conn(string $sql = '', $bind = null, bool $check_active = true)
     {
-        if($is_active)
+        if($check_active)
         {
             $this->active();
         }
