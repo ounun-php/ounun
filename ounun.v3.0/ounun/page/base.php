@@ -26,7 +26,7 @@ class base
     /** @var array   第一页          */
     protected $_cfg_index 	= [];
 
-    /** @var \ounun\mysqli  */
+    /** @var \ounun\pdo  */
     protected $_db;
     protected $_table;
     protected $_url;
@@ -47,7 +47,7 @@ class base
     /**
      * 创建一个分页类
      * page constructor.
-     * @param \ounun\mysqli $db
+     * @param \ounun\pdo $db
      * @param string $table
      * @param string $url
      * @param string $where_str
@@ -55,7 +55,7 @@ class base
      * @param string $sql_count
      * @param array $config
      */
-    public function __construct(\ounun\mysqli $db,string $table,string $url,string $where_str = '', $where_bind =null,string $sql_count = 'count(*)',  array $config = [],int $rows=0)
+    public function __construct(\ounun\pdo $db,string $table,string $url,string $where_str = '', $where_bind =null,string $sql_count = 'count(*)',  array $config = [],int $rows=0)
     {
         $this->_db    = $db;
         $this->_table = $table;

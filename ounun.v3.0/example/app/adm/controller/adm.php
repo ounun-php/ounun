@@ -2,7 +2,7 @@
 namespace app\adm\controller;
 
 use ounun\mvc\model\admin\oauth;
-use ounun\scfg;
+use ounun\config;
 use extend\cache_config;
 use app\adm\model\purview;
 
@@ -60,7 +60,7 @@ class adm extends \ounun\mvc\controller\admin\admin
         $cp_libs        = self::$auth->cookie_get(purview::cp_libs);
         if($cp_libs)
         {
-            $libs = scfg::$g['libs'][$cp_libs];
+            $libs = config::$global['libs'][$cp_libs];
             if($libs && $libs['db'])
             {
                 $this->_db_libs   = self::db($libs['db']);
@@ -118,7 +118,7 @@ class adm extends \ounun\mvc\controller\admin\admin
         $pics            = [];
         if($cp_libs)
         {
-            $tables      = scfg::$g['libs'][$cp_libs];
+            $tables      = config::$global['libs'][$cp_libs];
             if($tables && $tables['table'] && $tables['table']['pic'] && is_array($tables['table']['pic']) )
             {
                 $pics    = $tables['table']['pic'];

@@ -9,20 +9,20 @@
 namespace extend;
 
 
-use ounun\scfg;
+use ounun\config;
 
 class cache_config extends \ounun\cache\config
 {
     /**
-     * @param \ounun\mysqli $db
+     * @param \ounun\pdo $db
      * @param string $tag
      * @return cache_config
      */
-    static public function instance(\ounun\mysqli $db,string $tag='tag'):cache_config
+    static public function instance(\ounun\pdo $db,string $tag='tag'):cache_config
     {
         if(!self::$_inst[$tag])
         {
-            self::$_inst[$tag] = new cache_config($db,scfg::$g['cache_file'],$tag);
+            self::$_inst[$tag] = new cache_config($db,config::$global['cache_file'],$tag);
         }
         return self::$_inst[$tag];
     }

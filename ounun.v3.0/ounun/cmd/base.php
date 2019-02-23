@@ -23,10 +23,10 @@ namespace ounun\cmd;
  */
 use ounun\cmd\task\manage;
 
-class base extends \ounun\base
+class base
 {
 
-    /** @var \ounun\mysqli DB */
+    /** @var \ounun\pdo DB */
     protected $_db_zrun;
 
     /**

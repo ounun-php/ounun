@@ -64,7 +64,7 @@ class com_baidu
     protected $_db_sitemap       = ' `z_sitemap` ';
     protected $_db_sitemap_push  = ' `z_sitemap_push` ';
 
-    /** @var \ounun\mysqli */
+    /** @var \ounun\pdo */
     protected $_db;
     /** @var \ounun\logs  */
     protected $_logs;
@@ -86,11 +86,11 @@ class com_baidu
 
     /**
      * com_baidu constructor.
-     * @param \ounun\mysqli    $db
+     * @param \ounun\pdo       $db
      * @param \ounun\logs|null $logs
      * @param array $config
      */
-    public function __construct(\ounun\mysqli $db,\ounun\logs $logs = null)
+    public function __construct(\ounun\pdo $db,\ounun\logs $logs = null)
     {
         $this->_db   = $db;
         $this->_logs = $logs;

@@ -15,7 +15,7 @@ class api extends \v
         list($check,$error_msg) = $secure->check($_GET,time());
         if($check)
         {
-            $db   = \ounun\scfg::$db_cfg[\ounun\scfg::$app_name];
+            $db   = \ounun\config::$database[\ounun\config::$app_name];
             $data = $secure->encode($db);
             $rs   = ['ret'=>$check,'data'=>$data];
         }else

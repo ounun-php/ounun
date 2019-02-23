@@ -84,7 +84,7 @@
                         <?php
                         $project_no     = Const_Code;
                         $adm_account_id = \controller\adm::$auth->session_get(\model\purview::s_id);
-                        $site_name      = \ounun\scfg::$tpl_replace_str['{$site_name}'];
+                        $site_name      = \ounun\config::$tpl_replace_str['{$site_name}'];
                         $adm_account    = \controller\adm::$auth->session_get(\model\purview::s_account);
                         ?>
                         <img height="388" src="<?php echo (new \plugins\google\auth_code() )->get_qrcode_google_url("{$site_name}#{$adm_account}#{$project_no}#".date("Y-m-d")."#{$adm_account_id}",$cs,$adm_account."《{$site_name}》") ?>"><br />

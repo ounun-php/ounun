@@ -3,7 +3,7 @@ namespace ounun\mvc\model;
 
 class url
 {
-    /** @var \ounun\mysqli */
+    /** @var \ounun\pdo */
     public $db;
 
     /**

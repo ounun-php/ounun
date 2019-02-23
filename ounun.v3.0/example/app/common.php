@@ -8,7 +8,7 @@
  */
 function surl($url, string $pre_str = ""): string
 {
-    return \ounun\scfg::surl($url, \ounun\scfg::$url_static.$pre_str);
+    return \ounun\config::url_static($url, \ounun\config::$url_static.$pre_str);
 }
 
 /**
@@ -19,7 +19,7 @@ function surl($url, string $pre_str = ""): string
  */
 function gurl($url, string $pre_str = ""): string
 {
-    return \ounun\scfg::surl($url,  \ounun\scfg::$url_static_g.$pre_str);
+    return \ounun\config::url_static($url,  \ounun\config::$url_static_g.$pre_str);
 }
 
 
@@ -38,7 +38,7 @@ function cms()
  */
 function i18n()
 {
-    return \ounun\scfg::get_i18n();
+    return \ounun\config::get_i18n();
 }
 
 /**

@@ -4,7 +4,7 @@ namespace ounun\cmd\task;
 
 class base
 {
-    /** @var \ounun\mysqli   */
+    /** @var \ounun\pdo   */
     protected $_db;
     /** @var manage */
     protected $_manage;

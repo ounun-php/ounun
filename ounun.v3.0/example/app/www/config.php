@@ -2,7 +2,7 @@
 // session_start();
 
 /** 配制cache_file */
-\ounun\scfg::set_global([
+\ounun\config::set_global([
     'libs' =>
         [
             'libs_v1'    => ['db'=>'libs_v1','name'=>'库v1',    'table'=>[
@@ -21,7 +21,7 @@
 ]);
 
 /** 配制database */
-\ounun\scfg::set_database([
+\ounun\config::set_database([
     'www' =>
         [
             'host'       => 'shihundb001pub.mysql.rds.aliyuncs.com:3306',

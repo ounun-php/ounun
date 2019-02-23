@@ -46,7 +46,7 @@ class template
     {
         $styles = $styles ? $styles : [$this->_style_name,$this->_style_name_default];
         // print_r(['scfg::$tpl_dirs'=>scfg::$tpl_dirs,'$styles'=>$styles]);
-        foreach (scfg::$tpl_dirs as $dir)
+        foreach (config::$tpl_dirs as $dir)
         {
             foreach ($styles as $style)
             {
@@ -61,6 +61,7 @@ class template
             }
         }
         $this->error($filename);
+        return '';
     }
 
     /**
@@ -106,7 +107,7 @@ class template
      */
     protected function error($filename)
     {
-        trigger_error("Can't find Template:{$filename} \ndirs:[".implode(',',scfg::$tpl_dirs)."] \nstyle:{$this->_style_name} \nstyle_default:{$this->_style_name_default}", E_USER_ERROR);
+        trigger_error("Can't find Template:{$filename} \ndirs:[".implode(',',config::$tpl_dirs)."] \nstyle:{$this->_style_name} \nstyle_default:{$this->_style_name_default}", E_USER_ERROR);
     }
 
     /**
@@ -142,8 +143,8 @@ class template
         }
 
         // 替换
-        \ounun\scfg::$view->tpl_replace_str_default();
-        $buffer     = strtr($buffer,scfg::$tpl_replace_str);
+        \ounun\config::$view->tpl_replace_str_default();
+        $buffer     = strtr($buffer,config::$tpl_replace_str);
 
         exit($buffer);
     }

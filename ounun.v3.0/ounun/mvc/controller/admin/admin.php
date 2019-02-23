@@ -9,7 +9,7 @@ namespace ounun\mvc\controller\admin;
 
 use \ounun\mvc\model\admin\oauth;
 use ounun\mvc\model\admin\purview;
-use \ounun\scfg;
+use \ounun\config;
 
 /********************************************************************
  * 后台基类
@@ -19,11 +19,11 @@ class admin extends \v
     /** @var oauth */
     public static $auth;
 
-    /** @var \ounun\mysqli */
+    /** @var \ounun\pdo */
     protected $_db_adm;
-    /** @var \ounun\mysqli */
+    /** @var \ounun\pdo */
     protected $_db_site;
-    /** @var \ounun\mysqli */
+    /** @var \ounun\pdo */
     protected $_db_libs;
 
     /** @var string 站点类型 */
@@ -102,7 +102,7 @@ class admin extends \v
             '{$site_logo_dir}'  => $cfg_name['dir'],
         ];
 
-        scfg::set_tpl_array($data);
-        scfg::set_tpl_array(self::$auth->purview->cfg);
+        config::set_tpl_array($data);
+        config::set_tpl_array(self::$auth->purview->cfg);
     }
 }

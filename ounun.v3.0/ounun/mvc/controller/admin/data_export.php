@@ -3,7 +3,7 @@ namespace ounun\mvc\controller\admin;
 
 class data_export extends \v
 {
-    /** @var \ounun\mysqli */
+    /** @var \ounun\pdo */
     protected $_db_libs = null;
     /** @var \ounun\mvc\model\admin\secure */
     protected $_secure  = null;

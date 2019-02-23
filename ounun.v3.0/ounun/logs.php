@@ -19,7 +19,7 @@ class logs
         self::state_ok     => '成功',
     ];
 
-    /** @var \ounun\mysqli  */
+    /** @var \ounun\pdo  */
     protected $_db        = null;
     /** @var string 表名 */
     protected $_table     = '';
@@ -44,10 +44,10 @@ class logs
 
     /**
      * logs constructor.
-     * @param mysqli $db    \ounun\mysqli
+     * @param mysqli $db    \ounun\pdo
      * @param string $table 表名
      */
-    public function __construct(\ounun\mysqli $db,string $table = 'z_task_logs')
+    public function __construct(\ounun\pdo $db,string $table = 'z_task_logs')
     {
         $this->_db    = $db;
         $this->_table = $table;

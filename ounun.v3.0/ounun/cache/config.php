@@ -8,7 +8,7 @@ class config
     static protected $_inst = [];
 
     /**
-     * @param \ounun\mysqli $db
+     * @param \ounun\pdo $db
      * @param array $cache_scfg
      * @param string $tag
      * @return config
@@ -26,18 +26,18 @@ class config
     protected $_cache_data = [];
     /** @var core */
     protected $_cache;
-    /** @var \ounun\mysqli */
+    /** @var \ounun\pdo */
     protected $_db;
     /** @var int 最后更新时间，大于这个时间数据都过期 */
     protected $_last_time;
 
     /**
      * cache constructor.
-     * @param \ounun\mysqli $db
+     * @param \ounun\pdo $db
      * @param array $cache_scfg
      * @param string $tag
      */
-    public function __construct(\ounun\mysqli $db,array $cache_scfg,string $tag)
+    public function __construct(\ounun\pdo $db,array $cache_scfg,string $tag)
     {
         $this->_db      = $db;
         $this->_cache   = new core();

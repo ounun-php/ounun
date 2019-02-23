@@ -1,5 +1,4 @@
 <?php
-
 /** libs库文件目录 **/
 defined('Dir_Ounun') || define('Dir_Ounun', __DIR__ . '/');
 /** libs目录 **/
@@ -459,7 +458,7 @@ function error404(string $msg = ''): void
             </body>
             </html>
             <!-- a padding to disable MSIE and Chrome friendly error page -->
-            <!-- ' . \ounun\scfg::$app_name . ' -->
+            <!-- ' . \ounun\config::$app_name . ' -->
             <!-- a padding to disable MSIE and Chrome friendly error page -->
             <!-- a padding to disable MSIE and Chrome friendly error page -->
             <!-- a padding to disable MSIE and Chrome friendly error page -->
@@ -593,7 +592,7 @@ class ret
  * Class ViewBase
  * @package ounun
  */
-class v extends \ounun\base
+class v
 {
     /**
      * 没定的方法
@@ -603,7 +602,7 @@ class v extends \ounun\base
     public function __call($method, $args)
     {
         header('HTTP/1.1 404 Not Found');
-        $this->debug = new \ounun\debug(\ounun\scfg::$dir_root.'public/logs/error_404_'.date('Ymd').'.txt',false,false,false,true);
+        $this->debug = new \ounun\debug(\ounun\config::$dir_root.'public/logs/error_404_'.date('Ymd').'.txt',false,false,false,true);
         error404("\$method:{$method} \$args:".json_encode($args)."");
     }
 
@@ -617,10 +616,10 @@ class v extends \ounun\base
     public function __construct($mod)
     {
         if (!$mod) {
-            $mod = [\ounun\scfg::def_method];
+            $mod = [\ounun\config::def_method];
         }
         $method             = $mod[0];
-        \ounun\scfg::$view  = $this;
+        \ounun\config::$view  = $this;
         $this->$method($mod);
     }
 
@@ -636,7 +635,7 @@ class v extends \ounun\base
     /** @var string 当前面页(文件名) */
     protected $_page_file = '';
 
-    /** @var \ounun\mysqli DB */
+    /** @var \ounun\pdo DB */
     protected $_db_v = null;
 
     /**
@@ -652,7 +651,7 @@ class v extends \ounun\base
     {
         // url_check
         $this->_page_file = $page_file;
-        $this->_page_url  = \ounun\scfg::url_page($this->_page_file);
+        $this->_page_url  = \ounun\config::url_page($this->_page_file);
         url_check($this->_page_url, $ext_req, $domain);
 
         // cache_html
@@ -663,14 +662,14 @@ class v extends \ounun\base
         }
 
         // cms
-        $cls       = \ounun\scfg::$app_cms_classname;
+        $cls       = \ounun\config::$app_cms_classname;
         self::$cms = new $cls();
 
         // template
-        self::$tpl   || self::$tpl   = new \ounun\template(\ounun\scfg::$tpl_style, \ounun\scfg::$tpl_default, $this->_cache_html_trim);
+        self::$tpl   || self::$tpl   = new \ounun\template(\ounun\config::$tpl_style, \ounun\config::$tpl_default, $this->_cache_html_trim);
 
         // db
-        $this->_db_v || $this->_db_v = self::db(\ounun\scfg::$app_name);
+        $this->_db_v || $this->_db_v = \ounun\pdo::instance(\ounun\config::$app_name);
         self::$cms->db = $this->_db_v;
     }
 
@@ -715,10 +714,10 @@ class v extends \ounun\base
      */
     public function cache_html($key)
     {
-        if ('' == Environment && \ounun\scfg::$g['cache_html']) {
-            $cfg = \ounun\scfg::$g['cache_html'];
-            $cfg['mod'] = 'html_' . \ounun\scfg::$app_name . \ounun\scfg::$tpl_style;
-            $key2 = \ounun\scfg::$app_name . '_' . \ounun\scfg::$tpl_style . '_' . $key;
+        if ('' == Environment && \ounun\config::$global['cache_html']) {
+            $cfg = \ounun\config::$global['cache_html'];
+            $cfg['mod'] = 'html_' . \ounun\config::$app_name . \ounun\config::$tpl_style;
+            $key2 = \ounun\config::$app_name . '_' . \ounun\config::$tpl_style . '_' . $key;
             self::$cache_html = new \ounun\cache\html($cfg, $key2, $this->_cache_html_time, $this->_cache_html_trim, '' != Environment);
             self::$cache_html->run(true);
         }
@@ -791,7 +790,7 @@ class v extends \ounun\base
     public function tpl_replace_str_default()
     {
         $url_base = substr($this->_page_url, 1);
-        \ounun\scfg::$tpl_replace_str += [
+        \ounun\config::$tpl_replace_str += [
             '{$seo_title}' => $this->_seo_title,
             '{$seo_keywords}' => $this->_seo_keywords,
             '{$seo_description}' => $this->_seo_description,
@@ -800,26 +799,26 @@ class v extends \ounun\base
             '{$page_url}' => $this->_page_url,
             '{$page_file}' => $this->_page_file,
 
-            '{$url_www}' => \ounun\scfg::$url_www,
-            '{$url_wap}' => \ounun\scfg::$url_wap,
-            '{$url_mip}' => \ounun\scfg::$url_mip,
-            '{$url_api}' => \ounun\scfg::$url_api,
-            '{$url_app}' => \ounun\scfg::url_page(),
+            '{$url_www}' => \ounun\config::$url_www,
+            '{$url_wap}' => \ounun\config::$url_wap,
+            '{$url_mip}' => \ounun\config::$url_mip,
+            '{$url_api}' => \ounun\config::$url_api,
+            '{$url_app}' => \ounun\config::url_page(),
 
 
-            '{$canonical_pc}' => \ounun\scfg::$url_www . $url_base,
-            '{$canonical_mip}' => \ounun\scfg::$url_mip . $url_base,
-            '{$canonical_wap}' => \ounun\scfg::$url_wap . $url_base,
+            '{$canonical_pc}' => \ounun\config::$url_www . $url_base,
+            '{$canonical_mip}' => \ounun\config::$url_mip . $url_base,
+            '{$canonical_wap}' => \ounun\config::$url_wap . $url_base,
 
-            '{$app}' => \ounun\scfg::$app_name,
-            '{$domain}' => \ounun\scfg::$app_domain,
+            '{$app}' => \ounun\config::$app_name,
+            '{$domain}' => \ounun\config::$app_domain,
 
-            '{$sres}' => \ounun\scfg::$url_res,
-            '{$static}' => \ounun\scfg::$url_static,
-            '{$upload}' => \ounun\scfg::$url_upload,
-            '{$static_g}' => \ounun\scfg::$url_static_g,
-            '/public/static/' => \ounun\scfg::$url_static,
-            '/public/upload/' => \ounun\scfg::$url_upload,
+            '{$sres}' => \ounun\config::$url_res,
+            '{$static}' => \ounun\config::$url_static,
+            '{$upload}' => \ounun\config::$url_upload,
+            '{$static_g}' => \ounun\config::$url_static_g,
+            '/public/static/' => \ounun\config::$url_static,
+            '/public/upload/' => \ounun\config::$url_upload,
         ];
     }
 
@@ -840,8 +839,8 @@ class v extends \ounun\base
     {
         url_check('/robots.txt');
         header('Content-Type: text/plain');
-        if (file_exists(\ounun\scfg::$dir_app . 'robots.txt')) {
-            readfile(\ounun\scfg::$dir_app . 'robots.txt');
+        if (file_exists(\ounun\config::$dir_app . 'robots.txt')) {
+            readfile(\ounun\config::$dir_app . 'robots.txt');
         } else {
             exit("User-agent: *\nDisallow:");
         }
@@ -852,6 +851,6 @@ class v extends \ounun\base
      */
     public function favicon($mod)
     {
-        go_url(\ounun\scfg::$url_static . 'favicon.ico', false, 301);
+        go_url(\ounun\config::$url_static . 'favicon.ico', false, 301);
     }
 }

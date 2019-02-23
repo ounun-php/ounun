@@ -9,11 +9,11 @@ class oauth
 
     /** @var string  session key **/
     protected $_o_key  = '';
-    /** @var \ounun\mysqli  Mysqli 句柄  */
+    /** @var \ounun\pdo  Mysqli 句柄  */
     protected $_db;
 
     /** Auth constructor. */
-    public function __construct(\ounun\mysqli $db,purview $purview ,string $session_key='adm')
+    public function __construct(\ounun\pdo $db,purview $purview ,string $session_key='adm')
     {
         $this->_db              = $db;
         $this->_o_key           = $session_key;

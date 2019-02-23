@@ -33,7 +33,7 @@ class coll extends \ounun\cmd\cmd
      */
     public function __construct($mod)
     {
-        $this->_db_zrun = self::db(\ounun\scfg::$app_name);
+        $this->_db_zrun = self::db(\ounun\config::$app_name);
         parent::__construct($mod);
     }
 

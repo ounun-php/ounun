@@ -1,7 +1,7 @@
 <?php
 use \app\adm\controller\adm;
 use \app\adm\model\purview;
-use \ounun\scfg;
+use \ounun\config;
 ?>
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -52,7 +52,7 @@ use \ounun\scfg;
 
         // print_r($GLOBALS['_scfg']['libs']);
         ?>
-        var scfg_libs           = <?php echo json_encode(scfg::$g['libs'],JSON_UNESCAPED_UNICODE)?>;
+        var scfg_libs           = <?php echo json_encode(config::$global['libs'],JSON_UNESCAPED_UNICODE)?>;
         var scfg                = <?php echo json_encode($scfg,JSON_UNESCAPED_UNICODE);?>;
 		var json_curr_url		= '';
 		var json_nav			= 0;
@@ -291,7 +291,7 @@ use \ounun\scfg;
 	<tr>
 		<td colspan="2" height="90">
             <div class="mainhd">
-                <a href="<?php echo scfg::url_page('/')?>" class="logo logo_bg" target="_blank">《{$site_name}》管理中心</a>
+                <a href="<?php echo config::url_page('/')?>" class="logo logo_bg" target="_blank">《{$site_name}》管理中心</a>
 				<div class="uinfo" id="frameuinfo">
 					<p>
 						你好, <?php echo adm::$auth->purview->purview_group[ adm::$auth->session_get( purview::s_type)];?>

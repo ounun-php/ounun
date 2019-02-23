@@ -3,10 +3,10 @@ namespace extend;
 
 class php2json
 {
-    /** @var \ounun\mysqli */
+    /** @var \ounun\pdo */
     protected $_db;
 
-    public function __construct(\ounun\mysqli $db)
+    public function __construct(\ounun\pdo $db)
     {
         $this->_db = $db;
     }

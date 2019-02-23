@@ -183,8 +183,8 @@ class html
         if($filesize > self::Cache_Mini_Size)
         {
             // \debug::header('xypm_ok',$this->_cache->filename(),$this->_is_debug,__FUNCTION__,__LINE__);
-            \ounun\scfg::$view->tpl_replace_str_default();
-            $buffer = strtr($buffer,\ounun\scfg::$tpl_replace_str);
+            \ounun\config::$view->tpl_replace_str_default();
+            $buffer = strtr($buffer,\ounun\config::$tpl_replace_str);
 
             if($this->_is_trim)
             {

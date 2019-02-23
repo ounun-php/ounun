@@ -31,7 +31,7 @@ class manage
     const mode_dateup = 2; // 2:更新
 
 
-    /** @var \ounun\mysqli   */
+    /** @var \ounun\pdo   */
     public $db        = null;
     /** @var array<\task\base> 采集任务类 */
     public $tasks     = [];
@@ -41,9 +41,9 @@ class manage
 
     /**
      * _task constructor.
-     * @param \ounun\mysqli $db
+     * @param \ounun\pdo $db
      */
-    public function __construct(\ounun\mysqli $db)
+    public function __construct(\ounun\pdo $db)
     {
         $this->db   = $db;
     }
