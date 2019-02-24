@@ -473,7 +473,7 @@ class oauth
         $time	    = time() - 86400;
         $bind       = ['ip_segment'=>$ip_segment,'status'=>$status,'time'=>$time];
 
-        $rs_ip_segment_counts	= $this->_db->rows("select * from {$this->purview->db_logs_login} where `ip_segment` =:ip_segment and `status` =:status and `time` >=:time ;",$bind);
+        $rs_ip_segment_counts	= $this->_db->table($this->purview->db_logs_login)->field('ip_segment')->where('`ip_segment` =:ip_segment and `status` =:status and `time` >=:time ',$bind)->column_count();
         // echo $this->_db->getSql().'<br />';
         if ($rs_ip_segment_counts <= $this->purview->max_ips)
         {

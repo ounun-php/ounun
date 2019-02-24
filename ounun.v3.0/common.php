@@ -5,6 +5,8 @@ defined('Dir_Ounun') || define('Dir_Ounun', __DIR__ . '/');
 defined('Dir_Vendor') || define('Dir_Vendor', Dir_Root . 'vendor/');
 /** data目录 **/
 defined('Dir_Extend') || define('Dir_Extend', Dir_Root . 'extend/');
+/** template目录 **/
+defined('Dir_Template') || define('Dir_Template', Dir_Root . 'public/template/');
 /** cache目录 **/
 defined('Dir_Cache') || define('Dir_Cache', Dir_Root . 'cache/');
 /** app目录 **/

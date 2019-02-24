@@ -9,7 +9,6 @@ use app\adm\model\purview;
  */
 class task extends adm
 {
-
     /**
      * 定时任务
      * @param array $mod

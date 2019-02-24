@@ -46,13 +46,10 @@ class template
     {
         $styles = $styles ? $styles : [$this->_style_name,$this->_style_name_default];
         // print_r(['scfg::$tpl_dirs'=>scfg::$tpl_dirs,'$styles'=>$styles]);
-        foreach (config::$tpl_dirs as $dir)
-        {
-            foreach ($styles as $style)
-            {
+        foreach (config::$tpl_dirs as $dir) {
+            foreach ($styles as $style) {
                 $filename2 = "{$dir}{$style}/{$filename}";
-                if(file_exists($filename2))
-                {
+                if(file_exists($filename2))  {
                     $this->_dir_current   = dirname($filename2).'/';
                     $this->_style_current = $style;
                     // echo "filename:{$filename2}\n";
@@ -72,28 +69,22 @@ class template
     public function tpl_curr(string $filename):string
     {
         // curr
-        if($this->_dir_current)
-        {
+        if($this->_dir_current) {
             $filename2 = "{$this->_dir_current}{$filename}";
-            if(file_exists($filename2))
-            {
+            if(file_exists($filename2)) {
                 // echo "filename:{$filename2}\n";
                 return $filename2;
             }
         }
 
         // fixed
-        if($this->_style_current)
-        {
-            if($this->_style_current == $this->_style_name_default)
-            {
+        if($this->_style_current) {
+            if($this->_style_current == $this->_style_name_default) {
                 $styles = [$this->_style_name_default,$this->_style_name];
-            }else
-            {
+            }else {
                 $styles = [$this->_style_name,$this->_style_name_default];
             }
-        }else
-        {
+        }else {
             $styles = [$this->_style_name,$this->_style_name_default];
         }
 
@@ -116,8 +107,7 @@ class template
      */
     public function replace()
     {
-        if(!\v::$cache_html || \v::$cache_html->stop)
-        {
+        if(!\v::$cache_html || \v::$cache_html->stop) {
             ob_start();
             register_shutdown_function([$this,'callback'],false);
         }
@@ -135,8 +125,7 @@ class template
         ob_implicit_flush(1);
 
         // 写文件
-        if($this->_is_trim)
-        {
+        if($this->_is_trim) {
             $pattern     = ['/<!--.*?-->/','/[^:\-\"]\/\/[^\S].*?\n/', '/\/\*.*?\*\//', '/[\n\r\t]*?/', '/\s{2,}/','/>\s?</','/<!--.*?-->/','/\"\s?>/'];
             $replacement = [''            ,''                        , ''             , ''            , ' '       ,'><'     ,''            ,'">'];
             $buffer      = preg_replace($pattern,$replacement,$buffer);

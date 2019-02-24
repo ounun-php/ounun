@@ -53,7 +53,7 @@ class image
      * @param  string $qz     加水印后的图片的文件名在原文件名前面加上这个前缀
      * @return  mixed        是生成水印后的图片名称,失败返回false
      */
-    public function water_mark($ground_name, $water_name, $water_pos=0, $out_file_name)
+    public function water_mark($ground_name, $water_name, $water_pos=0, $out_file_name='')
     {
         /*获取水印图片是当前路径，还是指定了路径*/
 //        $dir = dirname($waterName);

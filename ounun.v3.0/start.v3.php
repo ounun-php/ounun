@@ -472,7 +472,7 @@ function start(array $mod,string $host)
     config::set_lang($lang);
 
     // set_tpl_dirs
-    config::set_tpl_dirs( config::$dir_app.'view/');
+    config::set_tpl_dirs( Dir_Template.config::$app_name.'/');
 
     // add_paths
     config::add_paths(config::$dir_app,'app\\'.config::$app_name,true);
@@ -482,6 +482,7 @@ function start(array $mod,string $host)
 
     // 模板
     config::$tpl_style     = $val_0['tpl_style']  ?$val_0['tpl_style']  :config::get_i18n()::tpl_style;
+    // 模板(默认)
     config::$tpl_default   = $val_0['tpl_default']?$val_0['tpl_default']:config::get_i18n()::tpl_default;
 
     // 开始 重定义头
@@ -577,4 +578,4 @@ function start_cmd($argv)
 /** 加载common.php */
 require __DIR__.'/common.php';
 /** 注册自动加载 */
-spl_autoload_register('\\ounun\\scfg::load_class');
+spl_autoload_register('\\ounun\\config::load_class');

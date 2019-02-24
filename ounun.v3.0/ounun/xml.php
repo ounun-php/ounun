@@ -16,109 +16,79 @@ class xml
     public static function array2xml($data,$key,$t="",$ps=false,$ps_auto=false)
     {
         $xml 		 = '';
-        if ('#' == $key)
-        {
+        if ('#' == $key) {
             return  $xml;
-        }
-        elseif(!is_array($data))
-        {
-            if(strstr($key,'$'))
-            {
+        } elseif(!is_array($data)) {
+            if(strstr($key,'$')) {
                 $key  	 = substr($key,1);
                 $data    = stripslashes($data);
                 $xml	.= "{$t}<{$key}><![CDATA[{$data}]]></{$key}>\n";
-            }
-            else
-            {
-                if(is_numeric($data))
-                {
+            } else {
+                if(is_numeric($data)) {
                  // $data = printf("%s",$data);
                     $data = number_format($data,0,'','');
                 }
                 $xml	.= "{$t}<{$key}>{$data}</{$key}>\n";
             }
-        }elseif(array_keys($data) === range(0, count($data) - 1))
-        {
+        }elseif(array_keys($data) === range(0, count($data) - 1)) {
             $key2	 = strstr($key,'$')?substr($key,1):$key;
-            if($ps)
-            {
+            if($ps) {
                 $xml	.= "{$t}<{$key2}s>\n";
-                foreach ($data as $data2)
-                {
+                foreach ($data as $data2) {
                     $xml.= self::array2xml($data2,$key,"{$t}\t",$ps,$ps_auto);
                 }
                 $xml	.= "{$t}</{$key2}s>\n";
-            }
-            else
-            {
-                foreach ($data as $data2)
-                {
+            } else {
+                foreach ($data as $data2) {
                     $xml.= self::array2xml($data2,$key,"{$t}",$ps,$ps_auto);
                 }
             }
-        }else
-        {
-            if($ps_auto)
-            {
+        } else {
+            if($ps_auto) {
                 $ps_c	= 0;
                 $ps 	= false; // 是否唯一子结节，唯一子结点就不包
-                foreach ($data as $key2=>$data2)
-                {
-                    if('#' != $key2)
-                    {
+                foreach ($data as $key2=>$data2) {
+                    if('#' != $key2) {
                         $ps_c ++;
                     }
                 }
-                if($ps_c > 1)
-                {
+                if($ps_c > 1) {
                     $ps = true;
                 }
             }
             //////////////////////////////////////////////////////
             $v		 	= '';
-            foreach ($data as $key2=>$data2)
-            {
+            foreach ($data as $key2=>$data2) {
                 $v	.= self::array2xml($data2,$key2,"{$t}\t",$ps,$ps_auto);
             }
-            if(is_array($data['#']))
-            {
+            if(is_array($data['#'])) {
                 $a   = '';
-                foreach ($data['#'] as $key2=>$data2)
-                {
-                    if(is_numeric($data2))
-                    {
-                        if($data2 && strlen($data2)  && '0' == substr($data2,0,1) && '.' != substr($data2,1,1))
-                        {
+                foreach ($data['#'] as $key2=>$data2) {
+                    if(is_numeric($data2)) {
+                        if($data2 && strlen($data2)  && '0' == substr($data2,0,1) && '.' != substr($data2,1,1)) {
                             // 0 开头的字符串
                             // $data2 = $data2;
-                        }elseif((float)$data2 != $data2)
-                        {
+                        }elseif((float)$data2 != $data2) {
                             $data2 = number_format($data2,3,'.','');
-                        }else
-                        {
+                        }else {
                             $data2 = number_format($data2,0,'','');
                         }
                     }
                     $a .=" {$key2}=\"{$data2}\"";
                 }
-                if($v)
-                {
+                if($v) {
                     $xml .= "{$t}<{$key}{$a}>\n";
                     $xml .= $v;
                     $xml .= "{$t}</{$key}>\n";
-                }else
-                {
+                } else {
                     $xml .= "{$t}<{$key}{$a} />\n";
                 }
-            }else
-            {
-                if($v)
-                {
+            }else {
+                if($v) {
                     $xml .= "{$t}<{$key}>\n";
                     $xml .= $v;
                     $xml .= "{$t}</{$key}>\n";
-                }else
-                {
+                }else {
                     $xml .= "{$t}<{$key} />\n";
                 }
             }

@@ -5,13 +5,14 @@ use ounun\mvc\model\admin\oauth;
 use ounun\config;
 use extend\cache_config;
 use app\adm\model\purview;
+use ounun\pdo;
 
 class adm extends \ounun\mvc\controller\admin\admin
 {
     public function __construct($mod)
     {
         // 初始化
-        $this->_db_adm  = self::db('adm');
+        $this->_db_adm  = pdo::instance('adm');
         self::$auth     = new oauth($this->_db_adm,new purview(),'mk8');
 
         $cp_site        = self::$auth->cookie_get(purview::cp_site);

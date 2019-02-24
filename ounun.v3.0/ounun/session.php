@@ -60,7 +60,9 @@ class session implements \SessionHandlerInterface, \SessionUpdateTimestampHandle
      */
     public function read($session_id)
     {
-        $rs = $this->_db->row('');
+        $rs = $this->_db->table($this->_session_table)
+                        ->where('','')
+                        ->column_one();
         if($rs)
         {
             return json_decode($rs['data'],true);
