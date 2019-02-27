@@ -69,7 +69,7 @@ class config
     /** @var array 模板替换数据组 */
     static public $tpl_replace_str = [];
 
-    /** @var \app\www\model\i18n 语言包 */
+    /** @var \ounun\mvc\model\i18n 语言包 */
     static public $i18n;
     /** @var string 当前语言 */
     static public $lang         = 'zh_cn';
@@ -259,7 +259,7 @@ class config
         }
     }
 
-    /** @return \app\www\model\i18n 语言包 */
+    /** @return \ounun\mvc\model\i18n 语言包 */
     static public function get_i18n()
     {
         return self::$i18n;

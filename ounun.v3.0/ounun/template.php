@@ -107,7 +107,7 @@ class template
      */
     public function replace()
     {
-        if(!\v::$cache_html || \v::$cache_html->stop) {
+        if(!\v::$cache_html || config::$view->cache_html->stop) {
             ob_start();
             register_shutdown_function([$this,'callback'],false);
         }
@@ -132,7 +132,7 @@ class template
         }
 
         // 替换
-        \ounun\config::$view->tpl_replace_str_default();
+        config::$view->tpl_replace_str_default();
         $buffer     = strtr($buffer,config::$tpl_replace_str);
 
         exit($buffer);

@@ -7,13 +7,12 @@ class html
     const Cache_Mini_Size       = 2024;
     /** Cache生成过程最长临时过度时间 */
     const Cache_Time_Interval   = 300;
+
     /** @var bool  */
     public $stop			    = false;
 
-
     /** @var int 当前时间 */
     protected $_now_time;
-
     /** @var int cache时间长度 */
     protected $_expire          = 3600;
 
@@ -21,19 +20,14 @@ class html
     // 下面 高级应用
     /** @var bool  */
     protected $_gzip	        = true;
-
     /** @var int  */
     protected $_cache_time		= 0;
-
     /** @var null|html_base  */
     protected $_cache           = null;
-
     /** @var bool 是否去空格 换行 */
     protected $_is_trim			= false;
-
     /** @var bool  */
     protected $_is_debug		= false;
-
 
     /**
      * 创建缓存对像 cache_html constructor.

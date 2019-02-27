@@ -237,6 +237,32 @@ function go_msg(string $msg, string $url = ''): void
     }
 }
 
+/**
+ * @param $error_code
+ * @param string $message
+ * @return array
+ */
+function error($error_code, $message = '')
+{
+    return [
+        'error_code' => $error_code,
+        'message'    => $message,
+    ];
+}
+
+/**
+ * @param $data
+ * @return bool
+ */
+function error_is($data)
+{
+    if (empty($data) || !is_array($data) || !array_key_exists('error_code', $data) || (array_key_exists('error_code', $data) && $data['error_code'] == 0)) {
+        return false;
+    } else {
+        return true;
+    }
+}
+
 
 /**
  * 获得 json字符串数据
