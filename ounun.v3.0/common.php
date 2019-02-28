@@ -45,38 +45,38 @@ function script_write(string $str)
 /**
  * 输出带参数的URL
  * @param string $url URL
- * @param array $data 数据
- * @param array $exts 要替换的数据
+ * @param array $data_query 数据
+ * @param array $replace_ext  要替换的数据
  * @param array $skip 忽略的数据 如:page
  * @return string
  */
-function url(string $url, array $data, array $exts = [], array $skip = []): string
+function url_build_query(string $url, array $data_query, array $replace_ext = [], array $skip = []): string
 {
     $rs = [];
-    if (is_array($data)) {
-        if ($exts && is_array($exts)) {
-            foreach ($exts as $key => $value) {
-                $data[$key] = $value;
+    if (is_array($data_query)) {
+        if ($replace_ext && is_array($replace_ext)) {
+            foreach ($replace_ext as $key => $value) {
+                $data_query[$key] = $value;
             }
         }
         if ($skip && is_array($skip)) {
             foreach ($skip as $key => $value) {
                 if ($value) {
-                    if (is_array($value) && in_array($data[$key], $value, true)) {
-                        unset($data[$key]);
-                    } elseif ($value == $data[$key]) {
-                        unset($data[$key]);
+                    if (is_array($value) && in_array($data_query[$key], $value, true)) {
+                        unset($data_query[$key]);
+                    } elseif ($value == $data_query[$key]) {
+                        unset($data_query[$key]);
                     }
                 } else {
-                    unset($data[$key]);
+                    unset($data_query[$key]);
                 }
             }
         }
-        $rs = [];
-        $rs_page = '';
-        foreach ($data as $key => $value) {
+        $rs     = [];
+        $rs_str = '';
+        foreach ($data_query as $key => $value) {
             if ('{page}' === $value) {
-                $rs_page = $key . '={page}';
+                $rs_str = $key . '={page}';
             } elseif (is_array($value)) {
                 foreach ($value as $k2 => $v2) {
                     $rs[] = $key . '[' . $k2 . ']=' . urlencode($v2);
@@ -86,8 +86,8 @@ function url(string $url, array $data, array $exts = [], array $skip = []): stri
             }
         }
         // 已保正page 是最后项
-        if ($rs_page) {
-            $rs[] = $rs_page;
+        if ($rs_str) {
+            $rs[] = $rs_str;
         }
     }
     $url = trim($url);
