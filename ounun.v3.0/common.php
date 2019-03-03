@@ -720,7 +720,7 @@ class v
         error404("\$method:{$method} \$args:".json_encode($args)."");
     }
 
-    /** @var \ounun\mvc\model\url cms */
+    /** @var \ounun\mvc\model\cms cms */
     public static $cms;
 
     /**
@@ -777,13 +777,14 @@ class v
 
         // cms
         $cls       = \ounun\config::$app_cms_classname;
-        self::$cms = new $cls();
+
 
         // template
         self::$tpl   || self::$tpl   = new \ounun\template(\ounun\config::$tpl_style, \ounun\config::$tpl_default, $this->_cache_html_trim);
 
         // db
         $this->_db_v || $this->_db_v = \ounun\pdo::instance(\ounun\config::$app_name);
+        self::$cms     = new $cls($this->_db_v);
         self::$cms->db = $this->_db_v;
     }
 
@@ -961,7 +962,7 @@ class v
     }
 
     /**
-     * adm2.moko8.com/favicon.ico
+     * /favicon.ico
      */
     public function favicon($mod)
     {

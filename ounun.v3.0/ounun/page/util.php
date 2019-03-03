@@ -8,7 +8,7 @@ class util
         $paras        = $paras        ? $paras        : $_GET;
         $page_paras   = $page_paras   ? $page_paras   : ['page'=>'{page}'];
         $url_original = $url_original ? $url_original : url_original();
-        $url          = url($url_original,$paras,$page_paras);
+        $url          = url_build_query($url_original,$paras,$page_paras);
         self::page_set($_SERVER['REQUEST_URI']);
         return $url;
     }

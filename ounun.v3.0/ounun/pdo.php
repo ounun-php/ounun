@@ -80,6 +80,8 @@ class pdo
     protected $_limit  = '';
     /** @var string 条件 */
     protected $_where  = '';
+    /** @var string 返回关联数据 assoc */
+    protected $_assoc  = '';
     /** @var array 条件参数 */
     protected $_bind_param      = [];
     /** @var array 插入时已存在数据 更新内容 */
@@ -271,7 +273,17 @@ class pdo
     {
         $this->query('SELECT '.implode(',',$this->_fields).' FROM '.$this->_table.' '.$this->_join.' '.$this->_where.' '.$this->_get_group().' '.$this->_get_order().' '.$this->_limit.';')
              ->_execute($this->_bind_param);
-        return $this->_stmt->fetchAll(\PDO::FETCH_ASSOC);
+        if($this->_assoc){
+            $rs = [];
+            $rs0= $this->_stmt->fetchAll(\PDO::FETCH_ASSOC);
+            if($rs0 && is_array($rs0)){
+                foreach ($rs0 as $v){
+                    $rs[$v[$this->_assoc]] = $v;
+                }
+            }
+        }else{
+            return $this->_stmt->fetchAll(\PDO::FETCH_ASSOC);
+        }
     }
 
     /**
@@ -367,6 +379,16 @@ class pdo
     public function field($field = '*'):self
     {
         $this->_fields[] = $field;
+        return $this;
+    }
+
+    /**
+     * @param string $assoc 设定返回关联数据 assoc
+     * @return $this
+     */
+    public function assoc(string $assoc = ''):self
+    {
+        $this->_assoc = $assoc;
         return $this;
     }
 
@@ -599,7 +621,7 @@ class pdo
         if($this->_order && is_array($this->_order)) {
             $rs2  = [];
             foreach ($this->_order as $v){
-                $rs2[] = '`'.$v['field'].'` '.$v['order'];
+                $rs2[] = $v['field'].' '.$v['order'];
             }
             $rs  = ' order by '.implode(',',$rs2);
         }

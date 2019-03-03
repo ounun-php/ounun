@@ -14,13 +14,13 @@ class purview
     const db_delete = 3;
 
     /** session id */
-    const s_id       = 'id';
-    const s_google   = 'g';
-    const s_cid      = 'c';
-    const s_type     = 'type';
-    const s_hash     = 'hash';
-    const s_account  = 'acc';
-    const s_password = 'p';
+    const session_id       = 'id';
+    const session_google   = 'g';
+    const session_cid      = 'c';
+    const session_type     = 'type';
+    const session_hash     = 'hash';
+    const session_account  = 'acc';
+    const session_password = 'p';
 
     /** cookie_key  */
     const cp_cid          = 'cp_cid';
@@ -106,7 +106,7 @@ class purview
      */
     public function check(string $key):bool
     {
-        $type  = $this->oauth->session_get(self::s_type);
+        $type  = $this->oauth->session_get(self::session_type);
         if(!$type)
         {
             return false;
@@ -159,7 +159,7 @@ class purview
         {
             if(''==$type)
             {
-                $type   = $this->oauth->session_get(self::s_type);
+                $type   = $this->oauth->session_get(self::session_type);
             }
             foreach ($this->purview as $key1 => $data1)
             {

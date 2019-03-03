@@ -9,18 +9,21 @@ class config
 
     /**
      * @param \ounun\pdo $db
-     * @param array $cache_scfg
      * @param string $tag
+     * @param array $config
+     * @param string $config_key
      * @return config
      */
-//    static protected function instance( $db, $cache_scfg, $tag='tag')
-//    {
-//        if(!self::$_inst[$tag])
-//        {
-//            self::$_inst[$tag] = new cache($db,$cache_scfg,$tag);
-//        }
-//        return self::$_inst[$tag];
-//    }
+    static public function instance(\ounun\pdo $db,string $tag='tag', array $config = [], $config_key = 'cache_file'):self
+    {
+        if(!self::$_inst[$tag]) {
+            if(empty($config)) {
+                $config = \ounun\config::$global[$config_key];
+            }
+            self::$_inst[$tag] = new self($db,$config,$tag);
+        }
+        return self::$_inst[$tag];
+    }
 
     /** @var array  */
     protected $_cache_data = [];
@@ -32,16 +35,16 @@ class config
     protected $_last_time;
 
     /**
-     * cache constructor.
+     * config constructor.
      * @param \ounun\pdo $db
-     * @param array $cache_scfg
+     * @param array $cache_config
      * @param string $tag
      */
-    public function __construct(\ounun\pdo $db,array $cache_scfg,string $tag)
+    public function __construct(\ounun\pdo $db, array $cache_config, string $tag)
     {
         $this->_db      = $db;
         $this->_cache   = new core();
-        $this->_cache->config($cache_scfg,"cfg_{$tag}");
+        $this->_cache->config($cache_config,"cfg_{$tag}");
     }
 
     /**

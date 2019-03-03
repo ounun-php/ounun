@@ -1,27 +1,31 @@
 <?php
-namespace ounun\mvc\model;
+/**
+ * Created by PhpStorm.
+ * User: dreamxyp
+ * Date: 2019/3/2
+ * Time: 23:50
+ */
+
+namespace ounun\tool;
+
 
 class url
 {
-    /** @var \ounun\pdo */
-    public $db;
-
     /**
      * @param array $data
      * @param int $len
-     * @param string $ext
+     * @param string $a_ext
      * @return string
      */
     public function a(array $data, int $len=0, string $a_ext=''):string
     {
-        $tag  = $len?\ounun\util::msubstr($data['title'],0,$len,true) :$data['title'];
+        $tag  = $len?str::msubstr($data['title'],0,$len,true) :$data['title'];
         return "<a href=\"{$data['url']}\" title=\"{$data['title']}\" {$a_ext}>{$tag}</a>";
     }
 
     /**
-     * @param  array  $url_list
-     * @param  int    $len
-     * @param  string $ext
+     * @param array $urls
+     * @param int $len
      * @return array
      */
     public function a_m(array $urls, int $len=0):array
@@ -51,8 +55,9 @@ class url
     }
 
     /**
-     * @param $actor
-     * @param int $len
+     * @param array $array
+     * @param string $url_fun
+     * @param bool $is_html
      * @return array
      */
     public function kv2a_m(array $array, string $url_fun, $is_html=true):array

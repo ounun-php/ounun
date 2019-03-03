@@ -1,8 +1,38 @@
 <?php
-namespace ounun;
+/**
+ * Created by PhpStorm.
+ * User: dreamxyp
+ * Date: 2019/3/2
+ * Time: 23:48
+ */
 
-class xml
+namespace ounun\tool;
+
+
+class data
 {
+    /**
+     * 递归多维数组转为一级数组
+     * @param array $array
+     * @return array
+     */
+    static public function arrays2array(array $array):array
+    {
+        static $result_array = array();
+        foreach ($array as $value)
+        {
+            if (is_array($value))
+            {
+                self::arrays2array($value);
+            } else
+            {
+                $result_array[] = $value;
+            }
+        }
+        return $result_array;
+    }
+
+
     /**
      * @param    $data  array|string|mixed
      * @param    $key   string
@@ -25,7 +55,7 @@ class xml
                 $xml	.= "{$t}<{$key}><![CDATA[{$data}]]></{$key}>\n";
             } else {
                 if(is_numeric($data)) {
-                 // $data = printf("%s",$data);
+                    // $data = printf("%s",$data);
                     $data = number_format($data,0,'','');
                 }
                 $xml	.= "{$t}<{$key}>{$data}</{$key}>\n";

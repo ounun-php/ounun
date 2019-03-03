@@ -92,7 +92,7 @@ class sys_adm extends adm
 		}
 		/////////////////////////////////////////////////////////////////////////
         // 自己的权限
-        $adm_type      = self::$auth->session_get(purview::s_type); // get_type();
+        $adm_type      = self::$auth->session_get(purview::session_type); // get_type();
 		$purview_group = [];
         $purview_show  = [];
 		foreach (self::$auth->purview->purview_group as $k=>$v)

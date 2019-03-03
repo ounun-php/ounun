@@ -1,6 +1,8 @@
 <?php
 namespace ounun\seo;
 
+use ounun\tool\str;
+
 /** 本插件所在目录 */
 define('Dir_Plugins_Pinyin',           realpath(__DIR__) .'/');
 
@@ -35,7 +37,7 @@ class pinyin_gbk
 	 * 汉字转拼音
 	 * @param string $string					要转换的汉字
 	 * @param string $from_encoding 			汉字编码
-	 * @param string $initial  					首字母是否大写
+	 * @param bool   $initial  					首字母是否大写
 	 * @param string $space	 					拼音之间的间隔
 	 * @return string
 	 */
@@ -117,8 +119,8 @@ class pinyin_gbk
             return $s0{0};
         }
         // $s=iconv("UTF-8","gb2312", $s0);
-        $s =mb_convert_encoding($s0,"GBK","UTF-8");
-        $asc=ord($s{0})*256+ord($s{1})-65536;
+        $s  = mb_convert_encoding($s0,"GBK","UTF-8");
+        $asc= ord($s{0})*256+ord($s{1})-65536;
         if($asc>=-20319 and $asc<=-20284)return "A";
         if($asc>=-20283 and $asc<=-19776)return "B";
         if($asc>=-19775 and $asc<=-19219)return "C";
@@ -272,13 +274,13 @@ class pinyin_gbk
     /**
      * 汉字转拼单
      * @param $str
-     * @param int $ishead
-     * @param int $isclose
+     * @param int $is_head
+     * @param int $is_close
      * @return string
      */
-    function pinyin4($str,$ishead=0,$isclose=1)
+    function pinyin4($str,$is_head=0,$is_close=1)
     {
-        $str = u2g($str);//转成GBK
+        $str = str::utf82gbk($str);//转成GBK
         global $pinyins;
         $restr = '';
         $str = trim($str);
@@ -308,7 +310,7 @@ class pinyin_gbk
                 $i++;
                 if(isset($pinyins[$c]))
                 {
-                    if($ishead==0)
+                    if($is_head==0)
                     {
                         $restr .= $pinyins[$c];
                     }
@@ -330,7 +332,7 @@ class pinyin_gbk
                 //$restr .= "_";
             }
         }
-        if($isclose==0)
+        if($is_close==0)
         {
             unset($pinyins);
         }

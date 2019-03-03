@@ -28,15 +28,15 @@ class oauth
      */
     public function login_check():bool
     {
-        $cid      =    (int)$this->session_get(purview::s_cid);
-        $account  = (string)$this->session_get(purview::s_account);
-        $password = (string)$this->session_get(purview::s_password);
+        $cid      =    (int)$this->session_get(purview::session_cid);
+        $account  = (string)$this->session_get(purview::session_account);
+        $password = (string)$this->session_get(purview::session_password);
         $hash     = $this->_make_hash($cid,$account,$password);
         if(!$hash)
         {
             return false;
         }
-        if ($account && $this->session_get(purview::s_hash) == $hash)
+        if ($account && $this->session_get(purview::session_hash) == $hash)
         {
             return true;
         }
@@ -81,13 +81,13 @@ class oauth
                     // $this->set_cookie_cid($cid,true);
                     // 设定session
                     $hash = $this->_make_hash($cid,$account,$password);
-                    $this->session_set(purview::s_account,  $account);
-                    $this->session_set(purview::s_password, $password);
-                    $this->session_set(purview::s_cid,      $cid);
-                    $this->session_set(purview::s_hash,     $hash);
-                    $this->session_set(purview::s_type,     $rs['type']);
-                    $this->session_set(purview::s_id,       $rs['adm_id']);
-                    $this->session_set(purview::s_google,   $ext['google']['is']);
+                    $this->session_set(purview::session_account,  $account);
+                    $this->session_set(purview::session_password, $password);
+                    $this->session_set(purview::session_cid,      $cid);
+                    $this->session_set(purview::session_hash,     $hash);
+                    $this->session_set(purview::session_type,     $rs['type']);
+                    $this->session_set(purview::session_id,       $rs['adm_id']);
+                    $this->session_set(purview::session_google,   $ext['google']['is']);
                     // 返回
                     $login_times = $rs['login_times'] + 1;
                     $login_last	 = time();
@@ -179,9 +179,9 @@ class oauth
         $wry   = new \plugins\qqwry\ip('utf-8');
         $uCity = $wry->location($ip);
 
-        $account_id = $this->session_get(purview::s_id);
-        $cid        = $this->session_get(purview::s_cid);
-        $account    = $this->session_get(purview::s_account);
+        $account_id = $this->session_get(purview::session_id);
+        $cid        = $this->session_get(purview::session_cid);
+        $account    = $this->session_get(purview::session_account);
         $time       = time();
         $address    = $uCity["country"];
 
@@ -218,7 +218,7 @@ class oauth
             return new \ret(false,0,'提示：帐号"'.$adm_account.'"已存在!');
         }
         // 添加
-        $adm_type_p     = $this->session_get(purview::s_type);
+        $adm_type_p     = $this->session_get(purview::session_type);
         $adm_type       = $adm_type > $adm_type_p ? $adm_type : $adm_type_p;
         $bind	= [
             'cid'	        => $adm_cid,
@@ -247,13 +247,13 @@ class oauth
      */
     public function user_del(int $adm_id):\ret
     {
-        if($adm_id == $this->session_get(purview::s_id))
+        if($adm_id == $this->session_get(purview::session_id))
         {
             return new \ret(false,0,'提示：不能删除自己[account_id]!');
         }
         $rs			 = $this->_db->row("SELECT `cid`,`account` FROM {$this->purview->db_adm} where `adm_id` = :adm_id limit 0,1;",['adm_id'=>$adm_id]);
         if($rs['cid'] == $this->session_get(purview::cp_cid) &&
-           $rs['account'] == $this->session_get(purview::s_account) )
+           $rs['account'] == $this->session_get(purview::session_account) )
         {
             return new \ret(false,0,'提示：不能删除自己[account]!');
         }
@@ -282,7 +282,7 @@ class oauth
         {
             return new \ret(false,0,'提示：请输入新密码');
         }
-        $account_id	    = $this->session_get(purview::s_id);
+        $account_id	    = $this->session_get(purview::session_id);
         $rs			    = $this->_db->row("SELECT `adm_id`,`password`,`exts` FROM {$this->purview->db_adm} where `adm_id` = ? ;",$account_id);
         $exts           = $this->user_get_exts($rs,$rs['adm_id']);
         $old_pwd_md5    = md5(md5($old_pwd));
@@ -318,7 +318,7 @@ class oauth
     {
         if(0 == $account_id)
         {
-            $account_id	= $this->session_get(purview::s_id);
+            $account_id	= $this->session_get(purview::session_id);
         }
         if(!$rs)
         {
@@ -348,7 +348,7 @@ class oauth
      */
     public function user_set_exts_google($google_yn=true,$ext=null,$old_pwd='',$google_code=''):\ret
     {
-        $account_id	= $this->session_get(purview::s_id);
+        $account_id	= $this->session_get(purview::session_id);
         if(!$ext && $old_pwd != '' && $google_code != '')
         {
             $rs		    = $this->_db->row("SELECT `adm_id`,`password`,`exts` FROM {$this->purview->db_adm} where `adm_id` = ? ;",$account_id);
@@ -372,11 +372,11 @@ class oauth
         if($google_yn)
         {
             $ext['google']['is'] = true;
-            $this->session_set(purview::s_google,true);
+            $this->session_set(purview::session_google,true);
         }else
         {
             $ext['google']       = ['is'=>false,'secret'=>''];
-            $this->session_set(purview::s_google,false);
+            $this->session_set(purview::session_google,false);
         }
         //
         $rs  = $this->_db->update($this->purview->db_adm,['exts'=>json_encode($ext)],' `adm_id` = ? ',$account_id);

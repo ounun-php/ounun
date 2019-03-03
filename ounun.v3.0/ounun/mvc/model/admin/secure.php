@@ -66,31 +66,24 @@ class secure
         echo "\$url:{$url}\n";
         // '$c'=>$c
         // print_r(['$url'=>$url,'$c'=>$c]);
-        if($c)
-        {
+        if($c) {
             $json = json_decode($c, true);
-            if($json && $json['ret'] && $json['data'])
-            {
+            if($json && $json['ret'] && $json['data']) {
                 $data = $this->decode($json['data']);
-                if($data)
-                {
+                if($data) {
                     $json['ret']  = true;
                     $json['data'] = $data;
                     return $json;
-                }else
-                {
+                }else {
                     $error_msg = "出错:解码出错:({$json['data']})";
                 }
-            }elseif($json && $json['error'])
-            {
+            }elseif($json && $json['error']) {
                 $json['ret']   = false;
                 return $json;
-            }else 
-            {
+            }else {
                 $error_msg = "出错:数据出错:({$c})";
             }
-        }else
-        {
+        }else {
             $error_msg = "出错:服务器没反:({$url_root})";
         }
         return ['ret'=>false,'error'=>$error_msg];
@@ -103,8 +96,7 @@ class secure
     public function outs(array $data)
     {
         $data['ret'] = $data['ret']?true:false;
-        if($data['ret'] && $data['data'])
-        {
+        if($data['ret'] && $data['data']) {
             $data['data'] = $this->encode($data['data']);
         }
         exit(json_encode($data,JSON_UNESCAPED_UNICODE));
@@ -120,12 +112,10 @@ class secure
     public function check(array $data,int $time_now,int $time_fault_tolerant = 600):\ret
     {
         $time_diff    = $time_now - (int)$data['time'];
-        if ($time_diff > $time_fault_tolerant)
-        {
+        if ($time_diff > $time_fault_tolerant) {
             return new \ret(false,-1,"出错:运行超时");
         }
-        if($time_diff < 0-$time_fault_tolerant/10)
-        {
+        if($time_diff < 0-$time_fault_tolerant/10) {
             return new \ret(false,-1,"出错:运行超时(服务器时间有误:{$time_diff})");
         }
         $sign    = $data['sign'];
@@ -133,16 +123,14 @@ class secure
         //
         ksort($data);
         $rs      = [];
-        foreach ($data as $k => $v)
-        {
+        foreach ($data as $k => $v)  {
             $rs[]= "{$k}={$v}";
         }
         $rs[]    = "key={$this->key}";
         $sign2_s = implode('&',$rs);
         $sign2   = md5($sign2_s);
         // print_r(['$sign2'=>$sign2,'$sign'=>$sign,'$sign2_s'=>$sign2_s]);
-        if($sign && 32 == strlen($sign) && $sign2 == $sign)
-        {
+        if($sign && 32 == strlen($sign) && $sign2 == $sign) {
             return new \ret(true,0,'ok');
         }
         return new \ret(false,-1,"出错:校验出错");

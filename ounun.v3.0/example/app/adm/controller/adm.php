@@ -7,7 +7,7 @@ use extend\cache_config;
 use app\adm\model\purview;
 use ounun\pdo;
 
-class adm extends \ounun\mvc\controller\admin\admin
+class adm extends \ounun\mvc\controller\admin\adm
 {
     public function __construct($mod)
     {

@@ -12,11 +12,11 @@ namespace ounun\page;
 class base
 {
     /** @var string  提示串  */
-    protected $_cfg_note   	= '总共有{total}条数据,共{total_page}页,第{page}页';
+    protected $_config_note   	= '总共有{total}条数据,共{total_page}页,第{page}页';
     /** @var array   默认页  */
-    protected $_cfg_default = ['<li>', '</li>'];
+    protected $_config_default = ['<li>', '</li>'];
     /** @var array   当前页面时 */
-    protected $_cfg_now 	= ['<li class="now">', '</li>'];
+    protected $_config_now 	= ['<li class="now">', '</li>'];
     /** @var array   第一页 上一页 下一页 最后一页   ['|&lt;','&lt;','&gt;','&gt;|'];   */
     protected $_cfg_tag 	= ['第一页','上一页','下一页','最后一页'];
     /** @var int     最多显示几页     */
@@ -85,17 +85,17 @@ class base
         // 提示串
         if($config['note'])
         {
-            $this->_cfg_note   	= $config['note'];
+            $this->_config_note   	= $config['note'];
         }
         // 默认页
         if($config['default'])
         {
-            $this->_cfg_default = $config['default'];
+            $this->_config_default = $config['default'];
         }
         // 当前页面时
         if($config['now'])
         {
-            $this->_cfg_now 	= $config['now'];
+            $this->_config_now 	= $config['now'];
         }
         // 第一页 上一页 下一页 最后一页
         if($config['tag'])
@@ -126,8 +126,8 @@ class base
      */
     public function init(int $page=0,string $title="",bool $default_end = false):array
     {
-        $page_default    = $this->_cfg_default;
-        $page_now        = $this->_cfg_now;
+        $page_default    = $this->_config_default;
+        $page_now        = $this->_config_now;
         $cfg_tag         = $this->_cfg_tag;
         $title           = $title?"{$title}-":'';
 
@@ -311,7 +311,7 @@ class base
      */
     private function _set_note(int $total,int $total_page,int $page):string
     {
-        return str_replace(['{total}','{total_page}','{page}'], [$total,$total_page,$page], $this->_cfg_note);
+        return str_replace(['{total}','{total_page}','{page}'], [$total,$total_page,$page], $this->_config_note);
     }
     
     /**

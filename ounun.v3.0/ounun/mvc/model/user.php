@@ -31,26 +31,21 @@ class user
      */
     public function check()
     {
-        if($_COOKIE['_'])
-        {
+        if($_COOKIE['_']) {
             list($yg, ,$openid_en,$time_en,$type,$hex) = explode('.',$_COOKIE['_']);
-            if($yg == 'yg' && $openid_en && $time_en && $hex)
-            {
+            if($yg == 'yg' && $openid_en && $time_en && $hex) {
                 $openid   = \short_url_decode($openid_en);
                 $time     = \short_url_decode($time_en);
                 $now_time = time();
-                if($time > $now_time)
-                {
+                if($time > $now_time) {
                     return -1; // 登录时间 比现在还晚
                 }
-                if($type && $time + $type*3600 < $now_time)
-                {
+                if($type && $time + $type*3600 < $now_time) {
                     return -2; // 登录超时
                 }
                 $str     = $openid.$time.$type.$this->_key_private;
                 $hex_old = substr(md5($str),12,6).substr(sha1($str),16,10);
-                if($hex == $hex_old)
-                {
+                if($hex == $hex_old) {
                     return $openid;
                 }
                 return -3; // $hex
@@ -69,8 +64,7 @@ class user
     public function login($openid,$oauth_type,$type=0,$pre='yg')
     {
         $cstr      = '';
-        if($openid)
-        {
+        if($openid) {
             $time       = time();
             $str        = $openid.$time.$type.$this->_key_private;
             $openid_en  = \short_url_encode($openid);
@@ -100,16 +94,12 @@ class user
     {
         $_  = $_?$_:$_COOKIE['_'];
         $rs = [];
-        if($_)
-        {
+        if($_) {
             $ts = explode('.',$_COOKIE['_'])[1];
-            if($ts)
-            {
+            if($ts) {
                 $ts = explode('-',$ts);
-                if($ts)
-                {
-                    foreach($ts as $v)
-                    {
+                if($ts) {
+                    foreach($ts as $v) {
                         $v = (int)$v;
                         $rs[$v] = $v;
                     }
@@ -117,12 +107,10 @@ class user
             }
         }
         $oauth_type = (int)$oauth_type;
-        if($oauth_type)
-        {
+        if($oauth_type) {
             $rs[$oauth_type] = $oauth_type;
         }
-        if($rs)
-        {
+        if($rs) {
             return array_values($rs);
         }
         return $rs;

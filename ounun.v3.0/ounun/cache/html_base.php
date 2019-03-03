@@ -67,6 +67,7 @@ class html_base extends core
         }
         return $this->_cache_time;
     }
+
     /**
      * 文件生成时间(临时)
      * @return int 文件生成时间(临时)
@@ -104,6 +105,7 @@ class html_base extends core
     {
         return $this->_cache_size_t;
     }
+
     /**
      * 标记(临时)
      */
@@ -132,6 +134,7 @@ class html_base extends core
             $this->write();
         }
     }
+
     /**
      * 文件大小
      * @return int 文件大小
@@ -158,6 +161,7 @@ class html_base extends core
         }
         return $this->_cache_size;
     }
+
     /**
      * 保存数据
      */
@@ -180,6 +184,7 @@ class html_base extends core
             $this->write();
         }
     }
+
     /**
      * 保存数据
      */
@@ -215,6 +220,7 @@ class html_base extends core
             exit($content);
         }
     }
+
     /**
      * 删除数据
      * @return bool       */

@@ -1,6 +1,8 @@
 <?php
 namespace ounun\mvc\controller\admin;
 
+use ounun\pdo;
+
 class data_export extends \v
 {
     /** @var \ounun\pdo */
@@ -30,7 +32,7 @@ class data_export extends \v
             $libs = $GLOBALS['_scfg']['libs'][$libs_key];
             if($libs && $libs['db'])
             {
-                $this->_db_libs   = self::db($libs['db']);
+                $this->_db_libs   = pdo::instance($libs_key);
             }
         }
         if(null == $this->_db_libs)

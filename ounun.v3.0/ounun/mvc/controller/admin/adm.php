@@ -14,7 +14,7 @@ use \ounun\config;
 /********************************************************************
  * 后台基类
  ********************************************************************/
-class admin extends \v
+class adm extends \v
 {
     /** @var oauth */
     public static $auth;
@@ -48,7 +48,7 @@ class admin extends \v
             go_url($url);  // 没权限就跳
         }
 
-        if(!self::$auth->session_get( purview::s_google) && 'sys@google' != $key)
+        if(!self::$auth->session_get( purview::session_google) && 'sys@google' != $key)
         {
             go_url('/sys_adm/google.html?nav='.$nav);
         }
@@ -64,10 +64,11 @@ class admin extends \v
 
     /**
      * 选服/权限检测
-     *
+     * @param string $page
      * @param string $purview_key
-     * @param int    $nav
-     * @return bool
+     * @param string $page_title_sub
+     * @param string $page_title
+     * @param int $nav
      */
     protected function _nav_pur_check(string $page,string $purview_key,$page_title_sub = '系统', $page_title = '系统', $nav = 0)
     {
@@ -85,6 +86,9 @@ class admin extends \v
 
     /**
      * 设定数据
+     * @param string $page_title_sub
+     * @param string $page_title
+     * @param int $nav
      */
     protected function _nav_set_data($page_title_sub= '系统',$page_title= '系统',$nav = 0)
     {

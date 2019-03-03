@@ -294,8 +294,8 @@ use \ounun\config;
                 <a href="<?php echo config::url_page('/')?>" class="logo logo_bg" target="_blank">《{$site_name}》管理中心</a>
 				<div class="uinfo" id="frameuinfo">
 					<p>
-						你好, <?php echo adm::$auth->purview->purview_group[ adm::$auth->session_get( purview::s_type)];?>
-						<em><?php echo adm::$auth->session_get( purview::s_account);?></em>
+						你好, <?php echo adm::$auth->purview->purview_group[ adm::$auth->session_get( purview::session_type)];?>
+						<em><?php echo adm::$auth->session_get( purview::session_account);?></em>
 						[<a href="/out.html" target="_top">退出</a>]
 					</p>
 					<p class="btnlink">

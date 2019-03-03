@@ -101,10 +101,23 @@ class config
     {
         $lang && self::$lang = $lang;
         $lang_default && self::$lang_default = $lang_default;
-        if($lang  == self::$lang_default) {
-            self::$i18n     = '\\app\\'.config::$app_name.'\\model\\i18n';
-        } else {
-            self::$i18n     = '\\app\\'.config::$app_name.'\\model\\i18n\\'.$lang;
+        $i18ns = [
+            'app\\'.config::$app_name.'\\model\\i18n',
+            'extend\\i18n',
+            'ounun\\mvc\\model\\i18n'
+        ];
+        if($lang != self::$lang_default) {
+            array_unshift ( $i18ns, 'app\\'.config::$app_name.'\\model\\i18n\\'.$lang );
+        }
+        foreach ($i18ns as $i18n){
+            $file = self::load_class_file_exists($i18n);
+            // echo ' \$i18n -->1:'.$i18n." \$file:".$file."\n";
+            if($file){
+                // echo ' \$i18n -->2:'.$i18n."\n";
+                self::$i18n = $i18n;
+                require $file;
+                break;
+            }
         }
     }
 
@@ -133,7 +146,6 @@ class config
             }
         }
     }
-
 
     /**
      * 设定DB配制数据
@@ -310,8 +322,9 @@ class config
      */
     static public function add_paths(string $path,string $namespace_prefix = '',bool $cut_path = false)
     {
+//        self::$__load_class_file_exists = false;
+//        echo "\$path:{$path}  \$namespace_prefix:{$namespace_prefix}\n";
         if($path) {
-
             if($namespace_prefix) {
                 $first  = explode('\\', $namespace_prefix)[0];
                 $len    = strlen($namespace_prefix)+1;
@@ -346,13 +359,33 @@ class config
      */
     static public function load_class($class)
     {
+        // echo __FILE__.':'.__LINE__.' $class:'."{$class}\n";
+        $file = self::load_class_file_exists($class);
+        if($file){
+            require $file;
+        }
+    }
+
+//    static protected $__load_class_file_exists = false;
+    /**
+     * 加载的类文件是否存在
+     * @param $class
+     * @return string
+     */
+    static protected function load_class_file_exists($class)
+    {
+//        echo '-------------------> $class:'."{$class}\n";
         // 类库映射
         if (!empty(self::$maps_class[$class])) {
-            require self::$maps_class[$class];
-            return;
+            $file = self::$maps_class[$class];
+            if($file && is_file($file)){
+                return $file;
+            }
         }
-
-        // print_r(['$class'=>$class,'self::$maps_class'=>self::$maps_class,'self::$maps_paths'=>self::$maps_paths]);
+//        if(!self::$__load_class_file_exists){
+//            print_r(['$class'=>$class,'self::$maps_class'=>self::$maps_class,'self::$maps_paths'=>self::$maps_paths]);
+//            self::$__load_class_file_exists = true;
+//        }
         // 查找 PSR-4 prefix
         $filename  = strtr($class, '\\', '/') . '.php';
         $firsts    = [explode('\\', $class)[0],''];
@@ -361,28 +394,27 @@ class config
                 foreach (self::$maps_paths[$first] as $v) {
                     if ('' == $v['namespace']){
                         $file = $v['path'].$filename;
-//                      echo " load_class2  -> \$class :{$class}  \$len:{$v['len']}\n".
-//                           "                \t\t\$path:{$v['path']}\n".
-//                           "                \t\t\$filename:{$filename}\n".
-//                           "                \t\t\$file1:{$file} \n";
+//                        echo " load_class2  -> \$class1 :{$class}  \$first:{$first}   \$len:{$v['len']}\n".
+//                            "                \t\t\$path:{$v['path']}\n".
+//                            "                \t\t\$filename:{$filename}\n".
+//                            "                \t\t\$file1:{$file} \n";
                         if(is_file($file)) {
-                            require $file;
-                            return;
+                            return $file;
                         }
                     }elseif (0 === strpos($class, $v['namespace'])) {
                         $file = $v['path'].(($v['cut'] && $v['len'])?substr($filename, $v['len']):$filename);
-//                      echo " load_class  -> \$class :{$class}  \$len:{$v['len']}\n".
-//                           "                \t\t\$path:{$v['path']}\n".
-//                           "                \t\t\$filename:{$filename}\n".
-//                           "                \t\t\$file1:{$file} \n";
+//                        echo " load_class  -> \$class0 :{$class}  \$first:{$first}  \$len:{$v['len']}\n".
+//                            "                \t\t\$path:{$v['path']}\n".
+//                            "                \t\t\$filename:{$filename}\n".
+//                            "                \t\t\$file1:{$file} \n".var_export($v,true);
                         if(is_file($file)) {
-                            require $file;
-                            return;
+                            return $file;
                         }
                     }
                 }
             }
         }
+        return '';
     }
 
     /**
@@ -395,7 +427,7 @@ class config
         $controller = self::$maps_paths['app'];
         if($controller && is_array($controller)) {
             foreach ($controller as $v) {
-                $filename  = $v['path'] . $controller_file;
+                $filename  = $v['path'] .config::$app_name.'/'. $controller_file;
                 // echo "\$filename:{$filename}\n";
                 if(file_exists($filename)) {
                     return $filename;
@@ -414,18 +446,16 @@ class config
     {
         /** 加载common */
         file_exists($dir.'common.php') && require $dir.'common.php';
-        // echo 'load_config -> '.__LINE__.':'.(file_exists($dir.'common.php')?'1':'0').' '.$dir.'common.php'."\n";
+        //echo 'load_config0 -> '.__LINE__.':'.(file_exists($dir.'common.php')?'1':'0').' '.$dir.'common.php'."\n";
         /** 加载config */
         file_exists($dir.'config.php') && require $dir.'config.php';
-        // echo 'load_config -> '.__LINE__.':'.(file_exists($dir.'config.php')?'1':'0').' '.$dir.'config.php'."\n";
+        //echo 'load_config1 -> '.__LINE__.':'.(file_exists($dir.'config.php')?'1':'0').' '.$dir.'config.php'."\n";
         /** 加载config-xxx */
         if(Environment && file_exists($dir.'config'.Environment.'.php')) {
             require $dir.'config'.Environment.'.php';
-            // echo 'load_config -> '.__LINE__.':'.(file_exists($dir.'config'.Environment.'.php')?'1':'0').' '.$dir.'config'.Environment.'.php'."\n";
+            //echo 'load_config2 -> '.__LINE__.':'.(file_exists($dir.'config'.Environment.'.php')?'1':'0').' '.$dir.'config'.Environment.'.php'."\n";
         }
     }
-
-
 
     /** 路由数据 */
     static public $routes = [
@@ -452,6 +482,7 @@ function start(array $mod,string $host)
     } else {
         $lang = config::$lang ? config::$lang : config::$lang_default;
     }
+
     // load_config 0 Dir
     config::load_config(Dir_App);
 
@@ -468,17 +499,17 @@ function start(array $mod,string $host)
     // set_dirs
     config::set_dirs(Dir_Ounun,Dir_Root,$val_0['app'],$val_0['url']);
 
-    // set_lang
-    config::set_lang($lang);
-
     // set_tpl_dirs
     config::set_tpl_dirs( Dir_Template.config::$app_name.'/');
 
     // add_paths
-    config::add_paths(config::$dir_app,'app\\'.config::$app_name,true);
+    config::add_paths(Dir_App,'app',true);
 
     // load_config 1 scfg::$dir_app
     config::load_config(config::$dir_app);
+
+    // set_lang
+    config::set_lang($lang);
 
     // 模板
     config::$tpl_style     = $val_0['tpl_style']  ?$val_0['tpl_style']  :config::get_i18n()::tpl_style;
@@ -555,7 +586,9 @@ function start(array $mod,string $host)
     trigger_error($error, E_USER_ERROR);
 }
 
-/** Web */
+/**
+ * Web
+ */
 function start_web()
 {
     $uri 	= url_original($_SERVER['REQUEST_URI']);
@@ -563,7 +596,10 @@ function start_web()
     start($mod,$_SERVER['HTTP_HOST']);
 }
 
-/** Cmd */
+/**
+ * Cmd
+ * @param $argv
+ */
 function start_cmd($argv)
 {
     // load_config 0 Dir

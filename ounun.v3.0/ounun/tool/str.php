@@ -1,7 +1,7 @@
 <?php
-namespace ounun\string;
+namespace ounun\tool;
 
-class util
+class str
 {
     /**
      * 格式化字节大小
@@ -9,9 +9,12 @@ class util
      * @param  string $delimiter 数字和单位分隔符
      * @return string            格式化后的带单位的大小
      */
-    static public function format_bytes($size, $delimiter = '') {
-        $units = array('B', 'KB', 'MB', 'GB', 'TB', 'PB');
-        for ($i = 0; $size >= 1024 && $i < 5; $i++) $size /= 1024;
+    static public function format_bytes($size, $delimiter = '')
+    {
+        $units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
+        for ($i = 0; $size >= 1024 && $i < 5; $i++) {
+            $size /= 1024;
+        }
         return round($size, 2) . $delimiter . $units[$i];
     }
 
@@ -271,91 +274,25 @@ class util
         return $val;
     }
 
-
     /**
-     * 字节格式化 把字节数格式为 B K M G T 描述的大小
-     * @param int $size
-     * @param int $dec
-     * @return string
+     * @param string $str_cn 需要截断的字符串
+     * @param int    $length 允许字符串显示的最大长度
+     * @return string 程序功能：截取全角和半角（汉字和英文）混合的字符串以避免乱码
      */
-    static public function byte_format(int $size, int $dec = 2):string
+    static public function substr_cn($str_cn, $length)
     {
-        $a = ["B", "KB", "MB", "GB", "TB", "PB"];
-        $pos = 0;
-        while ($size >= 1024)
+        if (strlen($str_cn) > $length)
         {
-            $size /= 1024;
-            $pos++;
-        }
-        return round($size, $dec) . " " . $a[$pos];
-    }
-
-    /**
-     * 递归多维数组转为一级数组
-     * @param array $array
-     * @return array
-     */
-    static public function arrays2array(array $array):array
-    {
-        static $result_array = array();
-        foreach ($array as $value)
-        {
-            if (is_array($value))
+            for ($i = 0; $i < $length; $i++)
             {
-                self::arrays2array($value);
-            } else
-            {
-                $result_array[] = $value;
+                if (ord($str_cn[$i]) > 128)
+                {
+                    $i++;
+                }
             }
+            $str_cn = substr($str_cn, 0, $i) . "..";
         }
-        return $result_array;
-    }
-
-
-    /**
-     * 获得$day_nums天前的时间戳
-     * @param int $day_nums
-     * @return int
-     */
-    static public function xtime(int $day_nums):int
-    {
-        $day_time = time() - $day_nums * 3600 * 24;
-        return strtotime(date("Y-m-d 00:00:00", $day_time));
-    }
-
-    /**
-     * 获取标题颜色
-     * @param string $str
-     * @param string $color
-     * @return string
-     */
-    static public function color_text(string $str,string $color=''):string
-    {
-        if($color)
-        {
-            return "<span style=\"color: {$color}\">{$str}</span>";
-        }else
-        {
-            return $str;
-        }
-    }
-
-    /**
-     * 获取特定时时间颜色
-     * @param int $time
-     * @param string $type
-     * @param string $color
-     * @return string
-     */
-    static public function color_date(string $type='Y-m-d H:i:s',int $time=0,string $color='red',int $interval=86400):string
-    {
-        if((time()-$time)>$interval)
-        {
-            return date($type,$time);
-        }else
-        {
-            return self::color_text(date($type,$time),$color);
-        }
+        return $str_cn;
     }
 
     /**
@@ -398,49 +335,9 @@ class util
         return "1";//null
     }
 
-    /**
-     * 正则提取正文里指定的第几张图片地址
-     * @param string $content
-     * @return array
-     */
-    static function img_urls(string $content):array
-    {
-        preg_match_all('/<img(.*?)src="(.*?)(?=")/si',$content,$imgarr);///(?<=img.src=").*?(?=")/si
-        preg_match_all('/(?<=src=").*?(?=")/si',implode('" ',$imgarr[0]).'" ',$imgarr);
-        return $imgarr[0];
-    }
 
-    /*
-     * 参数：
-     * $str_cut 需要截断的字符串
-     * $length  允许字符串显示的最大长度
-     * 程序功能：截取全角和半角（汉字和英文）混合的字符串以避免乱码
-     */
-    static public function substr_cn($str_cn, $length)
-    {
-        if (strlen($str_cn) > $length)
-        {
-            for ($i = 0; $i < $length; $i++)
-            {
-                if (ord($str_cn[$i]) > 128)
-                {
-                    $i++;
-                }
-            }
-            $str_cn = substr($str_cn, 0, $i) . "..";
-        }
-        return $str_cn;
-    }
 
-    /**
-     * IP隐藏第3段
-     * @param $ip
-     * @return string
-     */
-    static public function ip_hide($ip)
-    {
-        $ip     = explode('.',$ip);
-        $ip[2]  = '*';
-        return implode('.',$ip);
-    }
+
+
+
 }

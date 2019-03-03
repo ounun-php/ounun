@@ -16,7 +16,7 @@ class index extends adm
             $this->_nav_set_data();
 
             $db     = self::db ( 'adm' );
-            $cid    = self::$auth->session_get(purview::s_cid);
+            $cid    = self::$auth->session_get(purview::session_cid);
 
             require \v::tpl_fixed('index.html.php');
 		}else
@@ -90,11 +90,11 @@ class index extends adm
         $this->init_page('/select_tip.html',false,true,'',0,false);
 		
 		$nav  = (int)$_GET['nav'];
-		if(1 == $nav &&  0 == self::$auth->session_get(purview::s_cid) )
+		if(1 == $nav &&  0 == self::$auth->session_get(purview::session_cid) )
 		{
 			$title_sub = '请选择“平台”';
 		}
-		elseif(2 == $nav && 0 == self::$auth->session_get(purview::s_cid)  )
+		elseif(2 == $nav && 0 == self::$auth->session_get(purview::session_cid)  )
 		{
 			$title_sub = '请选择“平台”与“服务器”';
 		}elseif(2 == $nav)

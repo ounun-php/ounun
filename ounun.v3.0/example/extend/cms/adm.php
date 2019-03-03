@@ -1,7 +1,7 @@
 <?php
-namespace extend;
+namespace extend\cms;
 
-class cms_adm extends \ounun\mvc\model\url
+class adm extends \ounun\mvc\model\cms
 {
     /** 公告 */
     public function note()
