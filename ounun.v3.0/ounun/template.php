@@ -49,7 +49,7 @@ class template
         foreach (config::$tpl_dirs as $dir) {
             foreach ($styles as $style) {
                 $filename2 = "{$dir}{$style}/{$filename}";
-                if(file_exists($filename2))  {
+                if(is_file($filename2))  {
                     $this->_dir_current   = dirname($filename2).'/';
                     $this->_style_current = $style;
                     // echo "filename:{$filename2}\n";
@@ -71,7 +71,7 @@ class template
         // curr
         if($this->_dir_current) {
             $filename2 = "{$this->_dir_current}{$filename}";
-            if(file_exists($filename2)) {
+            if(is_file($filename2)) {
                 // echo "filename:{$filename2}\n";
                 return $filename2;
             }

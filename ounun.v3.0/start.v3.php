@@ -429,7 +429,7 @@ class config
             foreach ($controller as $v) {
                 $filename  = $v['path'] .config::$app_name.'/'. $controller_file;
                 // echo "\$filename:{$filename}\n";
-                if(file_exists($filename)) {
+                if(is_file($filename)) {
                     return $filename;
                 }
             }
@@ -445,13 +445,13 @@ class config
     static public function load_config($dir)
     {
         /** 加载common */
-        file_exists($dir.'common.php') && require $dir.'common.php';
+        is_file($dir.'common.php') && require $dir.'common.php';
         //echo 'load_config0 -> '.__LINE__.':'.(file_exists($dir.'common.php')?'1':'0').' '.$dir.'common.php'."\n";
         /** 加载config */
-        file_exists($dir.'config.php') && require $dir.'config.php';
+        is_file($dir.'config.php') && require $dir.'config.php';
         //echo 'load_config1 -> '.__LINE__.':'.(file_exists($dir.'config.php')?'1':'0').' '.$dir.'config.php'."\n";
         /** 加载config-xxx */
-        if(Environment && file_exists($dir.'config'.Environment.'.php')) {
+        if(Environment && is_file($dir.'config'.Environment.'.php')) {
             require $dir.'config'.Environment.'.php';
             //echo 'load_config2 -> '.__LINE__.':'.(file_exists($dir.'config'.Environment.'.php')?'1':'0').' '.$dir.'config'.Environment.'.php'."\n";
         }
@@ -522,7 +522,7 @@ function start(array $mod,string $host)
     // 设定 模块与方法
     if(is_array($mod) && $mod[0]) {
         $filename         = config::load_controller("controller/{$mod[0]}.php");
-        if(file_exists($filename)) {
+        if($filename) {
             $module		  = $mod[0];
             if($mod[1]) {
                 array_shift($mod);
@@ -532,7 +532,7 @@ function start(array $mod,string $host)
         } else {
             if($mod[1]) {
                 $filename           = config::load_controller("controller/{$mod[0]}/{$mod[1]}.php");
-                if(file_exists($filename)) {
+                if($filename) {
                     $module		    = $mod[0].'\\'.$mod[1];
                     if($mod[2]) {
                         array_shift($mod);
@@ -542,7 +542,7 @@ function start(array $mod,string $host)
                     }
                 } else {
                     $filename       = config::load_controller("controller/{$mod[0]}/index.php");
-                    if(file_exists($filename)) {
+                    if($filename) {
                         $module	    = "{$mod[0]}\\index";
                         array_shift($mod);
                     } else {
@@ -552,7 +552,7 @@ function start(array $mod,string $host)
                 }
             } else {
                 $filename       = config::load_controller("controller/{$mod[0]}/index.php");
-                if(file_exists($filename)) {
+                if($filename) {
                     $module		= "{$mod[0]}\\index";
                     $mod	    =  [config::def_method];
                     // array_shift($mod);
@@ -572,15 +572,15 @@ function start(array $mod,string $host)
     // 包括模块文件
     if($filename){
         require $filename;
-        $module  				= '\\app\\'.config::$app_name.'\\controller\\'.$module ;
+        $module  			= '\\app\\'.config::$app_name.'\\controller\\'.$module ;
         if(class_exists($module,false)){
             new $module($mod);
             exit();
         } else {
-            $error = "Can't find Module:'{$module}'.";
+            $error = "Can't find controller:'{$module}' filename:".$filename;
         }
     } else {
-        $error = "Can't find controller:{$module} filename:".$filename;
+        $error = "Can't find controller:{$module}";
     }
     header('HTTP/1.1 404 Not Found');
     trigger_error($error, E_USER_ERROR);

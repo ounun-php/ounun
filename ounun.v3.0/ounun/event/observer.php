@@ -15,7 +15,7 @@ class observer implements \SplObserver
 	public function __construct($dir)
 	{
 		$this->dir = $dir;
-		if(file_exists($dir.'config.php')){
+		if(is_file($dir.'config.php')){
 			$config = include($dir.'config.php');
 			foreach ($config as $file=>$events){
 				foreach ($events as $event){
