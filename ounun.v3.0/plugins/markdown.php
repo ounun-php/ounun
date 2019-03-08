@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: dreamxyp
- * Date: 2018/7/4
- * Time: 09:23
- */
 namespace plugins;
 
 /*

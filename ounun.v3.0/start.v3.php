@@ -344,13 +344,18 @@ class config
     }
 
     /**
-     * 添加类库映射
-     * @param $class
-     * @param $filename
+     * 添加类库映射 (为什么不直接包进来？到时才包这样省一点)
+     * @param string $class
+     * @param string $filename
+     * @param bool   $is_require 是否默认加载
      */
-    static public function add_class($class,$filename)
+    static public function add_class($class,$filename,$is_require = false)
     {
-        self::$maps_class[$class] = $filename;
+        if($is_require && is_file($filename)){
+            require $filename;
+        }else{
+            self::$maps_class[$class] = $filename;
+        }
     }
 
     /**

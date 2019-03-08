@@ -1,7 +1,7 @@
 {
-    "name": "ounun.org/example/v3.0",
+    "name": "ounun/v3.0",
     "description": "the new ounun framework",
-    "type": "project",
+    "type": "library",
     "keywords": [
         "ounun",
         "ounun.org"
@@ -18,8 +18,8 @@
     },
     "autoload": {
         "psr-4": {
-            "app\\": "app",
-            "extend\\": "extend"
+            "ounun\\": "ounun",
+            "plugins\\": "plugins"
         }
     },
     "extra": {},

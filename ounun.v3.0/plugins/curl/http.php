@@ -264,13 +264,15 @@ class http
         return '';
     }
 
-
-
     /**
      * 获取网络文件，并保存
      * @param string $url
      * @param string $file_save
-     * @param int $mini_size
+     * @param string $referer
+     * @param int $loop_max
+     * @param int $file_mini_size
+     * @param int $seconds
+     * @return bool|int
      */
     public static function file_get_put(string $url, string $file_save,string $referer='',int $loop_max = 5,int $file_mini_size = 1024,int $seconds=1)
     {
@@ -289,6 +291,8 @@ class http
                 sleep($seconds);
             }
         }while($do);
+
+        return false;
     }
 
 

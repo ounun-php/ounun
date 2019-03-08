@@ -6,9 +6,10 @@ class parse
 {
     /**
      * 获取目录内容(左边)
-     * @param $c string 所在内容
-     * @param $l string 目标内容左边标识点
-     * @param $r string 目标内容右边标识点
+     * @param string $content  所在内容
+     * @param string $left     目标内容左边标识点
+     * @param string $right    目标内容右边标识点
+     * @return mixed
      */
     static public function left(string $content, string $left, string $right)
     {

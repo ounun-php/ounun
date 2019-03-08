@@ -1,5 +1,5 @@
 <?php 
-namespace ounun;
+namespace plugins;
 
 class xxtea
 {	

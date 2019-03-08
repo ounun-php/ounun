@@ -1,5 +1,4 @@
-<?php 
-/** 命名空间 */
+<?php
 namespace plugins;
 
 class erlang

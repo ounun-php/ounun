@@ -1,5 +1,4 @@
 <?php
-
 namespace plugins\html2markdown;
 
 class parser

@@ -1,5 +1,4 @@
 <?php
-/** 命名空间 */
 namespace plugins\google;
 /**
  * PHP Class for handling Google Authenticator 2-factor authentication

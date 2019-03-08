@@ -1,5 +1,4 @@
 <?php
-/** 命名空间 */
 namespace plugins\qqwry;
 
 /** 本插件所在目录 */

@@ -84,14 +84,14 @@ class bitcoin
     public $response;
 
     private $id = 0;
-
+    
     /**
-     * @param string $username
-     * @param string $password
+     * bitcoin constructor.
+     * @param $username
+     * @param $password
      * @param string $host
      * @param int $port
-     * @param string $proto
-     * @param string $url
+     * @param null $url
      */
     public function __construct($username, $password, $host = 'localhost', $port = 8332, $url = null)
     {
