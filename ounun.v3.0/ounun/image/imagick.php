@@ -1,5 +1,5 @@
 <?php
-namespace ounun;
+namespace ounun\image;
 
 
 class imagick

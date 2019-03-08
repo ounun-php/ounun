@@ -1,9 +1,7 @@
 <?php
 /** 命名空间 */
-namespace plugins\image;
+namespace plugins\captcha;
 
-/** 本插件所在目录 */
-define('Dir_Plugins_Captcha',           realpath(__DIR__) .'/');
 /**
  * 认证码类
  * @package module
@@ -32,15 +30,15 @@ class base
 
 			// setcookie($cookie,md5($input),time()+3600);
 			header('Content-type: image/png');
-			readfile(Dir_Plugins_Captcha . "res/no_gd/{$this->code}.png");
+			readfile(__DIR__ . "/res/no_gd/{$this->code}.png");
 			exit();
 		}
 		$font = [
-            Dir_Plugins_Captcha . 'res/font/a.ttf',
-            Dir_Plugins_Captcha . 'res/font/b.ttf',
-            Dir_Plugins_Captcha . 'res/font/c.ttf',
+            __DIR__ . '/res/font/a.ttf',
+            __DIR__ . '/res/font/b.ttf',
+            __DIR__ . '/res/font/c.ttf',
         ];
-        $this->code      = '';
+        $this->code = '';
 		for($ti = 0; $ti < $img_lenght; $ti++)
 		{
             $this->code .= dechex(mt_rand(0, 9));

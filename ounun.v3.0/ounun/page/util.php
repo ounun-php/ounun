@@ -3,6 +3,12 @@ namespace ounu\page;
 
 class util
 {
+    /**
+     * @param array $paras
+     * @param array $page_paras
+     * @param string $url_original
+     * @return string
+     */
     static public function url(array $paras=[],array $page_paras=[],string $url_original='')
     {
         $paras        = $paras        ? $paras        : $_GET;

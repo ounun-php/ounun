@@ -1,14 +1,12 @@
 <?php
 /** 命名空间 */
-namespace plugins\image;
+namespace plugins\captcha;
 
-/** 本插件所在目录 */
-define('Dir_Plugins_Captcha',           realpath(__DIR__) .'/');
 /**
  * 认证码类
  * @package module
  */
-class captcha
+class cookie
 {
 	/**
 	 * 输出图片

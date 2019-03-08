@@ -16,7 +16,7 @@ class observer implements \SplObserver
 	{
 		$this->dir = $dir;
 		if(is_file($dir.'config.php')){
-			$config = include($dir.'config.php');
+			$config = require ($dir.'config.php');
 			foreach ($config as $file=>$events){
 				foreach ($events as $event){
 					$this->config[$event][] = $file;

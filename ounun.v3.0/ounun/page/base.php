@@ -28,10 +28,15 @@ class base
 
     /** @var \ounun\pdo  */
     protected $_db;
+    /** @var string  */
     protected $_table;
+    /** @var string  */
     protected $_url;
+    /** @var string  */
     protected $_where_str;
+    /** @var array|null  */
     protected $_where_bind;
+    /** @var string  */
     protected $_sql_count;
 
 

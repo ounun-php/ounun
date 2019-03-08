@@ -3,6 +3,7 @@
 namespace app\adm\controller;
 
 use app\adm\model\purview;
+use ounun\pdo;
 
 class index extends adm
 {
@@ -15,7 +16,7 @@ class index extends adm
             $this->init_page('/',false,true,'',0,false);
             $this->_nav_set_data();
 
-            $db     = self::db ( 'adm' );
+            $db     = pdo::instance( 'adm' );
             $cid    = self::$auth->session_get(purview::session_cid);
 
             require \v::tpl_fixed('index.html.php');

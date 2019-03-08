@@ -84,7 +84,7 @@ class bitcoin
     public $response;
 
     private $id = 0;
-    
+
     /**
      * bitcoin constructor.
      * @param $username

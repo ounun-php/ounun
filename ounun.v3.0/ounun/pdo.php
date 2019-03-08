@@ -113,7 +113,7 @@ class pdo
             if(empty($config)) {
                 $config = config::$database[$key];
             }
-            self::$_instance[$key] = new self($config);
+            self::$_instance[$key] = new static($config);
         }
         return self::$_instance[$key];
     }

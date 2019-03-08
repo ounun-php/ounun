@@ -11,20 +11,19 @@ namespace ounun\mvc\model;
 
 class cms
 {
-    /** @var array DB 相关 */
-    private static $_instance = [];
+    /** @var cms DB 相关 */
+    protected static $_instance;
 
     /**
-     * @param string $key
-     * @param array  $config
-     * @return $this 返回数据库连接对像
+     * @param \ounun\pdo $db
+     * @return $this  返回数据库连接对像
      */
     public static function instance(\ounun\pdo $db):self
     {
-        if(empty(self::$_instance)) {
-            self::$_instance = new self($db);
+        if(empty(static::$_instance)) {
+            static::$_instance = new static($db);
         }
-        return self::$_instance;
+        return static::$_instance;
     }
 
     /**

@@ -4,7 +4,7 @@ namespace ounun\seo;
 use ounun\tool\str;
 
 /** 本插件所在目录 */
-define('Dir_Plugins_Pinyin',           realpath(__DIR__) .'/');
+define('Dir_Plugins_Pinyin',           __DIR__.'/');
 
 /**
  * 汉字转拼音
