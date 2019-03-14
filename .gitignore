@@ -2,3 +2,4 @@
 .svn/*
 libs/.idea/*
 libs.v2/.idea/*
+composer.lock

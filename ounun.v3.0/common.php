@@ -6,7 +6,7 @@ defined('Dir_Vendor') || define('Dir_Vendor', Dir_Root . 'vendor/');
 /** data目录 **/
 defined('Dir_Extend') || define('Dir_Extend', Dir_Root . 'extend/');
 /** template目录 **/
-defined('Dir_Template') || define('Dir_Template', Dir_Root . 'public/template/');
+defined('Dir_Template') || define('Dir_Template', Dir_Root . 'template/');
 /** cache目录 **/
 defined('Dir_Cache') || define('Dir_Cache', Dir_Root . 'cache/');
 /** app目录 **/
@@ -158,7 +158,7 @@ function url_to_mod(string $uri): array
 function url_check(string $url_original = "", bool $ext_req = true, string $domain = '')
 {
     // URL去重
-    $url = explode('?', $_SERVER['REQUEST_URI'], 2);
+    $url       = explode('?', $_SERVER['REQUEST_URI'], 2);
     $url_reset = '';
     if (false == $ext_req && $url[1]) {
         $url_reset = $url_original;
@@ -358,7 +358,7 @@ function base58_decode($base58)
         return '';
     }
     $indexes = array_flip(str_split($alphabet));
-    $chars = str_split($base58);
+    $chars   = str_split($base58);
     foreach ($chars as $char) {
         if (isset($indexes[$char]) === false) {
             return false;
@@ -387,16 +387,16 @@ function base58_decode($base58)
 
 /**
  * 获得 exts数据php
- * @param string $exts_string
+ * @param string $ext_string
  * @return array|mixed
  */
-function exts_decode_php(string $exts_string)
+function ext_decode_php(string $ext_string)
 {
-    $exts = [];
-    if ($exts_string) {
-        $exts = unserialize($exts_string);
+    $ext = [];
+    if ($ext_string) {
+        $ext = unserialize($ext_string);
     }
-    return $exts;
+    return $ext;
 }
 
 /**
@@ -404,7 +404,7 @@ function exts_decode_php(string $exts_string)
  * @param string $exts_string
  * @return array|mixed
  */
-function exts_decode_json(string $exts_string)
+function ext_decode_json(string $exts_string)
 {
     $exts = [];
     if ($exts_string) {
@@ -473,13 +473,6 @@ function short_url_decode(string $string = ''): int
     return $p;
 }
 
-/**
- *
- *
- * @param string $msg
- * @param boolean $outer
- * @return string
- */
 /**
  * 彈出alert對話框
  * @param string $msg
