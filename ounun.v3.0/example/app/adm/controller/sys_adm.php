@@ -2,6 +2,7 @@
 namespace app\adm\controller;
 
 use app\adm\model\purview;
+use ounun\pdo;
 
 class sys_adm extends adm
 {
@@ -166,12 +167,13 @@ class sys_adm extends adm
 		if ('del' == $_GET['act'] && $_GET['adm_id'])
 		{
             $rs   = self::$auth->user_del($_GET['adm_id']);
-            echo msg($rs->data);
+            echo msg($rs['message']);
             go_back();
 		}
 
         // 列表
-        $user_rs    = $this->_db_adm->data_array("SELECT * FROM  ".self::$auth->purview->db_adm." order by `adm_id` ASC ;");
+        $user_rs    = $this->_db_adm->table(self::$auth->purview->db_adm)->order('`adm_id`')->column_all();
+        // $user_rs    = $this->_db_adm->data_array("SELECT * FROM  ".self::$auth->purview->db_adm." order by `adm_id` ASC ;");
         // 哈哈
         $user_list  = [];
         foreach ($user_rs as $v)
@@ -209,47 +211,54 @@ class sys_adm extends adm
         $this->_nav_pur_check('sys_adm/logs_act.html','sys@logs_act', '操作日志','管理员日志',purview::nav_null);
 
         $table   = self::$auth->purview->db_logs_act;
-        if ($_GET['act'] == 'del')
-        {
-            $this->_db_adm->delete($table,'`id`= :id ',$_GET);
+        if ($_GET['act'] == 'del') {
+            $this->_db_adm->table($table)->where('`id`= :id ',['id'=>$_GET['id']])->delete();
+            // $this->_db_adm->delete($table,'`id`= :id ',$_GET);
             // 跳回原来的页面
             go_back();
         }
 
-        $where   = [];
-        $where[] = ' `status` =:status ';
-        if ($_GET['account'])
-        {
-            $where[]			 = ' `account` =:account ';
+        $where_str   = [' `status` =:status '];
+        $where_bind  = ['i:status'=>(int)$_GET['status']];
+        if ($_GET['account']) {
+            $where_str[]	        = ' `account` =:account ';
+            $where_bind['account']  = $_GET['account'];
         }
-        if ($_GET['mod'])
-        {
-            $where[]			 = ' `mod` =:mod ';
+        if ($_GET['mod']) {
+            $where_str[]			= ' `mod` =:mod ';
+            $where_bind['mod']      = $_GET['mod'];
         }
-        if ($_GET['mod_sub'])
-        {
-            $where[]			 = ' `mod_sub` =:mod_sub ';
+        if ($_GET['mod_sub']) {
+            $where_str[]			= ' `mod_sub` =:mod_sub ';
+            $where_bind['mod_sub']  = $_GET['mod_sub'];
         }
-        if ($_GET['act'])
-        {
-            $where[]			 = ' `act` =:act ';
+        if ($_GET['act']) {
+            $where_str[]			= ' `act` =:act ';
+            $where_bind['act']      = $_GET['act'];
         }
 
-        $where = $where?' where '.implode(' and ', $where):'';
+        $where_str  = implode(' and ', $where_str);
         /** 分页 */
         $page       = (int)$_GET['page'];
         $page       =      $page>1?$page:$page;
         $rows       = 20;
-        $where_bind = $_GET;
 
 
 
-        $url     = url( url_original(),$_GET,['page'=>'{page}']);
+        $url     = url_build_query( url_original(),$_GET,['page'=>'{page}']);
 
-        $pg      = new \ounun\page($this->_db_adm,$table,$url,$where,$where_bind,'count(*)',\status::page_cfg,$rows);
+        $pg      = new \ounun\page\base($this->_db_adm,$table,$url,$where_str,$where_bind,'count(*)',\c::Page_Config_B,$rows);
         $ps      = $pg->init($page,"");
 
-        $data	 = $this->_db_adm->data_array("select * from {$table} {$where} ORDER BY `id` DESC limit {$pg->limit_start()},{$rows}", $where_bind);
+        $data	 = $this->_db_adm->table($table)
+            ->field('*')
+            ->where($where_str,$where_bind)
+            ->order('`id`',pdo::Order_Desc)
+            ->limit($rows,$pg->limit_start())
+            ->column_all();
+
+        // $this->_db_adm->stmt()->debugDumpParams();
+        // $data = $this->_db_adm->data_array("select * from {$table} {$where_str} ORDER BY `id` DESC limit {$pg->limit_start()},{$rows}", $where_bind);
 
         require \v::tpl_fixed('sys_adm/sys_logs_act.html.php');
 	}
@@ -264,35 +273,39 @@ class sys_adm extends adm
         $this->_nav_pur_check('sys_adm/logs_login.html','sys@logs_login', '登录日志','日志',purview::nav_null);
 
         $table   = self::$auth->purview->db_logs_login; //$this->table_logs_login;
-		if ($_GET['act'] == 'del')
-		{
-            $this->_db_adm->delete($table,'`id`= :id ',$_GET);
+		if ($_GET['act'] == 'del') {
+            $this->_db_adm->table($table)->where('`id`= :id ',['id'=>$_GET['id']])->delete();
+            // $this->_db_adm->delete($table,'`id`= :id ',$_GET);
 			// 跳回原来的页面
             go_back();
 		}
 
-        $where           = [];
-        $where[]         = ' `status` =:status ';
-        $_GET['status']  = (int)$_GET['status'];
-        if ($_GET['account'])
-        {
-            $where[]			 = ' `account` =:account ';
+        $where_str           = [' `status` =:status '];
+        $where_bind          = ['i:status'=>(int)$_GET['status']];
+        if ($_GET['account']) {
+            $where_str[]			 = ' `account` =:account ';
+            $where_bind['account']   = $_GET['account'];
         }
 
-        $where = $where?' where '.implode(' and ', $where):'';
+        $where_str  = implode(' and ', $where_str);
         /** 分页 */
         $page       = (int)$_GET['page'];
         $page       =      $page>1?$page:$page;
         $rows       = 20;
-        $where_bind = $_GET;
 
-        $url     = url( url_original(),$_GET,['page'=>'{page}']);
+        $url     = url_build_query( url_original(),$_GET,['page'=>'{page}']);
 
-        $pg      = new \ounun\page($this->_db_adm,$table,$url,$where,$where_bind,'count(*)',\status::page_cfg,$rows);
+        $pg      = new \ounun\page\base($this->_db_adm,$table,$url,$where_str,$where_bind,'count(*)',\c::Page_Config_B,$rows);
         $ps      = $pg->init($page,"");
 
-        $data	 = $this->_db_adm->data_array("select * from {$table} {$where} ORDER BY `id` DESC limit {$pg->limit_start()},{$rows}", $where_bind);
-
+        $data	 = $this->_db_adm->table($table)
+            ->field('*')
+            ->where($where_str,$where_bind)
+            ->order('`id`',pdo::Order_Desc)
+            ->limit($rows,$pg->limit_start())
+            ->column_all();
+        // $this->_db_adm->stmt()->debugDumpParams();
+        // $data	 = $this->_db_adm->data_array("select * from {$table} {$where_str} ORDER BY `id` DESC limit {$pg->limit_start()},{$rows}", $where_bind);
         // echo $this->_db_adm->sql()."\n";
 
         require \v::tpl_fixed('sys_adm/sys_logs_login.html.php');

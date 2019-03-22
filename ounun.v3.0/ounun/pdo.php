@@ -417,9 +417,9 @@ class pdo
      */
     public function limit(int $length,int $offset = 0):self
     {
-        if(0 == $offset){
+        if(0 == $offset) {
             $this->_limit   = "LIMIT {$length}";
-        }else{
+        }else {
             $this->_limit   = "LIMIT {$offset},{$length}";
         }
         return $this;
