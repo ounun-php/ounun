@@ -1,6 +1,7 @@
 <?php
 session_start();
 
+
 /** 配制cache_file */
 //\ounun\scfg::set_global([
 //    'libs' =>

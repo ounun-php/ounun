@@ -32,23 +32,19 @@ class index extends adm
 	{
 		// ---------------------------------------
 		// 登录
-		if ($_POST)
-		{
+		if ($_POST) {
 			$this->_login_post($_POST);
 			exit();
 		}
 		// ---------------------------------------
 		// 显示页面
-		if ( self::$auth->login_check() )
-		{
+		if ( self::$auth->login_check() ) {
 		    // 登录了
             go_url ('/');
-		}else
-		{
+		}else {
 		    // 还没登录
             $this->init_page('/login.html',false,true,'',0,false);
             $this->_nav_set_data();
-
             require \v::tpl_fixed('login.html.php');
 		}
 	}
@@ -56,13 +52,11 @@ class index extends adm
 	private function _login_post($args)
 	{
         $rs = self::$auth->login($args['admin_username'],$args ['admin_password'],(int)$args['admin_cid'],$args ['admin_google']);
-		if ($rs->ret )
-		{
+		if ($rs->ret ) {
             // var_dump($_SESSION);
 		    // var_dump($rs);
             go_url ('/');
-		}else
-		{
+		}else {
 			echo msg ( $rs->data);
             go_url ('/',false,302,2);
 		}
@@ -127,6 +121,6 @@ class index extends adm
 	public function captcha($mod)
 	{
 		// \plugins\captcha\Captcha::output();
-		\plugins\image\captcha::output();
+		\plugins\captcha\cookie::output();
 	}
 }

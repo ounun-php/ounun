@@ -387,10 +387,12 @@ class config
                 return $file;
             }
         }
+
 //        if(!self::$__load_class_file_exists){
 //            print_r(['$class'=>$class,'self::$maps_class'=>self::$maps_class,'self::$maps_paths'=>self::$maps_paths]);
 //            self::$__load_class_file_exists = true;
 //        }
+
         // 查找 PSR-4 prefix
         $filename  = strtr($class, '\\', '/') . '.php';
         $firsts    = [explode('\\', $class)[0],''];
@@ -449,12 +451,12 @@ class config
      */
     static public function load_config($dir)
     {
-        /** 加载common */
-        is_file($dir.'common.php') && require $dir.'common.php';
-        //echo 'load_config0 -> '.__LINE__.':'.(file_exists($dir.'common.php')?'1':'0').' '.$dir.'common.php'."\n";
+        /** 加载helper */
+        is_file($dir.'helper.php') && require $dir.'helper.php';
+        // echo 'load_config0 -> '.__LINE__.':'.(is_file($dir.'helper.php')?'1':'0').' '.$dir.'helper.php'."\n";
         /** 加载config */
         is_file($dir.'config.php') && require $dir.'config.php';
-        //echo 'load_config1 -> '.__LINE__.':'.(file_exists($dir.'config.php')?'1':'0').' '.$dir.'config.php'."\n";
+        // echo 'load_config1 -> '.__LINE__.':'.(is_file($dir.'config.php')?'1':'0').' '.$dir.'config.php'."\n";
         /** 加载config-xxx */
         if(Environment && is_file($dir.'config'.Environment.'.php')) {
             require $dir.'config'.Environment.'.php';
@@ -591,9 +593,7 @@ function start(array $mod,string $host)
     trigger_error($error, E_USER_ERROR);
 }
 
-/**
- * Web
- */
+/** Web */
 function start_web()
 {
     $uri 	= url_original($_SERVER['REQUEST_URI']);
@@ -610,13 +610,13 @@ function start_cmd($argv)
     // load_config 0 Dir
     config::load_config(Dir_App);
     // cmd
-    $cmd = file_exists(Dir_App.'cmd.php') ? require Dir_App.'cmd.php' : [];
+    $cmd = is_file(Dir_App.'cmd.php') ? require Dir_App.'cmd.php' : [];
     // console
     $c = new cmd\console($cmd);
     $c->run($argv);
 }
 
 /** 加载common.php */
-require __DIR__.'/common.php';
+require __DIR__.'/helper.php';
 /** 注册自动加载 */
 spl_autoload_register('\\ounun\\config::load_class');

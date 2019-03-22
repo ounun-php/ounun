@@ -24,6 +24,7 @@ namespace app\adm\cmd;
 
 use extend\oss;
 use ounun\api_sdk\com_showapi;
+use ounun\pdo;
 
 class coll extends \ounun\cmd\cmd
 {
@@ -33,8 +34,7 @@ class coll extends \ounun\cmd\cmd
      */
     public function __construct($mod)
     {
-        $this->_db_zrun = self::db(\ounun\config::$app_name);
-        parent::__construct($mod);
+        $this->_db_zrun = pdo::instance(\ounun\config::$app_name);
     }
 
     /**

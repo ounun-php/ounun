@@ -7,8 +7,8 @@
             <tr class="header">
                 <th style="width: 30px;"></th>
                 <th>登录成功!  你好,
-                    <?php echo \controller\adm::$auth->purview->purview_group[\controller\adm::$auth->session_get(\model\purview::s_type)];?>
-                    <em style="color: #DD0000;font-weight: bold;"><?php echo \controller\adm::$auth->session_get(\model\purview::s_account);?></em></th>
+                    <?php echo oauth()->purview->purview_group[oauth()->session_get(\app\adm\model\purview::session_type)];?>
+                    <em style="color: #DD0000;font-weight: bold;"><?php echo oauth()->session_get(\app\adm\model\purview::session_account);?></em></th>
             </tr>
         </table>
     </div>

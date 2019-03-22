@@ -146,6 +146,9 @@ class pdo
      */
     public function table(string $table = ''):self
     {
+        if($this->_table && $table){
+            $this->_clean();
+        }
         $this->_table = $table;
         return $this;
     }
@@ -164,7 +167,7 @@ class pdo
         if($sql){
             $this->_last_sql  = $sql;
         }
-        $this->_stmt = $this->_pdo->query($this->_last_sql);
+        $this->_stmt = $this->_pdo->prepare($this->_last_sql);
         $this->_query_times++;
         return $this;
     }
@@ -202,9 +205,12 @@ class pdo
             $duplicate = 'ON DUPLICATE KEY UPDATE '.$this->_duplicate_ext.' '.implode(' , ',$update);
         }
 
+        print_r(['$data'=>$data,'$this->_is_multiple'=>$this->_is_multiple?'1':'0']);
+
         $fields  = $this->_values_parse($this->_is_multiple?array_shift($data):$data);
         $cols    = array_keys($fields);
 
+        print_r(['$fields'=>$fields,'$cols'=>$cols]);
         $this->query( ($this->_is_replace?'REPLACE':'INSERT'). ' '.$this->_option.' INTO '.$this->_table.' (`' . implode('`, `', $cols) . '`) VALUES (:' . implode(', :', $cols) . ') '.$duplicate.';');
         if($this->_is_multiple){
             $this->_execute($fields);
@@ -231,16 +237,28 @@ class pdo
         $fields = $this->_values_parse($this->_is_multiple?array_shift($data):$data);
         $update = $this->_fields_update($fields,$operate);
 
-        $this->where($where)->limit($limit);
+        if($where) {
+            $this->where($where)->limit($limit);
+        }else{
+            $this->limit($limit);
+        }
+
+        echo "dd:".'UPDATE '.$this->_option.' '.$this->_table.' SET '.implode(', ',$update).' '.$this->_where.' '.$this->_limit.' ;'."\n";
+
+
+
         $this->query('UPDATE '.$this->_option.' '.$this->_table.' SET '.implode(', ',$update).' '.$this->_where.' '.$this->_limit.' ;');
 
         if($this->_is_multiple){
-            $this->_execute(array_merge($this->_bind_param,$fields));
+            // $this->_execute(array_merge($this->_bind_param,$fields));
+            // print_r(['dd11'=>array_merge($this->_bind_param,$fields),'$this->_bind_param'=>$this->_bind_param,'$fields'=>$fields]);
             foreach ($data as &$v){
                 $fields = $this->_values_parse($v);
+                //  print_r(['dd12'=>array_merge($this->_bind_param,$fields),'$this->_bind_param'=>$this->_bind_param,'$fields'=>$fields]);
                 $this->_execute(array_merge($this->_bind_param,$fields));
             }
         }else{
+            // print_r(['dd21'=>array_merge($this->_bind_param,$fields),'$this->_bind_param'=>$this->_bind_param,'$fields'=>$fields]);
             $this->_execute(array_merge($this->_bind_param,$fields));
         }
         return $this->_stmt->rowCount();
@@ -251,7 +269,8 @@ class pdo
      */
     public function column_count():int
     {
-        $this->query('SELECT '.implode(',',$this->_fields).' FROM '.$this->_table.' '.$this->_join.' '.$this->_where.' '.$this->_get_group().' ;')
+        $fields = ($this->_fields && is_array($this->_fields))?implode(',',$this->_fields):'*';
+        $this->query('SELECT '.$fields.' FROM '.$this->_table.' '.$this->_join.' '.$this->_where.' '.$this->_get_group().' ;')
              ->_execute($this->_bind_param);
         return $this->_stmt->columnCount();
     }
@@ -261,7 +280,8 @@ class pdo
      */
     public function column_one()
     {
-        $this->query('SELECT '.implode(',',$this->_fields).' FROM '.$this->_table.' '.$this->_join.' '.$this->_where.' '.$this->_get_group().' '.$this->_get_order().' '.$this->_limit.';')
+        $fields = ($this->_fields && is_array($this->_fields))?implode(',',$this->_fields):'*';
+        $this->query('SELECT '.$fields.' FROM '.$this->_table.' '.$this->_join.' '.$this->_where.' '.$this->_get_group().' '.$this->_get_order().' '.$this->_limit.';')
              ->_execute($this->_bind_param);
         return $this->_stmt->fetch(\PDO::FETCH_ASSOC);
     }
@@ -271,7 +291,8 @@ class pdo
      */
     public function column_all()
     {
-        $this->query('SELECT '.implode(',',$this->_fields).' FROM '.$this->_table.' '.$this->_join.' '.$this->_where.' '.$this->_get_group().' '.$this->_get_order().' '.$this->_limit.';')
+        $fields = ($this->_fields && is_array($this->_fields))?implode(',',$this->_fields):'*';
+        $this->query('SELECT '.$fields.' FROM '.$this->_table.' '.$this->_join.' '.$this->_where.' '.$this->_get_group().' '.$this->_get_order().' '.$this->_limit.';')
              ->_execute($this->_bind_param);
         if($this->_assoc){
             $rs = [];
@@ -281,11 +302,27 @@ class pdo
                     $rs[$v[$this->_assoc]] = $v;
                 }
             }
+            return $rs;
         }else{
             return $this->_stmt->fetchAll(\PDO::FETCH_ASSOC);
         }
     }
 
+    /**
+     * @param string $field
+     * @param mixed  $default_value  默认值
+     * @return mixed|null  直接返回对应的值
+     */
+    public function column_value(string $field,$default_value)
+    {
+        $rs    = $this->column_one();
+        $field = str_replace('`','',trim($field));
+        if($rs && $rs[$field]){
+            return $rs[$field];
+        }else{
+            return $default_value;
+        }
+    }
     /**
      * 删除
      * @param int $limit 删除limit默认为1
@@ -457,6 +494,7 @@ class pdo
                 $this->_where = 'WHERE '.$where;
             }
             if($param && is_array($param)) {
+                $param = $this->_values_parse($param);
                 $this->_bind_param = array_merge($this->_bind_param,$param);
             }
         }
@@ -498,9 +536,21 @@ class pdo
     }
 
     /**
+     * COUNT查询
+     * @param string $field          字段名
+     * @param string $alias          查询别名
+     * @param int    $default_value  默认值
+     * @return mixed|null
+     */
+    public function count_value(string $field = '*',string $alias = '`count`',$default_value = 0)
+    {
+        return $this->count($field,$alias)->column_value($alias,$default_value);
+    }
+
+    /**
      * SUM查询
      * @param string $field 字段名
-     * @param string $alias SUM查询别名
+     * @param string $alias 查询别名
      * @return $this
      */
     public function sum(string $field,string $alias = '`sum`'):self
@@ -509,9 +559,21 @@ class pdo
     }
 
     /**
+     * SUM查询
+     * @param string $field 字段名
+     * @param string $alias 查询别名
+     * @param int    $default_value  默认值
+     * @return float
+     */
+    public function sum_value(string $field,string $alias = '`sum`',$default_value = 0)
+    {
+        return $this->sum($field,$alias)->column_value($alias,$default_value);
+    }
+
+    /**
      * MIN查询
      * @param string $field 字段名
-     * @param string $alias MIN查询别名
+     * @param string $alias 查询别名
      * @return $this
      */
     public function min(string $field,string $alias = '`min`'):self
@@ -520,9 +582,21 @@ class pdo
     }
 
     /**
+     * MIN查询
+     * @param string $field 字段名
+     * @param string $alias 查询别名
+     * @param int    $default_value  默认值
+     * @return float
+     */
+    public function min_value(string $field,string $alias = '`min`',$default_value = 0)
+    {
+        return $this->min($field,$alias)->column_value($alias,$default_value);
+    }
+
+    /**
      * MAX查询
      * @param string $field 字段名
-     * @param string $alias MAX查询别名
+     * @param string $alias 查询别名
      * @return $this
      */
     public function max(string $field,string $alias = '`max`'):self
@@ -531,14 +605,38 @@ class pdo
     }
 
     /**
+     * MAX查询
+     * @param string $field 字段名
+     * @param string $alias 查询别名
+     * @param int    $default_value  默认值
+     * @return float
+     */
+    public function max_value(string $field,string $alias = '`max`',$default_value = 0)
+    {
+        return $this->min($field,$alias)->column_value($alias,$default_value);
+    }
+
+    /**
      * AVG查询
      * @param string $field 字段名
-     * @param string $alias AVG查询别名
+     * @param string $alias 查询别名
      * @return $this
      */
     public function avg(string $field,string $alias = '`avg`'):self
     {
         return $this->field("AVG({$field}) AS {$alias}");
+    }
+
+    /**
+     * AVG查询
+     * @param string $field          字段名
+     * @param string $alias          查询别名
+     * @param int    $default_value  默认值
+     * @return float
+     */
+    public function avg_value(string $field,string $alias = '`avg`',$default_value = 0)
+    {
+        return $this->avg($field,$alias)->column_value($alias,$default_value);
     }
 
     /**
@@ -587,6 +685,15 @@ class pdo
     }
 
     /**
+     * 返回PDO
+     * @return \PDOStatement 返回PDOStatement
+     */
+    public function stmt():\PDOStatement
+    {
+        return $this->_stmt;
+    }
+
+    /**
      * 是否连接成功
      * @return bool
      */
@@ -627,8 +734,6 @@ class pdo
         }
         return $rs;
     }
-
-
 
     /** group */
     protected function _get_group()
@@ -701,7 +806,7 @@ class pdo
      * @param array $data
      * @return array
      */
-    protected function _values_parse(array &$data)
+    protected function _values_parse(array $data)
     {
         $fields   = [];
         if($data && is_array($data)){
@@ -755,7 +860,6 @@ class pdo
             }elseif($operate[$col] == self::Update_Cut ) {
                 $update[] = "`$col` = `{$col}` - :{$col} ";
             }else{
-                $this->_bind_param[':'.$col] = $val;
                 $update[] = "`{$col}` = :{$col} ";
             }
         }
@@ -775,6 +879,28 @@ class pdo
             }
         }
         $this->_stmt->execute();
+    }
+
+    protected function _clean()
+    {
+        if($this->_stmt){
+            $this->_stmt = null;
+        }
+
+        $this->_option = '';
+        $this->_fields = [];
+        $this->_order  = [];
+        $this->_group  = [];
+        $this->_limit  = '';
+        $this->_where  = '';
+        $this->_assoc  = '';
+        $this->_bind_param      = [];
+        $this->_duplicate       = [];
+        $this->_duplicate_ext   = '';
+        $this->_join            = '';
+
+        $this->_is_multiple     = false;
+        $this->_is_replace      = false;
     }
 
     /**

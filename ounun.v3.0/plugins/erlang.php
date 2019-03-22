@@ -86,22 +86,20 @@ class erlang
      * @param string $mod
      * @param string $fun
      * @param string $arg_data
-     * @return \ret
+     * @return array
      */
-    protected function _erlang_call_result(string $node_type,string $mod,string $fun, string $arg_data):\ret
+    protected function _erlang_call_result(string $node_type,string $mod,string $fun, string $arg_data):array
     {
         $rs   = $this->_erlang_call($node_type,$mod, $fun,  $arg_data);
-        if($rs[0])
-        {
+        if($rs[0]) {
             // echo $rs[1]."<br />\n";
             $data = json_decode_array($rs[1]);
-            if($data['ret'])
-            {
-                return new \ret($data['ret'],0,$data['data']);
+            if($data['ret']) {
+                return succeed($data['data'],$data['ret']);
             }
-            return new \ret(false,0,$data['msg']);
+            return error($data['msg']);
         }
-        return new \ret(false,0,$rs[1]);
+        return error($rs[1]);
     }
 
   

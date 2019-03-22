@@ -2,8 +2,13 @@
 namespace ounun\cmd;
 
 
-class cmd extends \ounun\base
+use ounun\pdo;
+
+class cmd
 {
+    /** @var pdo */
+    protected $_db_zrun;
+
     /** @var console 控制台 */
     public $console;
 

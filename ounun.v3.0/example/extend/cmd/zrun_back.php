@@ -1,7 +1,7 @@
 <?php
 namespace app\adm\controller;
 
-class zrun_back extends cmd
+class zrun_back extends \ounun\cmd\cmd
 {
     /**
      * 每五分钟调一次

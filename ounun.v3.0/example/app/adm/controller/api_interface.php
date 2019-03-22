@@ -1,6 +1,7 @@
 <?php
 namespace app\adm\controller;
 
+use extend\config_cache;
 use ounun\mvc\model\admin\secure;
 use extend\cache_config;
 use app\adm\model\purview;
@@ -21,13 +22,13 @@ class api_interface extends adm
         $this->_nav_pur_check('api_interface/mysql.html','site@site_list', '接口','系统',purview::nav_null);
 
         // $db_libs         = self::db('libs');
-        $table           = ' `adm_site_info` ';
-        if($_GET['site_tag'])
-        {
-            $site_info = $this->_db_v->row("SELECT * FROM {$table} where `site_tag` = :site_tag ;", $_GET);
-        }else
-        {
-            $site_info = null;
+        $table       = ' `adm_site_info` ';
+        $site_info   = null;
+        if($_GET['site_tag']) {
+            $site_info = $this->_db_v->table($table)
+                ->field('*')
+                ->where('`site_tag` = :site_tag',['site_tag'=>$_GET['site_tag']])
+                ->column_one();
         }
 
         if($site_info)
@@ -36,7 +37,7 @@ class api_interface extends adm
             if($api_host)
             {
                 $secure  = new secure(Const_Key_Conn_Private);
-                $url     = $secure->url("https://{$api_host}/api/interface_mysql.html",['release'=>IsDebug?0:1]);
+                $url     = $secure->url("https://{$api_host}/api/interface_mysql.html",['release'=>Environment?0:1]);
                 $c       = @\plugins\curl\http::file_get_contents($url);
                 if($c)
                 {
@@ -49,10 +50,11 @@ class api_interface extends adm
                             $bind   = [
                                 'db'  => is_array($data)  ?json_encode($data  ,JSON_UNESCAPED_UNICODE):$data,
                             ];
-                            $rs = $this->_db_v->update($table,$bind," `site_tag` = :site_tag ",$_GET);
-                            if($rs)
-                            {
-                                cache_config::instance($this->_db_v)->site_clean();
+                            $rs = $this->_db_v->table($table)
+                                ->where(' `site_tag` = :site_tag ',['site_tag'=>$_GET['site_tag']])
+                                ->update($bind);
+                            if($rs){
+                                config_cache::instance($this->_db_v)->site_clean();
                             }
                             $url_back = "/site/site_add.html?site_tag={$_GET['site_tag']}";
                             go_url($url_back);

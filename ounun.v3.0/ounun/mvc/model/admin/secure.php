@@ -109,14 +109,14 @@ class secure
      * @param int $time_fault_tolerant
      * @return array [true,'ok'] | [false,Error]
      */
-    public function check(array $data,int $time_now,int $time_fault_tolerant = 600):\ret
+    public function check(array $data,int $time_now,int $time_fault_tolerant = 600):array 
     {
         $time_diff    = $time_now - (int)$data['time'];
         if ($time_diff > $time_fault_tolerant) {
-            return new \ret(false,-1,"出错:运行超时");
+            return error("出错:运行超时");
         }
         if($time_diff < 0-$time_fault_tolerant/10) {
-            return new \ret(false,-1,"出错:运行超时(服务器时间有误:{$time_diff})");
+            return error("出错:运行超时(服务器时间有误:{$time_diff})");
         }
         $sign    = $data['sign'];
         unset($data['sign']);
@@ -131,9 +131,9 @@ class secure
         $sign2   = md5($sign2_s);
         // print_r(['$sign2'=>$sign2,'$sign'=>$sign,'$sign2_s'=>$sign2_s]);
         if($sign && 32 == strlen($sign) && $sign2 == $sign) {
-            return new \ret(true,0,'ok');
+            return succeed('ok');
         }
-        return new \ret(false,-1,"出错:校验出错");
+        return error("出错:校验出错");
     }
 
     /**

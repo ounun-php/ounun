@@ -18,9 +18,9 @@
         var nav 		= parseInt('{$page_nav}');
         var title 		= '{$page_title}';
         var title_sub 	= '{$page_title_sub}';
-        var site_key	= '<?php echo \controller\adm::$auth->cookie_get(\model\purview::cp_site) ?>';
-        var zqun_key	= '<?php echo \controller\adm::$auth->cookie_get(\model\purview::cp_zqun) ?>';
-        var libs_key	= '<?php echo \controller\adm::$auth->cookie_get(\model\purview::cp_libs) ?>';
+        var site_key	= '<?php echo oauth()->cookie_get(\app\adm\model\purview::cp_site) ?>';
+        var zqun_key	= '<?php echo oauth()->cookie_get(\app\adm\model\purview::cp_zqun) ?>';
+        var libs_key	= '<?php echo oauth()->cookie_get(\app\adm\model\purview::cp_libs) ?>';
         var url 		= '<?php echo $_GET['uri']?$_GET['uri']:$_SERVER['REQUEST_URI']?>';
         var scfg        = {nav:nav,site_key:site_key,zqun_key:zqun_key,libs_key:libs_key,curr_url:url};
         parent_init_page(title,title_sub,scfg);

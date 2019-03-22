@@ -1,9 +1,8 @@
 <?php
 namespace app\adm\controller;
 
-use ounun\mvc\model\admin\oauth;
+use extend\config_cache;
 use ounun\config;
-use extend\cache_config;
 use app\adm\model\purview;
 use ounun\pdo;
 
@@ -13,14 +12,14 @@ class adm extends \ounun\mvc\controller\admin\adm
     {
         // 初始化
         $this->_db_adm  = pdo::instance('adm');
-        self::$auth     = new oauth($this->_db_adm,new purview(),'mk8');
+        self::$auth     = \ounun\mvc\model\admin\oauth::instance($this->_db_adm,new purview(),'mk8');
 
         $cp_site        = self::$auth->cookie_get(purview::cp_site);
         $cp_zqun        = self::$auth->cookie_get(purview::cp_zqun);
         if($cp_site && $cp_zqun)
         {
-            $db_libs    = self::db('adm');
-            $sites      = cache_config::instance($db_libs)->site();
+            $db_libs    = pdo::instance('adm');
+            $sites      = config_cache::instance($db_libs)->site();
             $sites2     = $sites[$cp_zqun];
             if($sites2 && is_array($sites2))
             {
@@ -46,7 +45,7 @@ class adm extends \ounun\mvc\controller\admin\adm
                         $db_cfg               = json_decode($sites3['db'],true);
                         if($db_cfg && $db_cfg['host'])
                         {
-                            $this->_db_site   = self::db($cp_site,$db_cfg);
+                            $this->_db_site   = pdo::instance($cp_site,$db_cfg);
                         }else{$this->_db_site = $this->_db_adm;}
                     }else{$this->_db_site     = $this->_db_adm;}
                 }elseif ($sites3 && purview::app_type_admin == $sites3['type'])
@@ -64,7 +63,7 @@ class adm extends \ounun\mvc\controller\admin\adm
             $libs = config::$global['libs'][$cp_libs];
             if($libs && $libs['db'])
             {
-                $this->_db_libs   = self::db($libs['db']);
+                $this->_db_libs   = pdo::instance($libs['db']);
             }else{$this->_db_libs = $this->_db_adm;}
         }
 
@@ -82,7 +81,7 @@ class adm extends \ounun\mvc\controller\admin\adm
                 'uri'            => $_SERVER['REQUEST_URI'],
                 'site_type_only' => implode(',',$this->_site_type_only)
             ];
-            $url = url('/error_site_type.html',$data);
+            $url = url_build_query('/error_site_type.html',$data);
             go_url($url);
         }
     }

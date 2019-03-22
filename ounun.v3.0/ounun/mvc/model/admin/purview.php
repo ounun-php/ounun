@@ -4,16 +4,16 @@ namespace ounun\mvc\model\admin;
 
 class purview
 {
-    /** 操作日志 - 普通操作 */
+    /** @var int 操作日志 - 普通操作 */
     const send_msg  = 0;
-    /** 操作日志 - 增加操作 */
+    /** @var int 操作日志 - 增加操作 */
     const db_insert = 1;
-    /** 操作日志 - 修改操作 */
+    /** @var int 操作日志 - 修改操作 */
     const db_update = 2;
-    /** 操作日志 - 删除操作 */
+    /** @var int 操作日志 - 删除操作 */
     const db_delete = 3;
 
-    /** session id */
+    /** @var string session id */
     const session_id       = 'id';
     const session_google   = 'g';
     const session_cid      = 'c';
@@ -31,52 +31,57 @@ class purview
     const cp_hall_id      = 'cp_hall_id';
 
 
-    /** 管理面板 - 应用类型 */
+    /** @var string 管理面板 - 应用类型 */
     const app_type_admin  = 'admin';
-    /** 站点    - 应用类型 */
+    /** @var string 站点    - 应用类型 */
     const app_type_site   = 'site';
 
 
-    /** 导航头 什么都不用显示 */
+    /** @var int 导航头 什么都不用显示 */
     const nav_null        = 0;
-    /** 导航头 要显示 平台 */
+    /** @var int 导航头 要显示 平台 */
     const nav_cid         = 1;
-    /** 导航头 要显示 游戏及服务器 */
+    /** @var int 导航头 要显示 游戏及服务器 */
     const nav_hub         = 2;
-    /** 导航头 要显示 游戏 */
+    /** @var int 导航头 要显示 游戏 */
     const nav_game        = 3;
-    /** 导航头 要显示 分组 */
+    /** @var int 导航头 要显示 分组 */
     const nav_game_group  = 4;
-    /** 导航头 要显示 大厅 hyz 2017-9-27*/
+    /** @var int 导航头 要显示 大厅 hyz 2017-9-27*/
     const nav_hall        = 5;
 
-    /** 网站后台配 */
+    /** @var array 网站后台配 */
     public $cfg      = [];
-    /** 游戏名 与 LOGO */
+    /** @var array 游戏名 与 LOGO */
     public $cfg_name = [];
 
-    /** table */
+    /** @var string table */
     public $db_adm         = '';
+    /** @var string  */
     public $db_logs_login  = '';
+    /** @var string  */
     public $db_logs_act    = '';
 
-    /** IP限定 */
+    /** @var int IP限定 */
     public $max_ips       = 20;
+    /** @var int  */
     public $max_ip        = 5;
 
     /** @var array 权限列表 */
     public $purview           = [];
+    /** @var array  */
     public $purview_group     = [];
+    /** @var array  */
     public $purview_tree_root = [10,20];
+    /** @var array  */
     public $purview_tree_coop = [10,20,50];
+    /** @var string  */
     public $purview_default   = 'info';
-    /** 后台根目录 */
-    public $purview_line      = 40;
-    /** 邮件仙玉审核权限 */
-    public $purview_check     = 40;
 
-    /** @var oauth   */
-    public $oauth = null;
+    /** @var int 后台根目录  */
+    public $purview_line      = 40;
+    /** @var int 邮件仙玉审核权限 */
+    public $purview_check     = 40;
 
     /**
      * 权限检测 多个
@@ -106,7 +111,7 @@ class purview
      */
     public function check(string $key):bool
     {
-        $type  = $this->oauth->session_get(self::session_type);
+        $type  = oauth::instance()->session_get(self::session_type);
         if(!$type)
         {
             return false;
@@ -155,11 +160,11 @@ class purview
     public function data(int $type=0):array
     {
         $purview	= [];
-        if ($this->oauth->login_check())
+        if (oauth::instance()->login_check())
         {
             if(''==$type)
             {
-                $type   = $this->oauth->session_get(self::session_type);
+                $type   = oauth::instance()->session_get(self::session_type);
             }
             foreach ($this->purview as $key1 => $data1)
             {

@@ -52,7 +52,7 @@
                             安装:扫码下载阿里云APP手机端 "点击下载" 或 "手机扫描下面二维码"
                         </a> <br /><br />
                         <a href="https://hd.m.aliyun.com/act/download.html" target="_blank">
-                            <img src="/static/adm/aliyun-app300.png" border="0">
+                            <img src="{$static_g}adm/aliyun-app300.png" border="0">
                         </a>
                         扫码下载阿里云APP
                         <br />
@@ -79,13 +79,13 @@
                         <a href="#" style="font-size: 16px;">
                             点开"阿里云"手机App -> "扫一扫"功能
                         </a><br />
-                        <img src="/static/adm/aliyun-app400.png" height="388" /> <img src="/static/adm/aliyun-app500.png" height="388" />
+                        <img src="{$static_g}adm/aliyun-app400.png" height="388" /> <img src="{$static_g}adm/aliyun-app500.png" height="388" />
                         <br /><br />
                         <?php
                         $project_no     = Const_Code;
-                        $adm_account_id = \controller\adm::$auth->session_get(\model\purview::s_id);
+                        $adm_account_id = oauth()->session_get(\app\adm\model\purview::session_id);
                         $site_name      = \ounun\config::$tpl_replace_str['{$site_name}'];
-                        $adm_account    = \controller\adm::$auth->session_get(\model\purview::s_account);
+                        $adm_account    = oauth()->session_get(\app\adm\model\purview::session_account);
                         ?>
                         <img height="388" src="<?php echo (new \plugins\google\auth_code() )->get_qrcode_google_url("{$site_name}#{$adm_account}#{$project_no}#".date("Y-m-d")."#{$adm_account_id}",$cs,$adm_account."《{$site_name}》") ?>"><br />
                         <br />
@@ -101,7 +101,7 @@
                         <br />
                         <a href="#" style="font-size: 16px;">
                             点开"阿里云"手机App,输入已下内容 </a><br />
-                        <img src="/static/adm/aliyun-app400.png" height="388" /> <img src="/static/adm/aliyun-app600.png" height="388" />
+                        <img src="{$static_g}adm/aliyun-app400.png" height="388" /> <img src="{$static_g}adm/aliyun-app600.png" height="388" />
                         <br /><br />
                         <br />
                         用户名:<input class="txt" type="text" style="width: 300px;" value="{$site_name} - <?php echo $adm_account;?>" readonly="readonly" /><br />

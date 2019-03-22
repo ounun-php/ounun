@@ -27,9 +27,8 @@ class file extends base
      * @param string $mod
      * @param $root
      * @param bool|false $large_scale
-     * @return bool
      */
-    public function __construct($mod='def',$root,$format_string=false,$large_scale=false)
+    public function __construct($mod='def',$root= '',$format_string=false,$large_scale=false)
     {
         $this->_mod   		  = $mod;
         $this->_root  		  = $root;
@@ -88,7 +87,7 @@ class file extends base
                 $this->_data = file_get_contents($this->_filename);
             }else
             {
-                $this->_data = require $this->_filename;
+                $this->_data = include $this->_filename;
             }
         }
         return $this->_data;

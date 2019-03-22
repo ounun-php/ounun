@@ -57,8 +57,7 @@ use \ounun\config;
 		var json_curr_url		= '';
 		var json_nav			= 0;
 
-        <?php if(0){?>
-		/**
+        /**
          * 初始化  默认第一页
          * @param title       选项名称
          * @param title_sub   页面名称
@@ -67,7 +66,6 @@ use \ounun\config;
          *                    服务器sid
          *                    当前页面url
          */
-		<?php }?>
 
 		function init_page(title,title_sub,scfg)
 		{
@@ -299,7 +297,7 @@ use \ounun\config;
 						[<a href="/out.html" target="_top">退出</a>]
 					</p>
 					<p class="btnlink">
-						<a href="{$url_www}" target="_blank">官方网址</a>
+						<a href="{$powered_studio_url}" target="_blank">官方网址</a>
 					</p>
 				</div>
 				<div class="navbg"></div>

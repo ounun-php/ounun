@@ -4,12 +4,29 @@ namespace ounun\mvc\model\admin;
 
 class oauth
 {
+    /** @var self 单例 */
+    protected static $_instance;
+
+    /**
+     * @param \ounun\pdo $db
+     * @param purview $purview
+     * @param string $session_key
+     * @return oauth 返回数据库连接对像
+     */
+    public static function instance(\ounun\pdo $db = null,purview $purview = null,string $session_key='adm'):self
+    {
+        if(empty(static::$_instance)) {
+            static::$_instance = new static($db,$purview,$session_key);
+        }
+        return static::$_instance;
+    }
+
     /** @var purview */
     public $purview;
 
     /** @var string  session key **/
     protected $_o_key  = '';
-    /** @var \ounun\pdo  Mysqli 句柄  */
+    /** @var \ounun\pdo  Mysqli句柄  */
     protected $_db;
 
     /** Auth constructor. */
@@ -18,8 +35,6 @@ class oauth
         $this->_db              = $db;
         $this->_o_key           = $session_key;
         $this->purview          = $purview;
-
-        $this->purview->oauth   = $this;
     }
 
     /**
@@ -42,26 +57,34 @@ class oauth
         }
         return false;
     }
-    
+
     /**
      * 登录
-     * $field : id,type,cid,account,password,note
+     * @param string $account
+     * @param string $password
+     * @param int $cid
+     * @param string $code
+     * @return array
      */
-    public function login(string $account, string $password, int $cid, string $code):\ret
+    public function login(string $account, string $password, int $cid, string $code):array
     {
         $check      = $this->_check_ip($cid, $account);
         $account_id = 0;
         // 封帐号或IP
-        if(!$check->ret)
-        {
+        if(error_is($check)){
             $status  = 0;
             $this->logs_login($status,$account_id,$cid,$account);
             return $check;
         }
         // 正常登录
         $bind    = ['account'=>$account,'cid'=>$cid];
-        $rs 	 = $this->_db->row("select * from {$this->purview->db_adm} where `account` =:account and `cid` = :cid limit 1;",$bind);
-
+        $rs 	 = $this->_db
+            ->table($this->purview->db_adm)
+            ->field('*')
+            ->where('`account` =:account and `cid` = :cid',$bind)
+            ->limit(1)
+            ->column_one();
+        // $rs 	 = $this->_db->row("select * from {$this->purview->db_adm} where `account` =:account and `cid` = :cid limit 1;",$bind);
         if($rs)
         {
             $ext          = $this->user_get_exts($rs,$rs['adm_id']);
@@ -72,8 +95,8 @@ class oauth
             // exit();
             if($is_google || $ext['google']['is'] == false )
             {
-//                 echo "\$rs['password'] :{$rs['password']} == md5(\$password) :".md5($password)."<br />\n";
-//                 exit();
+                // echo "\$rs['password'] :{$rs['password']} == md5(\$password) :".md5($password)."<br />\n";
+                // exit();
                 if( $rs['password'] == md5($password) )
                 {
                     // 清理一下
@@ -92,34 +115,32 @@ class oauth
                     $login_times = $rs['login_times'] + 1;
                     $login_last	 = time();
                     $bind	     = [ 'login_times'=> $login_times, 'login_last' => $login_last ];
-                    $this->_db->update($this->purview->db_adm, $bind,' `id`= ? ',$rs['id']);
+                    $this->_db->table($this->purview->db_adm)->where('`adm_id`= :adm_id ',['adm_id'=>$rs['adm_id']])->update($bind);
+                    // $this->_db->update($this->purview->db_adm, $bind,' `id`= ? ',$rs['id']);
                     $this->logs_login(true,$account_id,$cid,$account);
 
                     // print_r($_SESSION);
-                    return new \ret(true);
+                    return succeed(true);
                 }
                 $this->logs_login(false,$account_id,$cid,$account);
-                return new \ret(false,0,'失败:帐号或密码有误');
+                return error('失败:帐号或密码有误');
             }
             $this->logs_login(false,$account_id,$cid,$account);
-            return new \ret(false,0,'失败:谷歌验证有误');
+            return error('失败:谷歌验证有误');
         }
         $this->logs_login(false,$account_id,$cid,$account);
-        return new \ret(false,0,'失败:帐号不存在');
+        return error('失败:帐号不存在');
     }
 
 
     /** 退出登录 */
     public function logout()
     {
-        if($this->_o_key)
-        {
+        if($this->_o_key) {
             $key_len = strlen($this->_o_key);
-            foreach ($_SESSION as $k => $v)
-            {
+            foreach ($_SESSION as $k => $v) {
                 // echo "\$this->_o_key:{$k}-{$key_len}  ";
-                if($this->_o_key == substr($k,0,$key_len))
-                {
+                if($this->_o_key == substr($k,0,$key_len)) {
                     // echo "\$this->_o_key2:{$k}\n";
                     // $this->session_del($k);
                     $_SESSION[$k]='';
@@ -158,16 +179,17 @@ class oauth
             'ip_segment' => $ip_segment,
             'address'    => $address,
         ];
-        $this->_db->insert($this->purview->db_logs_login, $bind);
+        $this->_db->table($this->purview->db_logs_login)->insert($bind);
     }
 
     /**
      * 操作日志
      * @param bool $status 状态 0:失败 1:成功
-     * @param string $mod 模块
-     * @param string $mod_sub 子模块
-     * @param int $act 操作 0:普通 1:添加 2:修改 3:删除
-     * @param array $exts 扩展数据
+     * @param int $act     操作 0:普通 1:添加 2:修改 3:删除
+     * @param array $exts  扩展数据
+     * @param string $url
+     * @param string $mod
+     * @param string $mod_sub
      */
     public function logs_act(bool $status, int $act, array $exts,string $url='',string $mod='',string $mod_sub='')
     {
@@ -201,21 +223,29 @@ class oauth
             'address' => $address,
             'exts'    => $exts,
         ];
-        $this->_db->insert($this->purview->db_logs_act, $bind);
+        $this->_db->table($this->purview->db_logs_act)->insert($bind);
     }
-
 
     /**
      * 添加帐号
-     * @return \ret
+     * @param int $adm_type
+     * @param int $adm_cid
+     * @param string $adm_account
+     * @param string $password
+     * @param string $adm_tel
+     * @param string $adm_note
+     * @return array
      */
-    public function user_add(int $adm_type,int $adm_cid,string $adm_account,string $password,string $adm_tel,string $adm_note):\ret
+    public function user_add(int $adm_type,int $adm_cid,string $adm_account,string $password,string $adm_tel,string $adm_note):array 
     {
         // 看是否存在相同的帐号
-        $rs             = $this->_db->row("SELECT `adm_id` FROM {$this->purview->db_adm} where `cid` = :cid  and `account` = :account limit 0,1;",['cid'=>$adm_cid,'account'=>$adm_account]);
-        if($rs)
-        {
-            return new \ret(false,0,'提示：帐号"'.$adm_account.'"已存在!');
+        $rs  = $this->_db
+            ->table($this->purview->db_adm)
+            ->field('`adm_id`')
+            ->limit(1)
+            ->where('`cid` = :cid  and `account` = :account',['i:cid'=>$adm_cid,'s:account'=>$adm_account])->column_one();
+        if($rs) {
+            return error('提示：帐号"'.$adm_account.'"已存在!');
         }
         // 添加
         $adm_type_p     = $this->session_get(purview::session_type);
@@ -231,98 +261,101 @@ class oauth
             'note'	        => $adm_note,
             'exts'          => ''
         ];
-        $adm_id = $this->_db->insert($this->purview->db_adm, $bind);
+        $adm_id = $this->_db->table($this->purview->db_adm)->insert($bind);
         // 记日志
         $this->logs_act($adm_id?1:0,1,$bind);
-        if($adm_id)
-        {
-            return new \ret(true,0,"成功:操作成功!");
+        if($adm_id) {
+            return error("成功:操作成功!");
         }
-        return new \ret(false,0,'提示：系统忙稍后再试!');
+        return error('提示：系统忙稍后再试!');
     }
 
     /**
      * 帐号删除
-     * @return \ret
+     * @param int $adm_id
+     * @return array
      */
-    public function user_del(int $adm_id):\ret
+    public function user_del(int $adm_id):array 
     {
         if($adm_id == $this->session_get(purview::session_id))
         {
-            return new \ret(false,0,'提示：不能删除自己[account_id]!');
+            return error('提示：不能删除自己[account_id]!');
         }
-        $rs			 = $this->_db->row("SELECT `cid`,`account` FROM {$this->purview->db_adm} where `adm_id` = :adm_id limit 0,1;",['adm_id'=>$adm_id]);
+        $rs			 = $this->_db->table($this->purview->db_adm)->field('`cid`,`account`')->limit(1)->where('`adm_id` = :adm_id',['adm_id'=>$adm_id])->column_one();
+        //$rs		 = $this->_db->row("SELECT `cid`,`account` FROM {$this->purview->db_adm} where `adm_id` = :adm_id limit 0,1;",['adm_id'=>$adm_id]);
         if($rs['cid'] == $this->session_get(purview::cp_cid) &&
            $rs['account'] == $this->session_get(purview::session_account) )
         {
-            return new \ret(false,0,'提示：不能删除自己[account]!');
+            return error('提示：不能删除自己[account]!');
         }
         $bind = ['adm_id'=>$adm_id,'cid'=>$rs['cid'], 'account'=>$rs['account'] ];
-        $rs   = $this->_db->delete($this->purview->db_adm,'`adm_id`= :adm_id ',$bind);
+        $rs   = $this->_db->table($this->purview->db_adm)->where('`adm_id`= :adm_id ',$bind)->delete(1);
+        //$rs = $this->_db->delete($this->purview->db_adm,'`adm_id`= :adm_id ',$bind);
         // 记日志
         $this->logs_act($rs?1:0,3,$bind);
         if($rs)
         {
-            return new \ret(true,0,"成功:操作成功!");
+            return error("成功:操作成功!");
         }
-        return new \ret(false,0,'提示：系统忙稍后再试!');
+        return error('提示：系统忙稍后再试!');
     }
 
     /**
      * 更改密码
-     * @return \ret
+     * @param string $old_pwd
+     * @param string $new_pwd
+     * @param string $google_code
+     * @return array
      */
-    public function user_modify_passwd($old_pwd,$new_pwd,$google_code):\ret
+    public function user_modify_passwd(string $old_pwd,string $new_pwd,string $google_code):array 
     {
-        if(!$old_pwd)
-        {
-            return new \ret(false,0,'提示：请输入旧密码');
+        if(!$old_pwd) {
+            return error('提示：请输入旧密码');
         }
-        if(!$new_pwd)
-        {
-            return new \ret(false,0,'提示：请输入新密码');
+        if(!$new_pwd) {
+            return error('提示：请输入新密码');
         }
         $account_id	    = $this->session_get(purview::session_id);
-        $rs			    = $this->_db->row("SELECT `adm_id`,`password`,`exts` FROM {$this->purview->db_adm} where `adm_id` = ? ;",$account_id);
+        $rs			    = $this->_db
+            ->table($this->purview->db_adm)
+            ->field('`adm_id`,`password`,`exts`')
+            ->where('`adm_id` = :adm_id ',['adm_id'=>$account_id])
+            ->column_one();
+        // $rs		    = $this->_db->row("SELECT `adm_id`,`password`,`exts` FROM {$this->purview->db_adm} where `adm_id` = ? ;",$account_id);
         $exts           = $this->user_get_exts($rs,$rs['adm_id']);
         $old_pwd_md5    = md5(md5($old_pwd));
         $new_pwd_md5	= md5(md5($new_pwd));
 
-
-        if ($old_pwd_md5 != $rs['password'])
-        {
-            return new \ret(false,0,'提示：旧密码错误,请重新输入');
-        }else if(!$this->_check_google($exts,$google_code))
-        {
-            return new \ret(false,0,'提示：请输入正确6位数谷歌(洋葱)验证');
-        }
-        else
-        {
+        if ($old_pwd_md5 != $rs['password']) {
+            return error('提示：旧密码错误,请重新输入');
+        }else if(!$this->_check_google($exts,$google_code)) {
+            return error('提示：请输入正确6位数谷歌(洋葱)验证');
+        }  else {
             //  跳回原来的页面
-            $rs2 = $this->_db->update($this->purview->db_adm, ['password'=>$new_pwd_md5, ],' `adm_id`= ? ',$account_id);
-            if($rs2)
-            {
-                return new \ret(true, 0,'成功：密码修改成功!');
-            }else
-            {
-                return new \ret(false,0,'提示：系统忙,请稍后再试');
+            $rs2 = $this->_db->table($this->purview->db_adm)->where(' `adm_id`= :adm_id ',['adm_id'=>$account_id])->update(['password'=>$new_pwd_md5, ]);
+            // $rs2 = $this->_db->update($this->purview->db_adm, ['password'=>$new_pwd_md5, ],' `adm_id`= ? ',$account_id);
+            if($rs2) {
+                return error('成功：密码修改成功!');
+            }else {
+                return error('提示：系统忙,请稍后再试');
             }
         }
     }
 
     /**
      * 获得$exts
+     * @param array $rs
+     * @param int $account_id
      * @return mixed
      */
-    public function user_get_exts($rs=null,$account_id=0)
+    public function user_get_exts(array $rs=[],int $account_id=0)
     {
-        if(0 == $account_id)
-        {
+        if(0 == $account_id) {
             $account_id	= $this->session_get(purview::session_id);
         }
-        if(!$rs)
-        {
-            $rs	    = $this->_db->row("SELECT `exts` FROM {$this->purview->db_adm} where `adm_id` = ? ;",$account_id);
+        if(!$rs) {
+            $rs     = $this->_db->table($this->purview->db_adm)->field('`exts`')->where(' `adm_id`= :adm_id ',['adm_id'=>$account_id])->column_one();
+            // $rs  = $this->_db->row("SELECT `exts` FROM {$this->purview->db_adm} where `adm_id` = ? ;",$account_id);
         }
         $ext        = json_decode($rs['exts'],true);
         // print_r(['$ext'=>$ext,'$rs'=>$rs,'sql'=>$this->_db->sql()]);
@@ -330,14 +363,14 @@ class oauth
         {
             // skip
             // $secret = $ext['google']['secret'];
-        }else
-        {
+        }else {
             $ga     = new \plugins\google\auth_code();
             $secret = $ga->create_secret();
 
             $google        = ['is'=>false,'secret'=>$secret];
             $ext['google'] = $google;
-            $this->_db->update($this->purview->db_adm,['exts'=>json_encode($ext)],' `adm_id` = ? ',$account_id);
+            $this->_db->table($this->purview->db_adm)->where(' `adm_id`= :adm_id ',['adm_id'=>$account_id])->update(['exts'=>json_encode($ext)]);
+            // $this->_db->update($this->purview->db_adm,['exts'=>json_encode($ext)],' `adm_id` = ? ',$account_id);
             // echo $this->_db->getSql();
         }
         return $ext;
@@ -345,65 +378,75 @@ class oauth
 
     /**
      * 设定 Google身份验证
+     * @param bool $google_yn
+     * @param array|null $ext
+     * @param string $old_pwd
+     * @param string $google_code
+     * @return array
      */
-    public function user_set_exts_google($google_yn=true,$ext=null,$old_pwd='',$google_code=''):\ret
+    public function user_set_exts_google(bool $google_yn=true,array $ext=null,string $old_pwd='',string $google_code=''):array 
     {
         $account_id	= $this->session_get(purview::session_id);
-        if(!$ext && $old_pwd != '' && $google_code != '')
-        {
-            $rs		    = $this->_db->row("SELECT `adm_id`,`password`,`exts` FROM {$this->purview->db_adm} where `adm_id` = ? ;",$account_id);
+        if(!$ext && $old_pwd != '' && $google_code != '') {
+            $rs         = $this->_db->table($this->purview->db_adm)->field('`adm_id`,`password`,`exts`')->where(' `adm_id`= :adm_id ',['adm_id'=>$account_id])->column_one();
+           // $rs		= $this->_db->row("SELECT `adm_id`,`password`,`exts` FROM {$this->purview->db_adm} where `adm_id` = ? ;",$account_id);
             $ext        = $this->user_get_exts($rs,$rs['adm_id']);
             $oldpwd		= md5(md5($old_pwd));
-            if ($oldpwd != $rs['password'])
-            {
-                return new \ret(false,0,'失败：登录密码有误!');
+            if ($oldpwd != $rs['password']) {
+                return error('失败：登录密码有误!');
             }
             $ext['google']['is'] = true;
-            if(!$this->_check_google($ext, $google_code) )
-            {
-                return new \ret(false,0,'失败：谷歌验证有误!');
+            if(!$this->_check_google($ext, $google_code) ) {
+                return error('失败：谷歌验证有误!');
             }
         }
-        if(!$ext)
-        {
+        if(!$ext) {
             $ext        = $this->user_get_exts();
         }
         //
-        if($google_yn)
-        {
+        if($google_yn)  {
             $ext['google']['is'] = true;
             $this->session_set(purview::session_google,true);
-        }else
-        {
+        }else {
             $ext['google']       = ['is'=>false,'secret'=>''];
             $this->session_set(purview::session_google,false);
         }
         //
-        $rs  = $this->_db->update($this->purview->db_adm,['exts'=>json_encode($ext)],' `adm_id` = ? ',$account_id);
-        if($rs)
-        {
-            return new \ret(true, 0,'成功：操作成功!');
-        }else
-        {
-            return new \ret(false,0,'提示:系统忙,请稍后再试');
+        $rs  = $this->_db->table($this->purview->db_adm)->where(' `adm_id`= :adm_id ',['adm_id'=>$account_id])->update(['exts'=>json_encode($ext)]);
+        // $rs  = $this->_db->update($this->purview->db_adm,['exts'=>json_encode($ext)],' `adm_id` = ? ',$account_id);
+        if($rs) {
+            return error('成功：操作成功!');
+        }else {
+            return error('提示:系统忙,请稍后再试');
         }
     }
 
-
-    /** 内部 设定key */
-    public function session_set($key, $val)
+    /**
+     * 内部 设定key
+     * @param string $key
+     * @param mixed $val
+     */
+    public function session_set(string $key, $val)
     {
         $_SESSION[$this->_o_key.$key]=$val;
     }
 
-    /** 内部 获取key的值 */
+    /**
+     * 内部 获取key的值
+     * @param $key
+     * @return mixed
+     */
     public function session_get($key)
     {
         return $_SESSION[$this->_o_key.$key];
     }
 
-    /** 内部 删除key的值 */
-    public function session_del($key)
+    /**
+     * 内部 删除key的值
+     * @param string $key
+     * @return bool
+     */
+    public function session_del(string $key)
     {
         // echo $this->_o_key.$key.":{$_SESSION[$this->_o_key.$key]}\n";
         $_SESSION[$this->_o_key.$key]='';
@@ -413,8 +456,8 @@ class oauth
 
     /**
      * cookie cid
-     * @param int $cid
-     * @param bool $is_login
+     * @param string $key
+     * @param string $val
      */
     public function cookie_set(string $key,string $val)
     {
@@ -447,12 +490,10 @@ class oauth
      */
     private function _make_hash(int $cid,string $account,string $password):string
     {
-        if(!$account)
-        {
+        if(!$account) {
             return '';
         }
-        if(!$password)
-        {
+        if(!$password) {
             return '';
         }
         return sha1($account.$cid. $this->_o_key . $password);
@@ -460,9 +501,11 @@ class oauth
 
     /**
      * IP检查 是否锁定
-     * @return \ret
+     * @param int $cid
+     * @param string $account
+     * @return array
      */
-    protected function _check_ip($cid, $account):\ret
+    protected function _check_ip($cid = 0, $account = ''):array 
     {
         $ip		    = ip();
         $wry        = new \plugins\qqwry\ip('utf-8');
@@ -471,60 +514,51 @@ class oauth
 
         $status	    = 0;
         $time	    = time() - 86400;
-        $bind       = ['ip_segment'=>$ip_segment,'status'=>$status,'time'=>$time];
+        $bind       = [':ip_segment'=>$ip_segment,'i:status'=>$status,'i:time'=>$time];
 
-        $rs_ip_segment_counts	= $this->_db->table($this->purview->db_logs_login)->field('ip_segment')->where('`ip_segment` =:ip_segment and `status` =:status and `time` >=:time ',$bind)->column_count();
-        // echo $this->_db->getSql().'<br />';
-        if ($rs_ip_segment_counts <= $this->purview->max_ips)
-        {
-            $bind           = ['ip'=>$ip,'status'=>$status,'time'=>$time];
-            $rs_ip_counts	= $this->_db->rows("select * from {$this->purview->db_logs_login} where `ip` =:ip and `status` =:status and `time` >=:time;",$bind);
-            //
-            // echo $this->_db->sql()."<br />\n";
-            // exit();
-            if ($rs_ip_counts <= $this->purview->max_ip)
-            {
-                return new \ret(true);
+
+        $rs_ip_segment_counts	= $this->_db->table($this->purview->db_logs_login)
+            ->where('`ip_segment` = :ip_segment and `status` = :status and `time` >= :time ',$bind)
+            ->count_value('`ip_segment`');
+
+        if ($rs_ip_segment_counts <= $this->purview->max_ips) {
+            $bind           = [':ip'=>$ip,'i:status'=>$status,'i:time'=>$time];
+            $rs_ip_counts	= $this->_db->table($this->purview->db_logs_login)
+                ->where(' `ip` =:ip and `status` = :status and `time` >= :time ',$bind)
+                ->count_value('`ip`');
+
+            if ($rs_ip_counts <= $this->purview->max_ip) {
+                return succeed(true);
             }
-            else
-            {
-                return new \ret(false,0,'IP地址登录失败超过'.$this->purview->max_ip.'次');
+            else {
+                return error('IP地址登录失败超过'.$this->purview->max_ip.'次');
             }
-        }
-        else
-        {
-            return new \ret(false,0,'IP地址段登录失败超过'.$this->purview->max_ips.'次');
+        } else  {
+            return error('IP地址段登录失败超过'.$this->purview->max_ips.'次');
         }
     }
 
     /**
      * Google身份验证
-     * @param $ext
-     * @param $code
+     * @param mixed $ext
+     * @param string $code
      * @return bool
      */
-    protected function _check_google($ext, $code):bool
+    protected function _check_google($ext, string $code):bool
     {
-        if($ext && $ext['google'])
-        {
-            if($ext['google']['secret'])
-            {
-                if($ext['google']['is'])
-                {
+        if($ext && $ext['google']) {
+            if($ext['google']['secret']) {
+                if($ext['google']['is']) {
                     $ga = new \plugins\google\auth_code();
                     return $ga->verify_code($ext['google']['secret'],$code,4);
-                }else
-                {
+                }else {
                     return true;
                 }
-            }else
-            {
+            }else {
                 return false;
             }
-        }else
-        {
+        }else {
             return false;
         }
     }
 }
-

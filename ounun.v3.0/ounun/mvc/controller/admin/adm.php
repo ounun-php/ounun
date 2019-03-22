@@ -34,7 +34,6 @@ class adm extends \v
     /**
      * 权限检测,没权限时就跳到 NoAccess
      * @param string $key
-     * @return boolean
      */
     protected function purview_check($key,$nav=0)
     {
@@ -44,7 +43,7 @@ class adm extends \v
                 'nav' => $nav,
                 'uri' => $_SERVER['REQUEST_URI']
             ];
-            $url =  url('/no_access.html',$data);
+            $url =  url_build_query('/no_access.html',$data);
             go_url($url);  // 没权限就跳
         }
 

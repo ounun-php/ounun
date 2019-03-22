@@ -32,7 +32,7 @@ class debug
 
     /** @var bool 是否输出 run time */
     private $_is_run_time   = true;
-    
+
     /**
      * 构造函数
      * Debug constructor.

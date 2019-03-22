@@ -12,25 +12,28 @@ class config
      * @param string $tag
      * @param array $config
      * @param string $config_key
-     * @return config
+     * @return $this
      */
-    static public function instance(\ounun\pdo $db,string $tag='tag', array $config = [], $config_key = 'cache_file'):self
+    static public function instance(string $tag='tag',\ounun\pdo $db = null, array $config = [], $config_key = 'cache_file')
     {
-        if(!self::$_inst[$tag]) {
+        if(empty(static::$_inst[$tag])) {
             if(empty($config)) {
                 $config = \ounun\config::$global[$config_key];
             }
-            self::$_inst[$tag] = new self($db,$config,$tag);
+            static::$_inst[$tag] = new static($db,$config,$tag);
         }
-        return self::$_inst[$tag];
+        return static::$_inst[$tag];
     }
 
     /** @var array  */
     protected $_cache_data = [];
+
     /** @var core */
     protected $_cache;
+
     /** @var \ounun\pdo */
     protected $_db;
+    
     /** @var int 最后更新时间，大于这个时间数据都过期 */
     protected $_last_time;
 
