@@ -1,11 +1,11 @@
 <?php
-namespace ounu\page;
+namespace ounun\page;
 
 class util
 {
     /**
-     * @param array $paras
-     * @param array $page_paras
+     * @param array  $paras
+     * @param array  $page_paras
      * @param string $url_original
      * @return string
      */
@@ -22,6 +22,7 @@ class util
     /**
      * 设定当前页面
      * @param string $url
+     * @param string $url_key
      */
     static public function page_set(string $url,string $url_key = 'p')
     {
@@ -50,20 +51,19 @@ class util
 
     /**
      * 获取当前页
+     * @param string $pre
      * @param string $page_key   GET 页数key
-     * @param int    $default_page  默认忽略 的页数
-     *  @return string
+     * @param int $default_page  默认忽略 的页数
+     * @return string
      */
     static public function cur(string $pre = '?',string $page_key = 'page',int $default_page = 1)
     {
         $page = self::val($page_key,$default_page);
-        if($page == $default_page)
-        {
+        if($page == $default_page) {
             return '';
         }
         return "{$pre}{$page_key}={$page}";
     }
-
 
     /**
      * 设定值
