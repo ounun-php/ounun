@@ -156,10 +156,29 @@ class pdo
     /**
      * 发送一条MySQL查询
      * @param string $sql
+     * @param array  $param  条件参数
+     * @param bool   $check_active
+     * @return int 返回受上一个 SQL 语句影响的行数
+     */
+    public function query(string $sql = '',array $param = [], bool $check_active = true)
+    {
+        $this->_prepare($sql,$check_active);
+        if($param && is_array($param)) {
+            $param = $this->_values_parse($param);
+        } else {
+            $param = [];
+        }
+        $this->_execute($param);
+        return $this->_stmt->rowCount();
+    }
+
+    /**
+     * 发送一条MySQL查询
+     * @param string $sql
      * @param bool $check_active
      * @return $this
      */
-    public function query(string $sql = '',bool $check_active = true):self
+    protected function _prepare(string $sql = '', bool $check_active = true):self
     {
         if($check_active) {
             $this->active();
@@ -208,7 +227,7 @@ class pdo
         $fields  = $this->_values_parse($this->_is_multiple?array_shift($data):$data);
         $cols    = array_keys($fields);
 
-        $this->query( ($this->_is_replace?'REPLACE':'INSERT'). ' '.$this->_option.' INTO '.$this->_table.' (`' . implode('`, `', $cols) . '`) VALUES (:' . implode(', :', $cols) . ') '.$duplicate.';');
+        $this->_prepare( ($this->_is_replace?'REPLACE':'INSERT'). ' '.$this->_option.' INTO '.$this->_table.' (`' . implode('`, `', $cols) . '`) VALUES (:' . implode(', :', $cols) . ') '.$duplicate.';');
         if($this->_is_multiple){
             $this->_execute($fields);
             foreach ($data as &$v){
@@ -244,7 +263,7 @@ class pdo
 
 
 
-        $this->query('UPDATE '.$this->_option.' '.$this->_table.' SET '.implode(', ',$update).' '.$this->_where.' '.$this->_limit.' ;');
+        $this->_prepare('UPDATE '.$this->_option.' '.$this->_table.' SET '.implode(', ',$update).' '.$this->_where.' '.$this->_limit.' ;');
 
         if($this->_is_multiple){
             // $this->_execute(array_merge($this->_bind_param,$fields));
@@ -267,7 +286,7 @@ class pdo
     public function column_count():int
     {
         $fields = ($this->_fields && is_array($this->_fields))?implode(',',$this->_fields):'*';
-        $this->query('SELECT '.$fields.' FROM '.$this->_table.' '.$this->_join.' '.$this->_where.' '.$this->_get_group().' ;')
+        $this->_prepare('SELECT '.$fields.' FROM '.$this->_table.' '.$this->_join.' '.$this->_where.' '.$this->_get_group().' ;')
              ->_execute($this->_bind_param);
         return $this->_stmt->columnCount();
     }
@@ -278,7 +297,7 @@ class pdo
     public function column_one()
     {
         $fields = ($this->_fields && is_array($this->_fields))?implode(',',$this->_fields):'*';
-        $this->query('SELECT '.$fields.' FROM '.$this->_table.' '.$this->_join.' '.$this->_where.' '.$this->_get_group().' '.$this->_get_order().' '.$this->_limit.';')
+        $this->_prepare('SELECT '.$fields.' FROM '.$this->_table.' '.$this->_join.' '.$this->_where.' '.$this->_get_group().' '.$this->_get_order().' '.$this->_limit.';')
              ->_execute($this->_bind_param);
         return $this->_stmt->fetch(\PDO::FETCH_ASSOC);
     }
@@ -289,7 +308,7 @@ class pdo
     public function column_all()
     {
         $fields = ($this->_fields && is_array($this->_fields))?implode(',',$this->_fields):'*';
-        $this->query('SELECT '.$fields.' FROM '.$this->_table.' '.$this->_join.' '.$this->_where.' '.$this->_get_group().' '.$this->_get_order().' '.$this->_limit.';')
+        $this->_prepare('SELECT '.$fields.' FROM '.$this->_table.' '.$this->_join.' '.$this->_where.' '.$this->_get_group().' '.$this->_get_order().' '.$this->_limit.';')
              ->_execute($this->_bind_param);
         if($this->_assoc){
             $rs = [];
@@ -328,7 +347,7 @@ class pdo
     public function delete(int $limit = 1):int
     {
         $this->limit($limit)
-             ->query('DELETE '.$this->_option.' FROM '.$this->_table.' '.$this->_where.' '.$this->_limit.';')
+             ->_prepare('DELETE '.$this->_option.' FROM '.$this->_table.' '.$this->_where.' '.$this->_limit.';')
              ->_execute($this->_bind_param);
         return $this->_stmt->rowCount(); //取得前一次 MySQL 操作所影响的记录行数
     }
@@ -868,10 +887,10 @@ class pdo
      */
     protected function _execute(array &$fields)
     {
-        foreach ($fields as $k=>&$v){
+        foreach ($fields as $k=>&$v) {
             if(\PDO::PARAM_STR && isset($v['length'])){
                 $this->_stmt->bindParam($v['field'],$v['value'],$v['type'],$v['length']);
-            }else{
+            }else {
                 $this->_stmt->bindParam($v['field'],$v['value'],$v['type']);
             }
         }

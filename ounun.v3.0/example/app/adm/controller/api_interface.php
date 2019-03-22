@@ -3,7 +3,6 @@ namespace app\adm\controller;
 
 use extend\config_cache;
 use ounun\mvc\model\admin\secure;
-use extend\cache_config;
 use app\adm\model\purview;
 
 /**

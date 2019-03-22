@@ -189,6 +189,7 @@ class base
             $this->_is_run  = false;
             $this->_logs->exts(['times'=>$this->_times]);
             $this->_logs->write($this->_logs_state,$run_time,true);
+            $this->_db->_prepare();
             $this->_db->conn( " UPDATE {$table} SET `ignore` = :ignore ,`time_last` = :time_last ,`times` = `times` + 1 WHERE `task_id` = :task_id; ",$bind);
         }
     }

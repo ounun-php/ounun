@@ -4,7 +4,7 @@ namespace app\adm\controller;
 use extend\config_cache;
 use ounun\config;
 use app\adm\model\purview;
-use ounun\pdo;
+use ounun\pdo; 
 
 class adm extends \ounun\mvc\controller\admin\adm
 {
