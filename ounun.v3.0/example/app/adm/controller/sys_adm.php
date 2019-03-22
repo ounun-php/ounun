@@ -49,7 +49,7 @@ class sys_adm extends adm
                 $rs = self::$auth->user_set_exts_google(false,null,$_POST['password'],$_POST['google']);
             }
             // 跳回原来的页面
-            echo msg($rs->data);
+            echo msg($rs['message']);
             // 跳回原来的页面
             go_back();
         }

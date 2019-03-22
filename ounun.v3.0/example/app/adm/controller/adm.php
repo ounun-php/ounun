@@ -112,16 +112,14 @@ class adm extends \ounun\mvc\controller\admin\adm
     /**
      * @return array
      */
-    public function table_pics()
+    public function libs_tables()
     {
         $cp_libs         = self::$auth?self::$auth->cookie_get(purview::cp_libs):$_COOKIE[purview::cp_libs];
         $pics            = [];
-        if($cp_libs)
-        {
+        if($cp_libs) {
             $tables      = config::$global['libs'][$cp_libs];
-            if($tables && $tables['table'] && $tables['table']['pic'] && is_array($tables['table']['pic']) )
-            {
-                $pics    = $tables['table']['pic'];
+            if($tables && $tables['table'] && is_array($tables['table']) ) {
+                $pics    = $tables['table'];
             }
         }
         return $pics;

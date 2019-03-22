@@ -118,7 +118,6 @@ class oauth
                     $this->_db->table($this->purview->db_adm)->where('`adm_id`= :adm_id ',['adm_id'=>$rs['adm_id']])->update($bind);
                     // $this->_db->update($this->purview->db_adm, $bind,' `id`= ? ',$rs['id']);
                     $this->logs_login(true,$account_id,$cid,$account);
-
                     // print_r($_SESSION);
                     return succeed(true);
                 }

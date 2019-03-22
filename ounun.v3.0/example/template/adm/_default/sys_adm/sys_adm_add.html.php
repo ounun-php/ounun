@@ -63,7 +63,7 @@
         </table>
     </form>
     <script type="text/JavaScript">
-        var purview_line	= <?php echo adm::$auth->purview->purview_line;?>;
+        var purview_line	= <?php echo oauth()->purview->purview_line;?>;
         var purview_show    = <?php echo json_encode($purview_show);?>;
         function type_onchange(o)
         {

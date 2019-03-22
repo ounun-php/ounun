@@ -52,14 +52,12 @@ class index extends adm
 	private function _login_post($args)
 	{
         $rs = self::$auth->login($args['admin_username'],$args ['admin_password'],(int)$args['admin_cid'],$args ['admin_google']);
-		if ($rs->ret ) {
-            // var_dump($_SESSION);
-		    // var_dump($rs);
-            go_url ('/');
-		}else {
-			echo msg ( $rs->data);
+        if(error_is($rs)){
+            echo msg ( $rs['message']);
             go_url ('/',false,302,2);
-		}
+        }else {
+            go_url ('/');
+        }
 	}
 
 	/** 退出登录 */
@@ -85,39 +83,35 @@ class index extends adm
         $this->init_page('/select_tip.html',false,true,'',0,false);
 		
 		$nav  = (int)$_GET['nav'];
-		if(1 == $nav &&  0 == self::$auth->session_get(purview::session_cid) )
-		{
+		if(purview::nav_cid == $nav &&  0 == self::$auth->session_get(purview::session_cid) ) {
 			$title_sub = '请选择“平台”';
-		}
-		elseif(2 == $nav && 0 == self::$auth->session_get(purview::session_cid)  )
-		{
+		} elseif(purview::nav_hub == $nav && 0 == self::$auth->session_get(purview::session_cid)  ) {
 			$title_sub = '请选择“平台”与“服务器”';
-		}elseif(2 == $nav)
-		{
+		} elseif(purview::nav_hub == $nav) {
 			$title_sub = '请选择“服务器”';
 		}
         $this->_nav_set_data($title_sub,'系统',0);
-        require \v::tpl_fixed( 'sys/select_tip.html.php' );
+        require \v::tpl_fixed( 'sys_adm/select_tip.html.php' );
 	}
 
 	/** 设定当前平台 与服务器 */
 	public function select_set($mod)
 	{
-		if(isset($_GET['cid']))
-		{
+		if(isset($_GET['cid'])) {
 		    self::$auth->cookie_set(purview::cp_cid,$_GET['cid']);
 		}
-		if (isset($_GET['sid']))
-		{
+		if (isset($_GET['sid'])) {
             self::$auth->cookie_set(purview::cp_sid,$_GET['sid']);
 		}
-		if (isset($_GET['uri']))
-		{
+		if (isset($_GET['uri'])) {
             go_url($_GET['uri']);
 		}
 	}
 
-	/** 显示认证码 */
+    /**
+     * 显示认证码
+     * @param $mod
+     */
 	public function captcha($mod)
 	{
 		// \plugins\captcha\Captcha::output();

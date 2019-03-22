@@ -33,6 +33,8 @@ define('Const_Baidu_Xzh_Token',             '');
 \ounun\config::add_paths(Dir_Ounun,'ounun');
 \ounun\config::add_paths(Dir_Ounun,'plugins');
 \ounun\config::add_paths(Dir_Root ,'extend');
+/** 直接加载 */
+\ounun\config::add_class('c',Dir_Extend.'c.php');
 
 /** 配制cache_file */
 \ounun\config::set_global([

@@ -205,12 +205,9 @@ class pdo
             $duplicate = 'ON DUPLICATE KEY UPDATE '.$this->_duplicate_ext.' '.implode(' , ',$update);
         }
 
-        print_r(['$data'=>$data,'$this->_is_multiple'=>$this->_is_multiple?'1':'0']);
-
         $fields  = $this->_values_parse($this->_is_multiple?array_shift($data):$data);
         $cols    = array_keys($fields);
 
-        print_r(['$fields'=>$fields,'$cols'=>$cols]);
         $this->query( ($this->_is_replace?'REPLACE':'INSERT'). ' '.$this->_option.' INTO '.$this->_table.' (`' . implode('`, `', $cols) . '`) VALUES (:' . implode(', :', $cols) . ') '.$duplicate.';');
         if($this->_is_multiple){
             $this->_execute($fields);
