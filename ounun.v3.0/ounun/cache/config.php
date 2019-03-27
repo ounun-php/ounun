@@ -20,7 +20,7 @@ class config
             if(empty($config)) {
                 $config = \ounun\config::$global[$config_key];
             }
-            static::$_inst[$tag] = new static($db,$config,$tag);
+            static::$_inst[$tag] = new static($tag,$db,$config);
         }
         return static::$_inst[$tag];
     }
@@ -43,7 +43,7 @@ class config
      * @param array $cache_config
      * @param string $tag
      */
-    public function __construct(\ounun\pdo $db, array $cache_config, string $tag)
+    public function __construct(string $tag, \ounun\pdo $db, array $cache_config)
     {
         $this->_db      = $db;
         $this->_cache   = new core();

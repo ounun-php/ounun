@@ -21,7 +21,9 @@ class config
     /** @var \v */
     static public $view;
     /** @var array DB配制数据  */
-    static public $database      = [];
+    static public $database         = [];
+    /** @var string 默认 数据库  */
+    static public $database_default = '';
     /** @var array 自动加载路径paths  */
     static public $maps_paths    = [];
     /** @var array 自动加载路径maps  */
@@ -150,13 +152,17 @@ class config
     /**
      * 设定DB配制数据
      * @param array $database_cfg
+     * @param string $database_default
      */
-    static public function set_database(array $database_cfg = [])
+    static public function set_database(array $database_cfg = [], string $database_default = '')
     {
         if($database_cfg) {
             foreach ($database_cfg as $db_key=>$db_cfg) {
                 self::$database[$db_key] = $db_cfg;
             }
+        }
+        if($database_default ){
+            self::$database_default = $database_default;
         }
     }
 
@@ -219,12 +225,12 @@ class config
      * @param string $app_path
      * @param string $dir_app
      */
-    static public function set_dirs(string $dir_ounun, string $dir_root, string $app_name, string $app_path, string $dir_app = '')
+    static public function set_apps(string $dir_ounun, string $dir_root, string $app_name, string $app_path, string $dir_app = '')
     {
         // 当前APP
         $app_name   && self::$app_name  = $app_name;
         // 当前APP Path
-        $app_path   && self::$app_path   = $app_path;
+        $app_path   && self::$app_path  = $app_path;
         // Ounun目录
         $dir_ounun  && self::$dir_ounun = $dir_ounun;
         // 根目录
@@ -238,13 +244,33 @@ class config
     }
 
     /**
-     * 设定 模板根目录
-     * @param string $tpl_dir
+     * 设定 模板及模板根目录
+     * @param string $tpl_dir      模板根目录
+     * @param string $tpl_style    模板
+     * @param string $tpl_default  模板(默认)
      */
-    static public function set_tpl_dirs(string $tpl_dir)
+    static public function set_template(string $tpl_dir, string $tpl_style = '', string $tpl_default = '')
     {
+        // 模板根目录
         if( !in_array($tpl_dir,self::$tpl_dirs) ) {
             self::$tpl_dirs[] = $tpl_dir;
+        }
+        // 模板
+        if($tpl_style) {
+            self::$tpl_style = $tpl_style;
+        }else {
+            if(self::$i18n && empty(self::$tpl_style)){
+                print_r(['self::get_i18n()'=>self::get_i18n()]);
+                self::$tpl_style = self::get_i18n()::tpl_style;
+            }
+        }
+        // 模板(默认)
+        if($tpl_default) {
+            self::$tpl_default = $tpl_default;
+        }else {
+            if(self::$i18n && empty(self::$tpl_style)){
+                self::$tpl_default = self::get_i18n()::tpl_default;
+            }
         }
     }
 
@@ -275,6 +301,15 @@ class config
     static public function get_i18n()
     {
         return self::$i18n;
+    }
+
+    /** @return string 默认 数据库  */
+    static public function get_database_default()
+    {
+        if(empty(self::$database_default)){
+            self::$database_default = self::$app_name;
+        }
+        return self::$database_default;
     }
 
     /**
@@ -489,7 +524,6 @@ function start(array $mod,string $host)
     } else {
         $lang = config::$lang ? config::$lang : config::$lang_default;
     }
-
     // load_config 0 Dir
     config::load_config(Dir_App);
 
@@ -502,26 +536,16 @@ function start(array $mod,string $host)
     }else {
         $val_0 = config::$routes_default;
     }
-
-    // set_dirs
-    config::set_dirs(Dir_Ounun,Dir_Root,$val_0['app'],$val_0['url']);
-
-    // set_tpl_dirs
-    config::set_tpl_dirs( Dir_Template.config::$app_name.'/');
-
+    // set_apps
+    config::set_apps(Dir_Ounun,Dir_Root,(string)$val_0['app'],(string)$val_0['url']);
     // add_paths
     config::add_paths(Dir_App,'app',true);
-
     // load_config 1 scfg::$dir_app
     config::load_config(config::$dir_app);
-
     // set_lang
     config::set_lang($lang);
-
-    // 模板
-    config::$tpl_style     = $val_0['tpl_style']  ?$val_0['tpl_style']  :config::get_i18n()::tpl_style;
-    // 模板(默认)
-    config::$tpl_default   = $val_0['tpl_default']?$val_0['tpl_default']:config::get_i18n()::tpl_default;
+    //  模板 set_template
+    config::set_template( Dir_Template.config::$app_name.'/',(string)$val_0['tpl_style'],(string)$val_0['tpl_default']);
 
     // 开始 重定义头
     header('X-Powered-By: Ounun.org');
@@ -610,7 +634,7 @@ function start_cmd($argv)
     // load_config 0 Dir
     config::load_config(Dir_App);
     // cmd
-    $cmd = is_file(Dir_App.'cmd.php') ? require Dir_App.'cmd.php' : [];
+    $cmd = is_file(Dir_App.'cmd.php') ? include Dir_App.'cmd.php' : [];
     // console
     $c = new cmd\console($cmd);
     $c->run($argv);

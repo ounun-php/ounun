@@ -14,17 +14,22 @@ use \ounun\config;
 /********************************************************************
  * 后台基类
  ********************************************************************/
-class adm extends \v
+abstract class adm extends \v
 {
+    /** @var purview */
+    public static $purview;
     /** @var oauth */
     public static $auth;
 
     /** @var \ounun\pdo */
-    protected $_db_adm;
+    public static $db_adm;
     /** @var \ounun\pdo */
-    protected $_db_site;
+    public static $db_biz;
+
     /** @var \ounun\pdo */
-    protected $_db_libs;
+    public static $db_caiji;
+    /** @var \ounun\pdo */
+    public static $db_site;
 
     /** @var string 站点类型 */
     protected $_site_type      = 'admin';
@@ -37,8 +42,7 @@ class adm extends \v
      */
     protected function purview_check($key,$nav=0)
     {
-        if( !self::$auth->purview->check_multi($key) )
-        {
+        if( !self::$purview->check_multi($key) ) {
             $data = [
                 'nav' => $nav,
                 'uri' => $_SERVER['REQUEST_URI']
@@ -47,8 +51,7 @@ class adm extends \v
             go_url($url);  // 没权限就跳
         }
 
-        if(!self::$auth->session_get( purview::session_google) && 'sys@google' != $key)
-        {
+        if(!self::$auth->session_get( purview::session_google) && 'sys@google' != $key) {
             go_url('/sys_adm/google.html?nav='.$nav);
         }
     }
@@ -56,10 +59,7 @@ class adm extends \v
     /**
      * 选服检测,没选时就跳到
      */
-    protected function select_check($nav)
-    {
-
-    }
+    abstract protected function select_check($nav);
 
     /**
      * 选服/权限检测
@@ -87,12 +87,12 @@ class adm extends \v
      * 设定数据
      * @param string $page_title_sub
      * @param string $page_title
-     * @param int $nav
+     * @param int    $nav
      */
     protected function _nav_set_data($page_title_sub= '系统',$page_title= '系统',$nav = 0)
     {
-        $cfg_name = self::$auth->purview->cfg_name[$_SERVER['HTTP_HOST']];
-        $cfg_name = $cfg_name?$cfg_name:self::$auth->purview->cfg_name['adm2'];
+        $cfg_name = self::$purview->config_name[$_SERVER['HTTP_HOST']];
+        $cfg_name = $cfg_name?$cfg_name:self::$purview->config_name['adm2'];
         // 标题
         $data = [
             '{$page_title}'     => $page_title,
@@ -106,6 +106,6 @@ class adm extends \v
         ];
 
         config::set_tpl_array($data);
-        config::set_tpl_array(self::$auth->purview->cfg);
+        config::set_tpl_array(self::$purview->config);
     }
 }

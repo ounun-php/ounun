@@ -34,7 +34,7 @@ class coll extends \ounun\cmd\cmd
      */
     public function __construct($mod)
     {
-        $this->_db_zrun = pdo::instance(\ounun\config::$app_name);
+        $this->_db = pdo::instance(\ounun\config::$app_name);
     }
 
     /**
@@ -120,7 +120,7 @@ class coll extends \ounun\cmd\cmd
         do
         {
             $where_str   = $mod[2]?' ':" and `id` > {$id_start} ";
-            $rs          = $this->_db_zrun->data_array("SELECT * FROM `dtxt_75_files` WHERE `is_wget` = 0 {$where_str} ORDER BY `id` {$order} limit 0,50;");
+            $rs          = $this->_db->data_array("SELECT * FROM `dtxt_75_files` WHERE `is_wget` = 0 {$where_str} ORDER BY `id` {$order} limit 0,50;");
             foreach ($rs as $v)
             {
                 $id_start = (int)($v['id']?$v['id']:$id_start);
@@ -159,12 +159,12 @@ class coll extends \ounun\cmd\cmd
                 if($is_update)
                 {
                     $bind = ['is_wget'=>1];
-                    $this->_db_zrun->update('`dtxt_75_files`',$bind," `id` = :id ",$v);
+                    $this->_db->update('`dtxt_75_files`',$bind," `id` = :id ",$v);
                     echo "i {$v['id']}:{$is_file} s:{$is_s2} f:{$v['file']} url:{$wget}\n";
                 }else
                 {
                     $bind = ['is_wget'=>-9];
-                    $this->_db_zrun->update('`dtxt_75_files`',$bind," `id` = :id ",$v);
+                    $this->_db->update('`dtxt_75_files`',$bind," `id` = :id ",$v);
                     echo "- i {$v['id']}:{$is_file} f:{$v['file']} url:{$wget}  ------------- {$file}  \n";
                 }
             }

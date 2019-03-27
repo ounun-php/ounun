@@ -4,11 +4,9 @@ namespace app\adm\model;
 
 class purview extends \ounun\mvc\model\admin\purview
 {
-    const cp_site      = 'cp_site';
-
-    const cp_zqun      = 'cp_zqun';
-
-    const cp_libs      = 'cp_libs';
+    const adm_zqun_tag     = 'adm_zqun';
+    const adm_site_tag     = 'adm_site';
+    const adm_caiji_tag    = 'adm_caiji';
 
     /** 导航头 要显示 站点 */
     const nav_site     = 10;
@@ -16,7 +14,7 @@ class purview extends \ounun\mvc\model\admin\purview
     const nav_libs     = 20;
 
     /** 网站后台配 */
-    public $cfg  = [
+    public $config  = [
         '{$powered_corp_name}'         => Const_Domain,
         '{$powered_corp_name_mini}'    => Const_Code,
         '{$powered_corp_url}'          => 'https://adm.'.Const_Domain.'/',
@@ -26,7 +24,7 @@ class purview extends \ounun\mvc\model\admin\purview
     ];
 
     /** 游戏名 与 LOGO */
-    public $cfg_name = [
+    public $config_name = [
         'adm'                     => ['dir'=>'logo/'.Const_Code.'/', 'name'=> Const_SiteName.'(release)'],
         'adm-dev'                 => ['dir'=>'logo/'.Const_Code.'/', 'name'=> Const_SiteName.'(dev)'],
         'adm2'                    => ['dir'=>'logo/'.Const_Code.'/', 'name'=> Const_SiteName.'(local)'],
@@ -37,9 +35,9 @@ class purview extends \ounun\mvc\model\admin\purview
     ];
 
     /** table */
-    public $db_adm            = '`user`';
-    public $db_logs_login     = '`logs_login`';
-    public $db_logs_act       = '`logs_act`';
+    public $table_admin_user     = '`user`';
+    public $table_logs_login     = '`logs_login`';
+    public $table_logs_act       = '`logs_act`';
 
     /** IP限定 */
     public $max_ips           = 20;
@@ -51,7 +49,6 @@ class purview extends \ounun\mvc\model\admin\purview
 
     /** 后台根目录 */
     public $purview_line      = 40;
-
     /** 邮件仙玉审核权限 */
     public $purview_check     = 40;
 

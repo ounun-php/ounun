@@ -82,15 +82,10 @@ class index extends adm
 	{
         $this->init_page('/select_tip.html',false,true,'',0,false);
 		
-		$nav  = (int)$_GET['nav'];
-		if(purview::nav_cid == $nav &&  0 == self::$auth->session_get(purview::session_cid) ) {
-			$title_sub = '请选择“平台”';
-		} elseif(purview::nav_hub == $nav && 0 == self::$auth->session_get(purview::session_cid)  ) {
-			$title_sub = '请选择“平台”与“服务器”';
-		} elseif(purview::nav_hub == $nav) {
-			$title_sub = '请选择“服务器”';
-		}
-        $this->_nav_set_data($title_sub,'系统',0);
+		$nav        = (int)$_GET['nav'];
+        $title      = $_GET['title']?$_GET['title']:'系统';
+        $title_sub  = $_GET['title_sub']?$_GET['title_sub']:'请选择正确的参数';
+        $this->_nav_set_data($title_sub,$title,$nav);
         require \v::tpl_fixed( 'sys_adm/select_tip.html.php' );
 	}
 
@@ -98,10 +93,10 @@ class index extends adm
 	public function select_set($mod)
 	{
 		if(isset($_GET['cid'])) {
-		    self::$auth->cookie_set(purview::cp_cid,$_GET['cid']);
+		    self::$auth->cookie_set(purview::adm_cid,$_GET['cid']);
 		}
 		if (isset($_GET['sid'])) {
-            self::$auth->cookie_set(purview::cp_sid,$_GET['sid']);
+            self::$auth->cookie_set(purview::adm_sid,$_GET['sid']);
 		}
 		if (isset($_GET['uri'])) {
             go_url($_GET['uri']);

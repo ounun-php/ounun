@@ -9,11 +9,11 @@ class config_cache extends \ounun\cache\config
     /** zqun */
     public function zqun()
     {
-        return $this->_data("zqun","_zqun_mysql");
+        return $this->_data('zqun','_zqun_mysql');
     }
     public function zqun_clean()
     {
-        $this->_clean("zqun");
+        $this->_clean('zqun');
     }
     protected function _zqun_mysql($args)
     {
@@ -27,7 +27,7 @@ class config_cache extends \ounun\cache\config
     /** host */
     public function host()
     {
-        return $this->_data("host","_host_mysql");
+        return $this->_data('host','_host_mysql');
     }
     public function host_clean()
     {
@@ -46,7 +46,7 @@ class config_cache extends \ounun\cache\config
     /** site */
     public function site()
     {
-        return $this->_data("site","_site_mysql");
+        return $this->_data('site','_site_mysql');
     }
     public function site_clean()
     {
@@ -54,15 +54,14 @@ class config_cache extends \ounun\cache\config
     }
     protected function _site_mysql($args)
     {
-        $rs  = $this->_db->table('`adm_site_info`')
+        $rs  = $this->_db->table('`adm_siteinfo`')
             ->field('*')
             ->order('`type`',pdo::Order_Desc)
             ->order('`zqun_tag`',pdo::Order_Asc)
             ->order('`site_tag`',pdo::Order_Asc)
             ->column_all();
         $data = [];
-        foreach ($rs as $v)
-        {
+        foreach ($rs as $v) {
             $data[$v['zqun_tag']][$v['site_tag']] = $v;
         }
         return $data;

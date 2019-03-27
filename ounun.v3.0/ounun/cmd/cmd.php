@@ -4,10 +4,10 @@ namespace ounun\cmd;
 
 use ounun\pdo;
 
-class cmd
+abstract class cmd
 {
     /** @var pdo */
-    protected $_db_zrun;
+    protected $_db;
 
     /** @var console 控制台 */
     public $console;
@@ -20,6 +20,17 @@ class cmd
 
     /** @var string 运行 "php ./ounun list" 时的简短描述 */
     public $description;
+    
+    /**
+     * cmd constructor.
+     * @param console $console
+     */
+    public function __construct(console $console)
+    {
+        $this->console = $console;
+        $this->configure();
+    }
+
     /**
      * 是否有效
      * @return bool
@@ -32,10 +43,7 @@ class cmd
     /**
      * 配置指令
      */
-    protected function configure()
-    {
-
-    }
+    abstract public function configure();
 
     /**
      * 执行指令
@@ -43,8 +51,6 @@ class cmd
      * @return null|int
      * @throws \LogicException
      */
-    protected function execute(array $input)
-    {
-        throw new \LogicException('You must override the execute() method in the concrete command class.');
-    }
+    abstract public function execute(array $input);
+    
 }

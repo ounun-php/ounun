@@ -1,3 +1,6 @@
+<?php
+use \app\adm\model\purview;
+?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
@@ -18,11 +21,11 @@
         var nav 		= parseInt('{$page_nav}');
         var title 		= '{$page_title}';
         var title_sub 	= '{$page_title_sub}';
-        var site_key	= '<?php echo oauth()->cookie_get(\app\adm\model\purview::cp_site) ?>';
-        var zqun_key	= '<?php echo oauth()->cookie_get(\app\adm\model\purview::cp_zqun) ?>';
-        var libs_key	= '<?php echo oauth()->cookie_get(\app\adm\model\purview::cp_libs) ?>';
+        var site_key	= '<?php echo oauth()->cookie_get(purview::adm_site_tag) ?>';
+        var zqun_key	= '<?php echo oauth()->cookie_get(purview::adm_zqun_tag) ?>';
+        var caiji_key	= '<?php echo oauth()->cookie_get(purview::adm_caiji_tag) ?>';
         var url 		= '<?php echo $_GET['uri']?$_GET['uri']:$_SERVER['REQUEST_URI']?>';
-        var scfg        = {nav:nav,site_key:site_key,zqun_key:zqun_key,libs_key:libs_key,curr_url:url};
+        var scfg        = {nav:nav,site_key:site_key,zqun_key:zqun_key,caiji_key:caiji_key,curr_url:url};
         parent_init_page(title,title_sub,scfg);
     </script>
 </head>

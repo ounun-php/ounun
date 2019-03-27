@@ -107,7 +107,7 @@ class template
      */
     public function replace()
     {
-        if(!\v::$cache_html || config::$view->cache_html->stop) {
+        if(empty(\v::$cache_html) || \v::$cache_html->stop) {
             ob_start();
             register_shutdown_function([$this,'callback'],false);
         }

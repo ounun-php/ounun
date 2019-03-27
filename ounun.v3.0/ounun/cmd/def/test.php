@@ -1,9 +1,9 @@
 <?php
 namespace ounun\cmd\def;
 
-class test extends \ounun\cmd\base
+class test extends \ounun\cmd\cmd
 {
-    protected function configure()
+    public function configure()
     {
         // 命令的名字（"think" 后面的部分）
         $this->name        = 'test';
@@ -13,7 +13,7 @@ class test extends \ounun\cmd\base
         $this->help        = "Test phpuint";
     }
 
-    protected function execute(array $input)
+    public function execute(array $input)
     {
         // 打包下载
         echo "\n ---> ".date("Y-m-d H:i:s ").' '.__CLASS__.' ok'."\n";

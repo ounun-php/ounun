@@ -82,6 +82,8 @@ class pdo
     protected $_where  = '';
     /** @var string 返回关联数据 assoc */
     protected $_assoc  = '';
+    /** @var array 条件参数keys */
+    protected $_bind_keys       = [];
     /** @var array 条件参数 */
     protected $_bind_param      = [];
     /** @var array 插入时已存在数据 更新内容 */
@@ -103,19 +105,23 @@ class pdo
     private static $_instance = [];
 
     /**
-     * @param string $key
+     * @param string $tag
      * @param array  $config
      * @return $this 返回数据库连接对像
      */
-    public static function instance(string $key,array $config = []):self
+    public static function instance(string $tag, array $config = []):self
     {
-        if(empty(self::$_instance[$key])) {
+        if(empty(self::$_instance[$tag])) {
             if(empty($config)) {
-                $config = config::$database[$key];
+                $config = config::$database[$tag];
             }
-            self::$_instance[$key] = new static($config);
+            if($config) {
+                self::$_instance[$tag] = new static($config);
+            }else {
+                return null;
+            }
         }
-        return self::$_instance[$key];
+        return self::$_instance[$tag];
     }
 
     /**
@@ -132,10 +138,10 @@ class pdo
         $this->_username = $config['username'];
         $this->_password = $config['password'];
 
-        if($config['charset']){
+        if($config['charset']) {
             $this->_charset = $config['charset'];
         }
-        if($config['driver']){
+        if($config['driver']) {
             $this->_driver  = $config['driver'];
         }
     }
@@ -155,21 +161,27 @@ class pdo
 
     /**
      * 发送一条MySQL查询
-     * @param string $sql
-     * @param array  $param  条件参数
+     * @param string        $sql
+     * @param array|string  $param  条件参数
      * @param bool   $check_active
-     * @return int 返回受上一个 SQL 语句影响的行数
+     * @return $this
      */
-    public function query(string $sql = '',array $param = [], bool $check_active = true)
+    public function query(string $sql = '', $param = [], bool $check_active = true)
     {
-        $this->_prepare($sql,$check_active);
-        if($param && is_array($param)) {
-            $param = $this->_values_parse($param);
-        } else {
-            $param = [];
+        if(strpos($sql, '?') !== false){
+            $sql = str_replace('?', $this->quote($param), $sql);
+            $this->_prepare($sql,$check_active);
+            $this->_stmt->execute();
+        }else {
+            $this->_prepare($sql,$check_active);
+            if($param && is_array($param)) {
+                $param = $this->_values_parse($param);
+            } else {
+                $param = [];
+            }
+            $this->_execute($param);
         }
-        $this->_execute($param);
-        return $this->_stmt->rowCount();
+        return $this;
     }
 
     /**
@@ -186,7 +198,8 @@ class pdo
         if($sql){
             $this->_last_sql  = $sql;
         }
-        $this->_stmt = $this->_pdo->prepare($this->_last_sql);
+        $this->_bind_keys = $this->_keys_parse($this->_last_sql);
+        $this->_stmt      = $this->_pdo->prepare($this->_last_sql);
         $this->_query_times++;
         return $this;
     }
@@ -259,10 +272,6 @@ class pdo
             $this->limit($limit);
         }
 
-        echo "dd:".'UPDATE '.$this->_option.' '.$this->_table.' SET '.implode(', ',$update).' '.$this->_where.' '.$this->_limit.' ;'."\n";
-
-
-
         $this->_prepare('UPDATE '.$this->_option.' '.$this->_table.' SET '.implode(', ',$update).' '.$this->_where.' '.$this->_limit.' ;');
 
         if($this->_is_multiple){
@@ -281,35 +290,45 @@ class pdo
     }
 
     /**
+     * @param bool $force_prepare 是否强行 prepare
      * @return int
      */
-    public function column_count():int
+    public function column_count(bool $force_prepare = false):int
     {
-        $fields = ($this->_fields && is_array($this->_fields))?implode(',',$this->_fields):'*';
-        $this->_prepare('SELECT '.$fields.' FROM '.$this->_table.' '.$this->_join.' '.$this->_where.' '.$this->_get_group().' ;')
-             ->_execute($this->_bind_param);
+        if( null == $this->_stmt || $force_prepare ){
+            $fields = ($this->_fields && is_array($this->_fields))?implode(',',$this->_fields):'*';
+            $this->_prepare('SELECT '.$fields.' FROM '.$this->_table.' '.$this->_join.' '.$this->_where.' '.$this->_get_group().' ;')
+                 ->_execute($this->_bind_param);
+        }
         return $this->_stmt->columnCount();
     }
 
     /**
+     * @param bool $force_prepare 是否强行 prepare
      * @return array 得到一条数据数组
      */
-    public function column_one()
+    public function column_one(bool $force_prepare = false)
     {
-        $fields = ($this->_fields && is_array($this->_fields))?implode(',',$this->_fields):'*';
-        $this->_prepare('SELECT '.$fields.' FROM '.$this->_table.' '.$this->_join.' '.$this->_where.' '.$this->_get_group().' '.$this->_get_order().' '.$this->_limit.';')
-             ->_execute($this->_bind_param);
+        if( null == $this->_stmt || $force_prepare ){
+            $fields = ($this->_fields && is_array($this->_fields))?implode(',',$this->_fields):'*';
+            $this->_prepare('SELECT '.$fields.' FROM '.$this->_table.' '.$this->_join.' '.$this->_where.' '.$this->_get_group().' '.$this->_get_order().' '.$this->_limit.';')
+                 ->_execute($this->_bind_param);
+        }
         return $this->_stmt->fetch(\PDO::FETCH_ASSOC);
     }
 
     /**
-     * @return array 得到多条數椐數組的数组
+     * 得到多条數椐數組的数组
+     * @param bool $force_prepare 是否强行 prepare
+     * @return array
      */
-    public function column_all()
+    public function column_all(bool $force_prepare = false)
     {
-        $fields = ($this->_fields && is_array($this->_fields))?implode(',',$this->_fields):'*';
-        $this->_prepare('SELECT '.$fields.' FROM '.$this->_table.' '.$this->_join.' '.$this->_where.' '.$this->_get_group().' '.$this->_get_order().' '.$this->_limit.';')
-             ->_execute($this->_bind_param);
+        if( null == $this->_stmt || $force_prepare ){
+            $fields = ($this->_fields && is_array($this->_fields))?implode(',',$this->_fields):'*';
+            $this->_prepare('SELECT '.$fields.' FROM '.$this->_table.' '.$this->_join.' '.$this->_where.' '.$this->_get_group().' '.$this->_get_order().' '.$this->_limit.';')
+                ->_execute($this->_bind_param);
+        }
         if($this->_assoc){
             $rs = [];
             $rs0= $this->_stmt->fetchAll(\PDO::FETCH_ASSOC);
@@ -327,11 +346,12 @@ class pdo
     /**
      * @param string $field
      * @param mixed  $default_value  默认值
+     * @param bool $force_prepare 是否强行 prepare
      * @return mixed|null  直接返回对应的值
      */
-    public function column_value(string $field,$default_value)
+    public function column_value(string $field,$default_value, bool $force_prepare = false)
     {
-        $rs    = $this->column_one();
+        $rs    = $this->column_one($force_prepare);
         $field = str_replace('`','',trim($field));
         if($rs && $rs[$field]){
             return $rs[$field];
@@ -679,7 +699,7 @@ class pdo
      */
     public function affected():int
     {
-        return $this->_stmt->columnCount();
+        return $this->_stmt->rowCount();
     }
 
     /**
@@ -718,6 +738,24 @@ class pdo
         return $this->_pdo ? true :false;
     }
 
+    /**
+     * 为 SQL 查询里的字符串添加引号(特殊情况时才用)
+     * @param $data
+     * @param int $type
+     * @return string
+     */
+    public function quote($data,int $type = \PDO::PARAM_STR)
+    {
+        $rs = [];
+        if(is_array($data)){
+            foreach ($data as $value){
+                $rs[] = $this->_pdo->quote($value,$type);
+            }
+        }else{
+            $rs[] = $this->_pdo->quote($data,$type);
+        }
+        return implode(',',$rs);
+    }
     /**
      * 捡查指定字段数据是否存在
      * @param string $field 字段
@@ -819,6 +857,22 @@ class pdo
     }
 
     /**
+     * @param string $sql
+     * @return array
+     */
+    protected function _keys_parse(string $sql)
+    {
+        $splits  = preg_split('/(\:[A-Za-z0-9_]+)\b/', $sql, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY);
+        $result  = [];
+        foreach ($splits as $v){
+            if($v[0] == ':') {
+                $key          = substr($v, 1);
+                $result[$key] = $key;
+            }
+        }
+        return array_values($result);
+    }
+    /**
      * @param array $data
      * @return array
      */
@@ -870,7 +924,7 @@ class pdo
     protected function _fields_update(array &$fields_data, array &$operate = [])
     {
         $update = [];
-        foreach ($fields_data as $col => &$val) {
+        foreach ($fields_data as $col => $val) {
             if($operate[$col] == self::Update_Add ) {
                 $update[] = "`$col` = `{$col}` + :{$col} ";
             }elseif($operate[$col] == self::Update_Cut ) {
@@ -887,21 +941,27 @@ class pdo
      */
     protected function _execute(array &$fields)
     {
-        foreach ($fields as $k=>&$v) {
-            if(\PDO::PARAM_STR && isset($v['length'])){
-                $this->_stmt->bindParam($v['field'],$v['value'],$v['type'],$v['length']);
-            }else {
-                $this->_stmt->bindParam($v['field'],$v['value'],$v['type']);
+        foreach ($this->_bind_keys as $key){
+            $v = $fields[$key];
+            if($v){
+                if(\PDO::PARAM_STR == $v['type'] && isset($v['length'])) {
+                    $this->_stmt->bindParam($v['field'],$v['value'],$v['type'],$v['length']);
+                }else {
+                    $this->_stmt->bindParam($v['field'],$v['value'],$v['type']);
+                }
+            }else{
+                trigger_error("SQL:Can't find \$fields[{$key}] ", E_USER_ERROR);
             }
         }
         $this->_stmt->execute();
     }
 
+    /**
+     * 清理
+     */
     protected function _clean()
     {
-        if($this->_stmt){
-            $this->_stmt = null;
-        }
+        $this->_stmt   = null;
 
         $this->_option = '';
         $this->_fields = [];
@@ -910,6 +970,7 @@ class pdo
         $this->_limit  = '';
         $this->_where  = '';
         $this->_assoc  = '';
+        $this->_bind_keys       = [];
         $this->_bind_param      = [];
         $this->_duplicate       = [];
         $this->_duplicate_ext   = '';
@@ -924,7 +985,7 @@ class pdo
      */
     public function __destruct()
     {
-        $this->_stmt = null;
+        $this->_clean();
         $this->_pdo  = null;
     }
 }

@@ -684,7 +684,7 @@ function environment()
  * Class ViewBase
  * @package ounun
  */
-class v
+abstract class v
 {
     /**
      * 没定的方法

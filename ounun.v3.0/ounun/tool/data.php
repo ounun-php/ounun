@@ -125,4 +125,40 @@ class data
         }
         return $xml;
     }
+    
+    /**
+     * @param string $data_str   数据
+     * @param string $fields     字段多个,分格
+     * @param string $data_rows_delimiter   行分格符
+     * @param string $data_delimiter        数据分格符
+     * @param string $fields_delimiter      字段分格符
+     * @return array
+     */
+    public static function str2array(string $data_str, string $fields, string $data_rows_delimiter = "\n", $data_delimiter = ':', string $fields_delimiter = ',' )
+    {
+        $data        = explode($data_rows_delimiter,$data_str);
+        $fields2     = explode($fields_delimiter,$fields);
+        $fields2_len = count($fields2);
+
+        $result  = [];
+        foreach ($data as $v)
+        {
+            $v = trim($v);
+            if($v)
+            {
+                $v_data = explode($data_delimiter,$v);
+                $v_len  = count($v_data);
+                if($fields2_len == $v_len)
+                {
+                    $v_data2 = [];
+                    foreach ($v_data as $k2=>$v2)
+                    {
+                        $v_data2[$fields2[$k2]] = $v2;
+                    }
+                    $result[] = $v_data2;
+                }
+            }
+        }
+        return $result;
+    }
 }

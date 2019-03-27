@@ -1,12 +1,11 @@
 <?php
 namespace ounun\mvc\controller\admin;
 
+use ounun\config;
 use ounun\pdo;
 
 class data_export extends \v
 {
-    /** @var \ounun\pdo */
-    protected $_db_libs = null;
     /** @var \ounun\mvc\model\admin\secure */
     protected $_secure  = null;
 
@@ -26,16 +25,16 @@ class data_export extends \v
         }
 
         // adm_purv -----------------
-        $libs_key = $_GET['libs_key'];
-        if($_GET['libs_key'])
+        $caiji_tag = $_GET['caiji_tag'];
+        if($_GET['caiji_tag'])
         {
-            $libs = $GLOBALS['_scfg']['libs'][$libs_key];
-            if($libs && $libs['db'])
+            $data = config::$global['caiji'][$caiji_tag];
+            if($data && $data['db'])
             {
-                $this->_db_libs   = pdo::instance($libs_key);
+                $this->_db_v   = pdo::instance($data['db']);
             }
         }
-        if(null == $this->_db_libs)
+        if(null == $this->_db_v)
         {
             $rs   = [ 'ret'  => false, 'error'=> '数据库连接失败...' ];
             $this->_secure->outs($rs);

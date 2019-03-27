@@ -2,39 +2,35 @@
 /** 命名空间 */
 namespace ounun\mvc\model\admin;
 
+use ounun\mvc\controller\admin\adm;
+
 class oauth
 {
     /** @var self 单例 */
     protected static $_instance;
 
     /**
-     * @param \ounun\pdo $db
-     * @param purview $purview
      * @param string $session_key
      * @return oauth 返回数据库连接对像
      */
-    public static function instance(\ounun\pdo $db = null,purview $purview = null,string $session_key='adm'):self
+    public static function instance(string $session_key='adm'):self
     {
         if(empty(static::$_instance)) {
-            static::$_instance = new static($db,$purview,$session_key);
+            static::$_instance = new static($session_key);
         }
         return static::$_instance;
     }
 
-    /** @var purview */
-    public $purview;
-
     /** @var string  session key **/
-    protected $_o_key  = '';
-    /** @var \ounun\pdo  Mysqli句柄  */
-    protected $_db;
+    protected $_session_key  = '';
 
-    /** Auth constructor. */
-    public function __construct(\ounun\pdo $db,purview $purview ,string $session_key='adm')
+    /**
+     * oauth constructor.
+     * @param string $session_key
+     */
+    public function __construct(string $session_key='adm')
     {
-        $this->_db              = $db;
-        $this->_o_key           = $session_key;
-        $this->purview          = $purview;
+        $this->_session_key           = $session_key;
     }
 
     /**
@@ -47,12 +43,10 @@ class oauth
         $account  = (string)$this->session_get(purview::session_account);
         $password = (string)$this->session_get(purview::session_password);
         $hash     = $this->_make_hash($cid,$account,$password);
-        if(!$hash)
-        {
+        if(!$hash) {
             return false;
         }
-        if ($account && $this->session_get(purview::session_hash) == $hash)
-        {
+        if ($account && $this->session_get(purview::session_hash) == $hash) {
             return true;
         }
         return false;
@@ -78,27 +72,24 @@ class oauth
         }
         // 正常登录
         $bind    = ['account'=>$account,'cid'=>$cid];
-        $rs 	 = $this->_db
-            ->table($this->purview->db_adm)
+        $rs 	 = adm::$db_adm
+            ->table(adm::$purview->table_admin_user)
             ->field('*')
             ->where('`account` =:account and `cid` = :cid',$bind)
             ->limit(1)
             ->column_one();
         // $rs 	 = $this->_db->row("select * from {$this->purview->db_adm} where `account` =:account and `cid` = :cid limit 1;",$bind);
-        if($rs)
-        {
+        if($rs)  {
             $ext          = $this->user_get_exts($rs,$rs['adm_id']);
             $rs['exts2']  = $ext;
             $is_google    = $this->_check_google($ext, $code);
 //            echo $this->_db->sql();
             // print_r($rs);
             // exit();
-            if($is_google || $ext['google']['is'] == false )
-            {
+            if($is_google || $ext['google']['is'] == false ) {
                 // echo "\$rs['password'] :{$rs['password']} == md5(\$password) :".md5($password)."<br />\n";
                 // exit();
-                if( $rs['password'] == md5($password) )
-                {
+                if( $rs['password'] == md5($password) ) {
                     // 清理一下
                     $this->logout();
                     // $this->set_cookie_cid($cid,true);
@@ -115,7 +106,7 @@ class oauth
                     $login_times = $rs['login_times'] + 1;
                     $login_last	 = time();
                     $bind	     = [ 'login_times'=> $login_times, 'login_last' => $login_last ];
-                    $this->_db->table($this->purview->db_adm)->where('`adm_id`= :adm_id ',['adm_id'=>$rs['adm_id']])->update($bind);
+                    adm::$db_adm->table(adm::$purview->table_admin_user)->where('`adm_id`= :adm_id ',['adm_id'=>$rs['adm_id']])->update($bind);
                     // $this->_db->update($this->purview->db_adm, $bind,' `id`= ? ',$rs['id']);
                     $this->logs_login(true,$account_id,$cid,$account);
                     // print_r($_SESSION);
@@ -135,11 +126,11 @@ class oauth
     /** 退出登录 */
     public function logout()
     {
-        if($this->_o_key) {
-            $key_len = strlen($this->_o_key);
+        if($this->_session_key) {
+            $key_len = strlen($this->_session_key);
             foreach ($_SESSION as $k => $v) {
                 // echo "\$this->_o_key:{$k}-{$key_len}  ";
-                if($this->_o_key == substr($k,0,$key_len)) {
+                if($this->_session_key == substr($k,0,$key_len)) {
                     // echo "\$this->_o_key2:{$k}\n";
                     // $this->session_del($k);
                     $_SESSION[$k]='';
@@ -178,7 +169,7 @@ class oauth
             'ip_segment' => $ip_segment,
             'address'    => $address,
         ];
-        $this->_db->table($this->purview->db_logs_login)->insert($bind);
+        adm::$db_adm->table(adm::$purview->table_logs_login)->insert($bind);
     }
 
     /**
@@ -192,8 +183,7 @@ class oauth
      */
     public function logs_act(bool $status, int $act, array $exts,string $url='',string $mod='',string $mod_sub='')
     {
-        if (!$url)
-        {
+        if (!$url) {
             $url=$_SERVER['HTTP_REFERER'];
         }
         $ip    = ip();
@@ -222,7 +212,7 @@ class oauth
             'address' => $address,
             'exts'    => $exts,
         ];
-        $this->_db->table($this->purview->db_logs_act)->insert($bind);
+        adm::$db_adm->table(adm::$purview->table_logs_act)->insert($bind);
     }
 
     /**
@@ -238,8 +228,8 @@ class oauth
     public function user_add(int $adm_type,int $adm_cid,string $adm_account,string $password,string $adm_tel,string $adm_note):array 
     {
         // 看是否存在相同的帐号
-        $rs  = $this->_db
-            ->table($this->purview->db_adm)
+        $rs  = adm::$db_adm
+            ->table(adm::$purview->table_admin_user)
             ->field('`adm_id`')
             ->limit(1)
             ->where('`cid` = :cid  and `account` = :account',['i:cid'=>$adm_cid,'s:account'=>$adm_account])->column_one();
@@ -260,7 +250,7 @@ class oauth
             'note'	        => $adm_note,
             'exts'          => ''
         ];
-        $adm_id = $this->_db->table($this->purview->db_adm)->insert($bind);
+        $adm_id = adm::$db_adm->table(adm::$purview->table_admin_user)->insert($bind);
         // 记日志
         $this->logs_act($adm_id?1:0,1,$bind);
         if($adm_id) {
@@ -276,19 +266,17 @@ class oauth
      */
     public function user_del(int $adm_id):array 
     {
-        if($adm_id == $this->session_get(purview::session_id))
-        {
+        if($adm_id == $this->session_get(purview::session_id)) {
             return error('提示：不能删除自己[account_id]!');
         }
-        $rs			 = $this->_db->table($this->purview->db_adm)->field('`cid`,`account`')->limit(1)->where('`adm_id` = :adm_id',['adm_id'=>$adm_id])->column_one();
+        $rs			 = adm::$db_adm->table(adm::$purview->table_admin_user)->field('`cid`,`account`')->limit(1)->where('`adm_id` = :adm_id',['adm_id'=>$adm_id])->column_one();
         //$rs		 = $this->_db->row("SELECT `cid`,`account` FROM {$this->purview->db_adm} where `adm_id` = :adm_id limit 0,1;",['adm_id'=>$adm_id]);
-        if($rs['cid'] == $this->session_get(purview::cp_cid) &&
-           $rs['account'] == $this->session_get(purview::session_account) )
-        {
+        if($rs['cid'] == $this->session_get(purview::adm_cid) &&
+           $rs['account'] == $this->session_get(purview::session_account) ) {
             return error('提示：不能删除自己[account]!');
         }
         $bind = ['adm_id'=>$adm_id,'cid'=>$rs['cid'], 'account'=>$rs['account'] ];
-        $rs   = $this->_db->table($this->purview->db_adm)->where('`adm_id`= :adm_id ',$bind)->delete(1);
+        $rs   = adm::$db_adm->table(adm::$purview->table_admin_user)->where('`adm_id`= :adm_id ',$bind)->delete(1);
         //$rs = $this->_db->delete($this->purview->db_adm,'`adm_id`= :adm_id ',$bind);
         // 记日志
         $this->logs_act($rs?1:0,3,$bind);
@@ -315,8 +303,8 @@ class oauth
             return error('提示：请输入新密码');
         }
         $account_id	    = $this->session_get(purview::session_id);
-        $rs			    = $this->_db
-            ->table($this->purview->db_adm)
+        $rs			    = adm::$db_adm
+            ->table(adm::$purview->table_admin_user)
             ->field('`adm_id`,`password`,`exts`')
             ->where('`adm_id` = :adm_id ',['adm_id'=>$account_id])
             ->column_one();
@@ -331,7 +319,7 @@ class oauth
             return error('提示：请输入正确6位数谷歌(洋葱)验证');
         }  else {
             //  跳回原来的页面
-            $rs2 = $this->_db->table($this->purview->db_adm)->where(' `adm_id`= :adm_id ',['adm_id'=>$account_id])->update(['password'=>$new_pwd_md5, ]);
+            $rs2 = adm::$db_adm->table(adm::$purview->table_admin_user)->where(' `adm_id`= :adm_id ',['adm_id'=>$account_id])->update(['password'=>$new_pwd_md5, ]);
             // $rs2 = $this->_db->update($this->purview->db_adm, ['password'=>$new_pwd_md5, ],' `adm_id`= ? ',$account_id);
             if($rs2) {
                 return error('成功：密码修改成功!');
@@ -353,13 +341,12 @@ class oauth
             $account_id	= $this->session_get(purview::session_id);
         }
         if(!$rs) {
-            $rs     = $this->_db->table($this->purview->db_adm)->field('`exts`')->where(' `adm_id`= :adm_id ',['adm_id'=>$account_id])->column_one();
+            $rs     = adm::$db_adm->table(adm::$purview->table_admin_user)->field('`exts`')->where(' `adm_id`= :adm_id ',['adm_id'=>$account_id])->column_one();
             // $rs  = $this->_db->row("SELECT `exts` FROM {$this->purview->db_adm} where `adm_id` = ? ;",$account_id);
         }
         $ext        = json_decode($rs['exts'],true);
         // print_r(['$ext'=>$ext,'$rs'=>$rs,'sql'=>$this->_db->sql()]);
-        if($ext && $ext['google'] && $ext['google']['secret'] && strlen($ext['google']['secret']) == 16)
-        {
+        if($ext && $ext['google'] && $ext['google']['secret'] && strlen($ext['google']['secret']) == 16) {
             // skip
             // $secret = $ext['google']['secret'];
         }else {
@@ -368,7 +355,7 @@ class oauth
 
             $google        = ['is'=>false,'secret'=>$secret];
             $ext['google'] = $google;
-            $this->_db->table($this->purview->db_adm)->where(' `adm_id`= :adm_id ',['adm_id'=>$account_id])->update(['exts'=>json_encode($ext)]);
+            adm::$db_adm->table(adm::$purview->table_admin_user)->where(' `adm_id`= :adm_id ',['adm_id'=>$account_id])->update(['exts'=>json_encode($ext)]);
             // $this->_db->update($this->purview->db_adm,['exts'=>json_encode($ext)],' `adm_id` = ? ',$account_id);
             // echo $this->_db->getSql();
         }
@@ -387,7 +374,7 @@ class oauth
     {
         $account_id	= $this->session_get(purview::session_id);
         if(!$ext && $old_pwd != '' && $google_code != '') {
-            $rs         = $this->_db->table($this->purview->db_adm)->field('`adm_id`,`password`,`exts`')->where(' `adm_id`= :adm_id ',['adm_id'=>$account_id])->column_one();
+            $rs         = adm::$db_adm->table(adm::$purview->table_admin_user)->field('`adm_id`,`password`,`exts`')->where(' `adm_id`= :adm_id ',['adm_id'=>$account_id])->column_one();
            // $rs		= $this->_db->row("SELECT `adm_id`,`password`,`exts` FROM {$this->purview->db_adm} where `adm_id` = ? ;",$account_id);
             $ext        = $this->user_get_exts($rs,$rs['adm_id']);
             $oldpwd		= md5(md5($old_pwd));
@@ -411,7 +398,7 @@ class oauth
             $this->session_set(purview::session_google,false);
         }
         //
-        $rs  = $this->_db->table($this->purview->db_adm)->where(' `adm_id`= :adm_id ',['adm_id'=>$account_id])->update(['exts'=>json_encode($ext)]);
+        $rs  = adm::$db_adm->table(adm::$purview->table_admin_user)->where(' `adm_id`= :adm_id ',['adm_id'=>$account_id])->update(['exts'=>json_encode($ext)]);
         // $rs  = $this->_db->update($this->purview->db_adm,['exts'=>json_encode($ext)],' `adm_id` = ? ',$account_id);
         if($rs) {
             return error('成功：操作成功!');
@@ -427,7 +414,7 @@ class oauth
      */
     public function session_set(string $key, $val)
     {
-        $_SESSION[$this->_o_key.$key]=$val;
+        $_SESSION[$this->_session_key.$key]=$val;
     }
 
     /**
@@ -437,7 +424,7 @@ class oauth
      */
     public function session_get($key)
     {
-        return $_SESSION[$this->_o_key.$key];
+        return $_SESSION[$this->_session_key.$key];
     }
 
     /**
@@ -448,8 +435,8 @@ class oauth
     public function session_del(string $key)
     {
         // echo $this->_o_key.$key.":{$_SESSION[$this->_o_key.$key]}\n";
-        $_SESSION[$this->_o_key.$key]='';
-        unset($_SESSION[$this->_o_key.$key]);
+        $_SESSION[$this->_session_key.$key]='';
+        unset($_SESSION[$this->_session_key.$key]);
         return true;
     }
 
@@ -495,7 +482,7 @@ class oauth
         if(!$password) {
             return '';
         }
-        return sha1($account.$cid. $this->_o_key . $password);
+        return sha1($account.$cid. $this->_session_key . $password);
     }
 
     /**
@@ -516,24 +503,24 @@ class oauth
         $bind       = [':ip_segment'=>$ip_segment,'i:status'=>$status,'i:time'=>$time];
 
 
-        $rs_ip_segment_counts	= $this->_db->table($this->purview->db_logs_login)
+        $rs_ip_segment_counts	= adm::$db_adm->table(adm::$purview->table_logs_login)
             ->where('`ip_segment` = :ip_segment and `status` = :status and `time` >= :time ',$bind)
             ->count_value('`ip_segment`');
 
-        if ($rs_ip_segment_counts <= $this->purview->max_ips) {
+        if ($rs_ip_segment_counts <= adm::$purview->max_ips) {
             $bind           = [':ip'=>$ip,'i:status'=>$status,'i:time'=>$time];
-            $rs_ip_counts	= $this->_db->table($this->purview->db_logs_login)
+            $rs_ip_counts	= adm::$db_adm->table(adm::$purview->table_logs_login)
                 ->where(' `ip` =:ip and `status` = :status and `time` >= :time ',$bind)
                 ->count_value('`ip`');
 
-            if ($rs_ip_counts <= $this->purview->max_ip) {
+            if ($rs_ip_counts <= adm::$purview->max_ip) {
                 return succeed(true);
             }
             else {
-                return error('IP地址登录失败超过'.$this->purview->max_ip.'次');
+                return error('IP地址登录失败超过'.adm::$purview->max_ip.'次');
             }
         } else  {
-            return error('IP地址段登录失败超过'.$this->purview->max_ips.'次');
+            return error('IP地址段登录失败超过'.adm::$purview->max_ips.'次');
         }
     }
 

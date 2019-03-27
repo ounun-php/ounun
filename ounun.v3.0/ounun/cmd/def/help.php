@@ -1,10 +1,13 @@
 <?php
 namespace ounun\cmd\def;
 
-class help extends \ounun\cmd\cmd
+use ounun\cmd\cmd;
+use ounun\cmd\console;
+
+class help extends cmd
 {
     // ...
-    protected function configure()
+    public function configure()
     {
         // 命令的名字（"think" 后面的部分）
         $this->name        = 'help';
@@ -14,9 +17,13 @@ class help extends \ounun\cmd\cmd
         $this->help        = "Displays help for a command";
     }
 
-    protected function execute(array $input)
+    public function execute(array $input)
     {
-        // 打包下载
-        echo "\n ---> ".date("Y-m-d H:i:s ").' '.__CLASS__.' ok'."\n";
+        /** @var cmd $c */
+        console::echo("可执行命令:",console::Color_Yellow);
+        foreach ($this->console->commands as $c){
+            console::echo($c->name,console::Color_Light_BBlue," \t");
+            console::echo($c->description,console::Color_Dark_Gray);
+        }
     }
 }

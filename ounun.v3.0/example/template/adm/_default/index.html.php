@@ -18,41 +18,12 @@ use \ounun\config;
 		var nav_key             = nav_hash[1];
             nav_hash            = nav_hash[0];
 
-		var nav_default			= nav_hash?nav_hash:<?php echo json_encode(adm::$auth->purview->purview[adm::$auth->purview->purview_default]['default']);//$purview[$adm_purview_default]['default']);?>;
-        var nav_default_key     = nav_key ?nav_key :'<?php echo adm::$auth->purview->purview_default;?>';
+		var nav_default			= nav_hash?nav_hash:<?php echo json_encode(adm::$purview->purview[adm::$purview->purview_default]['default']);//$purview[$adm_purview_default]['default']);?>;
+        var nav_default_key     = nav_key ?nav_key :'<?php echo adm::$purview->purview_default;?>';
         var menukey             = '';
 
-        <?php
-        // $scfg_cache = \extend\cache_config::instance($this->_db_v);
-        $site0      = [];// $scfg_cache->site();
-        $site       = [];
-        foreach ($site0 as $k2=>$v2){
-            foreach ($v2 as $k => $v){
-                if($v['state']){
-                    $site[$v['zqun_tag']][] = [
-                        'k'      => $v['site_tag'],
-                        'name'   => $v['name'],
-                        'type'   => $v['type'],
-                        'domain' => $v['main_domain'],
-                    ];
-                }
-            }
-        }
 
-        $zqun0      = []; // $scfg_cache ->zqun();
-        $zqun       = [];
-        foreach ($zqun0 as $v){
-            if($site[$v['zqun_tag']])
-            {
-                $zqun[$v['zqun_tag']] = $v['name'];
-            }
-        }
-        $scfg  = [ 'site'  => $site, 'zqun'  => $zqun ];
-        // print_r($site);
-
-        // print_r($GLOBALS['_scfg']['libs']);
-        ?>
-        var scfg_libs           = <?php echo json_encode(config::$global['libs'],JSON_UNESCAPED_UNICODE)?>;
+        var scfg_caiji          = <?php echo json_encode(config::$global['caiji'],JSON_UNESCAPED_UNICODE)?>;
         var scfg                = <?php echo json_encode($scfg,JSON_UNESCAPED_UNICODE);?>;
 		var json_curr_url		= '';
 		var json_nav			= 0;
@@ -74,7 +45,7 @@ use \ounun\config;
 
             var site_key  = scfg.site_key || '';
             var zqun_key  = scfg.zqun_key || '';
-            var libs_key  = scfg.libs_key || '';
+            var caiji_key  = scfg.caiji_key || '';
 
 			window.location.hash = encodeURIComponent(json_curr_url+','+menukey);
 			document.title	= title_sub + ' - ' + title + ' - 管理中心 - {$site_name}';
@@ -91,7 +62,7 @@ use \ounun\config;
                 init_site(zqun_key,site_key);
             }else if(json_nav && (json_nav == 20))
             {
-                libs_init(libs_key);
+                libs_init(caiji_key);
             }
 		}
 
@@ -159,7 +130,7 @@ use \ounun\config;
             }
         }
 
-        function libs_init(libs_key)
+        function libs_init(caiji_key)
         {
             document.getElementById('span_libs').style.display = '';
             var select  = document.getElementById('select_libs');
@@ -172,23 +143,23 @@ use \ounun\config;
             option.value = "0";
             select.options.add(option);
 
-            var data     = scfg_libs;
+            var data     = scfg_caiji;
             for(var key in data)
             {
                 var _tmp_name	= data[key];
                 option		 	= document.createElement('option');
                 option.text  	= '['+key+']'+_tmp_name['name'];
                 option.value 	= key;
-                if(libs_key && libs_key == key)
+                if(caiji_key && caiji_key == key)
                 {
                     option.selected = true;
                 }
                 select.options.add(option);
             }
         }
-        function init_change(libs_key)
+        function init_change(caiji_key)
         {
-            document.getElementById('main').src = '/select_set.html?libs_key='+libs_key+'&uri='+json_curr_url;
+            document.getElementById('main').src = '/select_set.html?caiji_key='+caiji_key+'&uri='+json_curr_url;
         }
         <?php if(0){?>
 		// function init_coop(cid)
@@ -292,7 +263,7 @@ use \ounun\config;
                 <a href="<?php echo config::url_page('/')?>" class="logo logo_bg" target="_blank">《{$site_name}》管理中心</a>
 				<div class="uinfo" id="frameuinfo">
 					<p>
-						你好, <?php echo adm::$auth->purview->purview_group[ adm::$auth->session_get( purview::session_type)];?>
+						你好, <?php echo adm::$purview->purview_group[ adm::$auth->session_get( purview::session_type)];?>
 						<em><?php echo adm::$auth->session_get( purview::session_account);?></em>
 						[<a href="/out.html" target="_top">退出</a>]
 					</p>
@@ -303,7 +274,7 @@ use \ounun\config;
 				<div class="navbg"></div>
 				<?php
 				$purview_uuid  = 0;
-				$purview       = adm::$auth->purview->purview;
+				$purview       = adm::$purview->purview;
 				$purview_keys  = array_keys($purview);
 				?>
 				<div class="nav">
@@ -319,7 +290,7 @@ use \ounun\config;
 					<div style="line-height:100%; position:absolute;right:275px;top:50px;">
                         <span  id="span_libs">
                             <b>资料库:</b>
-                            <select id="select_libs" onChange="init_change(this.value)">
+                            <select id="select_libs" onChange="init_change(this.value);">
                                 <option value="1">选择资料库...</option>
                             </select>
                         </span>

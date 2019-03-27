@@ -19,7 +19,7 @@ class sys_adm extends adm
         if($_POST)
         {
             $rs         = self::$auth->user_modify_passwd($_POST['oldpwd'],$_POST['newpwd'],$_POST['google']);
-            echo msg($rs->data);
+            echo msg($rs['message']);
             go_back();
         }
         else
@@ -88,7 +88,7 @@ class sys_adm extends adm
 		if($_POST)
 		{
             $rs = self::$auth->user_add((int)$_POST['adm_type'],(int)$_POST['adm_cid'],(string)$_POST['adm_account'],(string)$_POST['password'],(string)$_POST['adm_tel'],(string)$_POST['adm_note']);
-            echo msg($rs->data);
+            echo msg($rs['message']);
             go_back();
 		}
 		/////////////////////////////////////////////////////////////////////////
@@ -96,7 +96,7 @@ class sys_adm extends adm
         $adm_type      = self::$auth->session_get(purview::session_type); // get_type();
 		$purview_group = [];
         $purview_show  = [];
-		foreach (self::$auth->purview->purview_group as $k=>$v)
+		foreach (self::$purview->purview_group as $k=>$v)
 		{
 		    // echo "\$k:{$k}=>\$v:{$v}\n";
 		    // print_r(['$k'=>$k,'$v'=>$v,'$adm_type'=>$adm_type]);
@@ -119,7 +119,7 @@ class sys_adm extends adm
     {
         $rs           = '';
         $uuid         = 0;
-        $purview      = self::$auth->purview->data($type);
+        $purview      = self::$purview->data($type);
         if($purview && is_array($purview))
         {
             foreach ( $purview as $key1 => $data1 )
@@ -172,7 +172,7 @@ class sys_adm extends adm
 		}
 
         // 列表
-        $user_rs    = $this->_db_adm->table(self::$auth->purview->db_adm)->order('`adm_id`')->column_all();
+        $user_rs    = self::$db_adm->table(self::$purview->table_admin_user)->order('`adm_id`')->column_all();
         // $user_rs    = $this->_db_adm->data_array("SELECT * FROM  ".self::$auth->purview->db_adm." order by `adm_id` ASC ;");
         // 哈哈
         $user_list  = [];
@@ -183,7 +183,7 @@ class sys_adm extends adm
             $user_list[] = [
                 'adm_id' 		=> $v['adm_id'],
                 'type'			=> $v['type'],
-                'tname'			=> self::$auth->purview->purview_group[$v['type']],
+                'tname'			=> self::$purview->purview_group[$v['type']],
                 'cid'			=> $v['cid'],
                 // 'cname'		=> $platform_list[$v['cid']],
                 'account'		=> $v['account'],
@@ -210,9 +210,9 @@ class sys_adm extends adm
         // 权限
         $this->_nav_pur_check('sys_adm/logs_act.html','sys@logs_act', '操作日志','管理员日志',purview::nav_null);
 
-        $table   = self::$auth->purview->db_logs_act;
+        $table   = self::$purview->table_logs_act;
         if ($_GET['act'] == 'del') {
-            $this->_db_adm->table($table)->where('`id`= :id ',['id'=>$_GET['id']])->delete();
+            self::$db_adm->table($table)->where('`id`= :id ',['id'=>$_GET['id']])->delete();
             // $this->_db_adm->delete($table,'`id`= :id ',$_GET);
             // 跳回原来的页面
             go_back();
@@ -247,10 +247,10 @@ class sys_adm extends adm
 
         $url     = url_build_query( url_original(),$_GET,['page'=>'{page}']);
 
-        $pg      = new \ounun\page\base($this->_db_adm,$table,$url,$where_str,$where_bind,'count(*)',\c::Page_Config_B,$rows);
+        $pg      = new \ounun\page\base( self::$db_adm,$table,$url,$where_str,$where_bind,'count(*)',\c::Page_Config_B,$rows);
         $ps      = $pg->init($page,"");
 
-        $data	 = $this->_db_adm->table($table)
+        $data	 =  self::$db_adm->table($table)
             ->field('*')
             ->where($where_str,$where_bind)
             ->order('`id`',pdo::Order_Desc)
@@ -272,9 +272,9 @@ class sys_adm extends adm
         // 权限
         $this->_nav_pur_check('sys_adm/logs_login.html','sys@logs_login', '登录日志','日志',purview::nav_null);
 
-        $table   = self::$auth->purview->db_logs_login; //$this->table_logs_login;
+        $table   = self::$purview->table_logs_login; //$this->table_logs_login;
 		if ($_GET['act'] == 'del') {
-            $this->_db_adm->table($table)->where('`id`= :id ',['id'=>$_GET['id']])->delete();
+            self::$db_adm->table($table)->where('`id`= :id ',['id'=>$_GET['id']])->delete();
             // $this->_db_adm->delete($table,'`id`= :id ',$_GET);
 			// 跳回原来的页面
             go_back();
@@ -295,10 +295,10 @@ class sys_adm extends adm
 
         $url     = url_build_query( url_original(),$_GET,['page'=>'{page}']);
 
-        $pg      = new \ounun\page\base($this->_db_adm,$table,$url,$where_str,$where_bind,'count(*)',\c::Page_Config_B,$rows);
+        $pg      = new \ounun\page\base( self::$db_adm,$table,$url,$where_str,$where_bind,'count(*)',\c::Page_Config_B,$rows);
         $ps      = $pg->init($page,"");
 
-        $data	 = $this->_db_adm->table($table)
+        $data	 =  self::$db_adm->table($table)
             ->field('*')
             ->where($where_str,$where_bind)
             ->order('`id`',pdo::Order_Desc)

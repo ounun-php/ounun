@@ -2,7 +2,7 @@
 namespace ounun\cmd\task;
 
 
-class base
+abstract class base
 {
     /** @var \ounun\pdo   */
     protected $_db;
@@ -164,18 +164,21 @@ class base
      */
     public function run(array $paras=[],bool $is_check = false)
     {
-        if( !$this->check($is_check) ) { return ; }
-        
+        if( !$this->check($is_check) ) {
+            return ;
+        }
+
         $this->logs_init($this->_tag,$this->_tag_sub);
         sleep(rand(4,10));
         
         $this->_logs_state = \ounun\logs::state_fail;
         $this->msg("Fail 没有任务");
     }
-
+    
     /**
      * 执行完成
-     * @param $run_time
+     * @param float $run_time
+     * @param string $table
      */
     public function done(float $run_time,string $table)
     {
@@ -189,8 +192,7 @@ class base
             $this->_is_run  = false;
             $this->_logs->exts(['times'=>$this->_times]);
             $this->_logs->write($this->_logs_state,$run_time,true);
-            $this->_db->_prepare();
-            $this->_db->conn( " UPDATE {$table} SET `ignore` = :ignore ,`time_last` = :time_last ,`times` = `times` + 1 WHERE `task_id` = :task_id; ",$bind);
+            $this->_db->query( " UPDATE {$table} SET `ignore` = :ignore ,`time_last` = :time_last ,`times` = `times` + 1 WHERE `task_id` = :task_id; ",$bind)->affected();
         }
     }
 
