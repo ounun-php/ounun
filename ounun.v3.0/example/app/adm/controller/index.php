@@ -3,7 +3,7 @@
 namespace app\adm\controller;
 
 use app\adm\model\purview;
-use ounun\pdo;
+use extend\config_cache;
 
 class index extends adm
 {
@@ -16,8 +16,30 @@ class index extends adm
             $this->init_page('/',false,true,'',0,false);
             $this->_nav_set_data();
 
-            $db     = pdo::instance( 'adm' );
-            $cid    = self::$auth->session_get(purview::session_cid);
+            $scfg_cache = config_cache::instance(\c::Cache_Tag_Site,self::$db_biz);
+            $site0      = $scfg_cache->site();
+            $site       = [];
+            foreach ($site0 as $k2=>$v2){
+                foreach ($v2 as $k => $v){
+                    if($v['state']){
+                        $site[$v['zqun_tag']][] = [
+                            'k'      => $v['site_tag'],
+                            'name'   => $v['name'],
+                            'type'   => $v['type'],
+                            'domain' => $v['main_domain'],
+                        ];
+                    }
+                }
+            }
+
+            $zqun0      = $scfg_cache ->zqun();
+            $zqun       = [];
+            foreach ($zqun0 as $v){
+                if($site[$v['zqun_tag']]) {
+                    $zqun[$v['zqun_tag']] = $v['name'];
+                }
+            }
+            $scfg  = [ 'site'  => $site, 'zqun'  => $zqun ];
 
             require \v::tpl_fixed('index.html.php');
 		}else
@@ -74,8 +96,19 @@ class index extends adm
         $this->_nav_set_data();
 
         //  echo $this->require_file('sys/no_access.html.php' );
-        require require \v::tpl_fixed('sys_adm/no_access.html.php' );
+        require \v::tpl_fixed('sys_adm/no_access.html.php' );
 	}
+
+
+    /** 站点类型有误 */
+    public function error_site_type($mod)
+    {
+        $this->init_page('/error_site_type.html',false,true,'',0,false);
+
+        $this->_nav_set_data('站点类型有误','系统', (int)$_GET['nav']);
+
+        require \v::tpl_fixed('sys_adm/error_site_type.html.php' );
+    }
 
 	/** 提示 没有选择平台 与 服务器 */
 	public function select_tip($mod)
@@ -92,15 +125,21 @@ class index extends adm
 	/** 设定当前平台 与服务器 */
 	public function select_set($mod)
 	{
-		if(isset($_GET['cid'])) {
-		    self::$auth->cookie_set(purview::adm_cid,$_GET['cid']);
-		}
-		if (isset($_GET['sid'])) {
-            self::$auth->cookie_set(purview::adm_sid,$_GET['sid']);
-		}
-		if (isset($_GET['uri'])) {
-            go_url($_GET['uri']);
-		}
+	    $url = '';
+        if (isset($_GET['uri'])) {
+            $url = $_GET['uri'];
+            unset($_GET['uri']);
+        }
+
+        foreach ($_GET as $k => $v) {
+            if('adm_' == substr($k,0,4)){
+                self::$auth->cookie_set($k,$v);
+            }
+        }
+
+        if($url){
+            go_url($url);
+        }
 	}
 
     /**

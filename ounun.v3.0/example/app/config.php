@@ -27,7 +27,7 @@ define('Const_Baidu_Xzh_SiteId',            '');
 define('Const_Baidu_Xzh_Token',             '');
 
 /** 设定对应cms类名 */
-\ounun\config::set_cms_classname('\\extend\\cms_www');
+\ounun\config::set_cms_classname('\\extend\\cms_www',Const_Key_Conn_Private);
 
 /** 设定自动加载目录 */
 \ounun\config::add_paths(Dir_Ounun,'ounun');

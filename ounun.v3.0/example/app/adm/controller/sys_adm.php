@@ -13,7 +13,7 @@ class sys_adm extends adm
     public function password($mod)
     {
         // 权限
-        $this->_nav_pur_check('sys_adm/password.html','sys@password', '密码更新','管理员',purview::nav_null);
+        $this->_nav_purview_check('sys_adm/password.html','sys@password', '密码更新','管理员',purview::nav_null);
 
         // 修改密码
         if($_POST)
@@ -35,7 +35,7 @@ class sys_adm extends adm
     public function google($mod)
     {
         // 权限/选服
-        $this->_nav_pur_check('sys_adm/google.html','sys@google', '谷歌(洋葱)动态验证','管理员',purview::nav_null);
+        $this->_nav_purview_check('sys_adm/google.html','sys@google', '谷歌(洋葱)动态验证','管理员',purview::nav_null);
 
         // 修改密码
         if($_POST)
@@ -70,7 +70,7 @@ class sys_adm extends adm
     public function welcome($mod)
     {
         // 权限/选服
-        $this->_nav_pur_check('sys_adm/welcome.html','sys@google', '欢迎','管理员',purview::nav_null);
+        $this->_nav_purview_check('sys_adm/welcome.html','sys@google', '欢迎','管理员',purview::nav_null);
 
         require \v::tpl_fixed('sys_adm/sys_welcome.html.php');
     }
@@ -82,7 +82,7 @@ class sys_adm extends adm
 	public function adm_add($mod)
 	{
         // 权限/选服
-        $this->_nav_pur_check('sys_adm/adm_add.html','sys@adm_add', '添加管理人员','管理员管理',purview::nav_null);
+        $this->_nav_purview_check('sys_adm/adm_add.html','sys@adm_add', '添加管理人员','管理员管理',purview::nav_null);
 
 		// 插入管理员
 		if($_POST)
@@ -161,7 +161,7 @@ class sys_adm extends adm
 	public function adm_list($mod)
 	{
         // 权限
-        $this->_nav_pur_check('sys_adm/adm_list.html','sys@adm_list', '管理员列表','管理员管理',purview::nav_null);
+        $this->_nav_purview_check('sys_adm/adm_list.html','sys@adm_list', '管理员列表','管理员管理',purview::nav_null);
 
 		//if (isset($_GET['del']) && isset($_GET['id']))
 		if ('del' == $_GET['act'] && $_GET['adm_id'])
@@ -208,7 +208,7 @@ class sys_adm extends adm
 	public function logs_act($mod)
 	{
         // 权限
-        $this->_nav_pur_check('sys_adm/logs_act.html','sys@logs_act', '操作日志','管理员日志',purview::nav_null);
+        $this->_nav_purview_check('sys_adm/logs_act.html','sys@logs_act', '操作日志','管理员日志',purview::nav_null);
 
         $table   = self::$purview->table_logs_act;
         if ($_GET['act'] == 'del') {
@@ -270,7 +270,7 @@ class sys_adm extends adm
 	public function logs_login($mod)
 	{
         // 权限
-        $this->_nav_pur_check('sys_adm/logs_login.html','sys@logs_login', '登录日志','日志',purview::nav_null);
+        $this->_nav_purview_check('sys_adm/logs_login.html','sys@logs_login', '登录日志','日志',purview::nav_null);
 
         $table   = self::$purview->table_logs_login; //$this->table_logs_login;
 		if ($_GET['act'] == 'del') {

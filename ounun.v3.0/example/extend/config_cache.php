@@ -17,7 +17,7 @@ class config_cache extends \ounun\cache\config
     }
     protected function _zqun_mysql($args)
     {
-        return $this->_db->table('`adm_zqun`')
+        return $this->_db->table('`sys_site_zqun`')
             ->field('*')
             ->assoc('zqun_tag')
             ->order('`type`',pdo::Order_Desc)
@@ -35,7 +35,7 @@ class config_cache extends \ounun\cache\config
     }
     protected function _host_mysql($args)
     {
-        return $this->_db->table('`adm_host`')
+        return $this->_db->table('`sys_host`')
             ->field('*')
             ->assoc('host_tag')
             ->order('`host_type`',pdo::Order_Desc)
@@ -54,7 +54,7 @@ class config_cache extends \ounun\cache\config
     }
     protected function _site_mysql($args)
     {
-        $rs  = $this->_db->table('`adm_siteinfo`')
+        $rs  = $this->_db->table('`sys_site_info`')
             ->field('*')
             ->order('`type`',pdo::Order_Desc)
             ->order('`zqun_tag`',pdo::Order_Asc)

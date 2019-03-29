@@ -1,12 +1,13 @@
 <?php
 namespace extend\task\coll;
 
-use ounun\cmd\base;
+use ounun\cmd\task\coll_base\coll;
+use ounun\cmd\task\manage;
 
-class me_99mm extends base
+class me_99mm extends coll
 {
 
-    public function __construct(\task\manage $task_manage,string $tag='',string $tag_sub ='')
+    public function __construct(manage $task_manage,string $tag='',string $tag_sub ='')
     {
         parent::__construct($task_manage,$tag,$tag_sub);
 

@@ -2,6 +2,7 @@
 namespace app\adm\controller;
 
 use extend\config_cache;
+use ounun\config;
 use ounun\mvc\model\admin\secure;
 use app\adm\model\purview;
 
@@ -18,7 +19,7 @@ class api_interface extends adm
     public function mysql($mod)
     {
         // $this->_site_type_only = [purview::app_type_admin];
-        $this->_nav_pur_check('api_interface/mysql.html','site@site_list', '接口','系统',purview::nav_null);
+        $this->_nav_purview_check('api_interface/mysql.html','site@site_list', '接口','系统',purview::nav_null);
 
         // $db_libs         = self::db('libs');
         $table       = ' `adm_site_info` ';
@@ -35,7 +36,7 @@ class api_interface extends adm
             $api_host= $site_info['api'];
             if($api_host)
             {
-                $secure  = new secure(Const_Key_Conn_Private);
+                $secure  = new secure(config::$app_key_communication);
                 $url     = $secure->url("https://{$api_host}/api/interface_mysql.html",['release'=>Environment?0:1]);
                 $c       = @\plugins\curl\http::file_get_contents($url);
                 if($c)

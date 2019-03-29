@@ -43,8 +43,8 @@ use \ounun\config;
             json_nav      = scfg.nav      || 0;
             json_curr_url = scfg.curr_url || json_curr_url;
 
-            var site_key  = scfg.site_key || '';
-            var zqun_key  = scfg.zqun_key || '';
+            var site_key   = scfg.site_key || '';
+            var zqun_key   = scfg.zqun_key || '';
             var caiji_key  = scfg.caiji_key || '';
 
 			window.location.hash = encodeURIComponent(json_curr_url+','+menukey);
@@ -56,17 +56,17 @@ use \ounun\config;
 			}
             document.getElementById('span_zqun').style.display = 'none';
             document.getElementById('span_site').style.display = 'none';
-            document.getElementById('span_libs').style.display = 'none';
+            document.getElementById('span_caiji').style.display = 'none';
             if(json_nav && (json_nav == 10))
             {
-                init_site(zqun_key,site_key);
+                site_init(zqun_key,site_key);
             }else if(json_nav && (json_nav == 20))
             {
-                libs_init(caiji_key);
+                caiji_init(caiji_key);
             }
 		}
 
-        function init_site(zqun_key,site_key)
+        function site_init(zqun_key, site_key)
         {
             document.getElementById('span_zqun').style.display = '';
             var select  = document.getElementById('select_zqun');
@@ -92,9 +92,9 @@ use \ounun\config;
                 }
                 select.options.add(option);
             }
-            change_zqun(zqun_key,site_key);
+            site_zqun_change(zqun_key,site_key);
         }
-        function change_zqun(zqun_key,site_key)
+        function site_zqun_change(zqun_key, site_key)
         {
             document.getElementById('span_site').style.display = '';
             var select  = document.getElementById('select_site');
@@ -121,19 +121,19 @@ use \ounun\config;
                 select.options.add(option);
             }
         }
-        function change_site(site_key)
+        function site_change(site_key)
         {
             var zqun_key = document.getElementById('select_zqun').value;
             if(site_key)
             {
-                document.getElementById('main').src = '/select_set.html?zqun_key='+zqun_key+'&site_key='+site_key+'&uri='+json_curr_url;
+                document.getElementById('main').src = '/select_set.html?<?php echo purview::adm_zqun_tag?>='+zqun_key+'&<?php echo purview::adm_site_tag?>='+site_key+'&uri='+json_curr_url;
             }
         }
 
-        function libs_init(caiji_key)
+        function caiji_init(caiji_key)
         {
-            document.getElementById('span_libs').style.display = '';
-            var select  = document.getElementById('select_libs');
+            document.getElementById('span_caiji').style.display = '';
+            var select  = document.getElementById('select_caiji');
             while(select.length>0)
             {
                 select.remove(select.options[0]);
@@ -157,11 +157,11 @@ use \ounun\config;
                 select.options.add(option);
             }
         }
-        function init_change(caiji_key)
+        function caiji_change(caiji_key)
         {
-            document.getElementById('main').src = '/select_set.html?caiji_key='+caiji_key+'&uri='+json_curr_url;
+            document.getElementById('main').src = '/select_set.html?<?php echo purview::adm_caiji_tag?>='+caiji_key+'&uri='+json_curr_url;
         }
-        <?php if(0){?>
+
 		// function init_coop(cid)
 		// {
 		// 	document.getElementById('span_coop').style.display = '';
@@ -247,7 +247,6 @@ use \ounun\config;
 		// 		document.getElementById('main').src = '/select_set.html?cid='+cid+'&sid='+sid+'&uri='+json_curr_url;
 		// 	}
 		// }
-        <?php }?>
 	</script>
 	<style type="text/css">
 		.logo_bg{ background:url("{$static}{$site_logo_dir}logo.png") no-repeat 15px 13px; }
@@ -288,21 +287,21 @@ use \ounun\config;
 					</div>
 					<div class="navbd"></div>
 					<div style="line-height:100%; position:absolute;right:275px;top:50px;">
-                        <span  id="span_libs">
+                        <span  id="span_caiji">
                             <b>资料库:</b>
-                            <select id="select_libs" onChange="init_change(this.value);">
+                            <select id="select_caiji" onChange="caiji_change(this.value);">
                                 <option value="1">选择资料库...</option>
                             </select>
                         </span>
                         <span  id="span_zqun">
                             <b>站群:</b>
-                            <select id="select_zqun" onChange="change_zqun(this.value,0)">
+                            <select id="select_zqun" onChange="site_zqun_change(this.value,0)">
                                 <option value="1">选择站群...</option>
                             </select>
                         </span>
                         <span  id="span_site">
                             <b>站点:</b>
-                            <select id="select_site" onChange="change_site(this.value)">
+                            <select id="select_site" onChange="site_change(this.value)">
                                 <option value="1">选择站点...</option>
                             </select>
                         </span>
