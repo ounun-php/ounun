@@ -1,16 +1,19 @@
 <?php
 namespace extend\cmd;
 
+use ounun\api_sdk\com_showapi;
+
 class tools extends \ounun\cmd\cmd
 {
     public function configure()
     {
         // 命令的名字（"think" 后面的部分）
-        $this->name        = 'tools';
+        $this->name        = 'adm.tools';
         // 运行 "php think list" 时的简短描述
         $this->description = '工具集';
         // 运行命令时使用 "--help" 选项时的完整命令描述
-        $this->help        = "Displays help for a command";
+        $this->help        = "工具包内容\n".
+            "./ounun adm:tools oss [6mm,99mm] 文件移动\n";
     }
 
 
@@ -103,7 +106,7 @@ class tools extends \ounun\cmd\cmd
         do
         {
             $where_str   = $mod[2]?' ':" and `id` > {$id_start} ";
-            $rs          = $this->_db->data_array("SELECT * FROM `dtxt_75_files` WHERE `is_wget` = 0 {$where_str} ORDER BY `id` {$order} limit 0,50;");
+            $rs          = $this->_db->query("SELECT * FROM `dtxt_75_files` WHERE `is_wget` = 0 {$where_str} ORDER BY `id` {$order} limit 0,50;")->column_all();
             foreach ($rs as $v)
             {
                 $id_start = (int)($v['id']?$v['id']:$id_start);
@@ -128,24 +131,20 @@ class tools extends \ounun\cmd\cmd
                             $is_update = true;
                         }
                     }
-                }else
-                {
+                }else {
                     \plugins\curl\http::file_get_put($wget,$file);
                     $is_file  = file_exists($file)?'1':'0';
                     $is_s     = '1'==$is_file?filesize($file):0;
-                    if($is_file && $is_s > 1024)
-                    {
+                    if($is_file && $is_s > 1024) {
                         $is_update = true;
                     }
                 }
 
-                if($is_update)
-                {
+                if($is_update) {
                     $bind = ['is_wget'=>1];
                     $this->_db->update('`dtxt_75_files`',$bind," `id` = :id ",$v);
                     echo "i {$v['id']}:{$is_file} s:{$is_s2} f:{$v['file']} url:{$wget}\n";
-                }else
-                {
+                }else {
                     $bind = ['is_wget'=>-9];
                     $this->_db->update('`dtxt_75_files`',$bind," `id` = :id ",$v);
                     echo "- i {$v['id']}:{$is_file} f:{$v['file']} url:{$wget}  ------------- {$file}  \n";
@@ -172,16 +171,15 @@ class tools extends \ounun\cmd\cmd
             "0-30/10 3 * * *",
             "0-10,50-59/2 3 * * *"
         ];
-        foreach ($crontabs as $v)
-        {
+        foreach ($crontabs as $v) {
             $c    = new \plugins\crontab($v);
             $time = time();
-            $rs = $c->check(time());
+            $rs   = $c->check(time());
             echo "\$time:{$time}----\n";
             print_r(['$rs'=>$rs,'c'=>$c->cron()[1]]);
         }
 
-        $rs =  com_showapi::tag("性感秘书尤妮丝黑丝制服让人想入非非");
+        $rs = com_showapi::tag("性感秘书尤妮丝黑丝制服让人想入非非");
         print_r(['$rs'=>$rs]);
     }
     // ------------------------------------------------------------------------------------

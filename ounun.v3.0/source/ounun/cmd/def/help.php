@@ -22,14 +22,31 @@ class help extends cmd
      */
     public function execute(array $input)
     {
-        /** @var cmd $c */
-        console::echo("可执行命令:",console::Color_Yellow);
+        $cs = [];
         foreach ($this->console->commands as $c){
-            console::echo($c->name,console::Color_Light_BBlue," \t");
-            console::echo($c->description,console::Color_Dark_Gray);
+            $n = explode('.',$c->name,2);
+            if(2 == count($n)){
+                $cs[$n[0]][] = $c;
+            }else{
+                $cs['0'][] = $c;
+            }
         }
-        console::echo('帮助',console::Color_Yellow, ' ');
+        $cc = count($cs);
+        $i  = 0;
+        /** @var cmd $c */
+        console::echo("\n可执行命令:",console::Color_Purple);
+        foreach ($cs as $v){
+            foreach ($v as $c){
+                console::echo($c->name,console::Color_Blue," \t");
+                console::echo($c->description,console::Color_Black);
+            }
+            $i++;
+            if($i < $cc){
+                echo "\n";
+            }
+        }
+        console::echo('帮助',console::Color_Purple, ' ');
         console::echo('./ounun <命令> --help',console::Color_Black,'  ');
-        console::echo('显示对应"命令"提示',console::Color_Yellow);
+        console::echo('显示对应"命令"提示',console::Color_Purple,"\n\n");
     }
 }

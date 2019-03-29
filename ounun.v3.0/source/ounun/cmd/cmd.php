@@ -45,8 +45,10 @@ abstract class cmd
      */
     public function help()
     {
-        console::echo('./ounun '.$this->name,console::Color_Black,"\t");
-        console::echo($this->help,console::Color_Yellow);
+        console::echo("命令:",console::Color_Purple,'');
+        console::echo("({$this->description})");
+        console::echo('./ounun '.$this->name.' [参数...]',console::Color_Blue);
+        console::echo($this->help,console::Color_Purple);
     }
 
     /**

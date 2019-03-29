@@ -142,8 +142,8 @@ class debug
         if($this->_is_out_buffer && $this->_logs_buffer) {
             $str .= '--- DATE:'.date("Y-m-d H:i:s").' RunTime:'.$run_time.'---'."\n".$this->_logs_buffer."\n";
         }
-        $this->_logs            = [];
-        $this->_logs_buffer     = '';
+        $this->_logs        = [];
+        $this->_logs_buffer = '';
         if($this->_is_bof) {
             if (file_exists($filename)) {
                 $str  = $str . "------------------\n" .file_get_contents($filename);
@@ -166,7 +166,7 @@ class debug
      * @param string $function
      * @param string $line
      */
-    static public  function header(string $k, $v, bool $debug = false, string $function = '', string $line = '')
+    static public function header(string $k, $v, bool $debug = false, string $function = '', string $line = '')
     {
         // static $idx = 0;
         if($debug && !headers_sent() ) {
