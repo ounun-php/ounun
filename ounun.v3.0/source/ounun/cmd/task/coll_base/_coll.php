@@ -8,7 +8,7 @@ use ounun\cmd\task\task_base;
 use ounun\config;
 use ounun\pdo;
 
-abstract class coll extends task_base
+abstract class _coll extends task_base
 {
     /**  表名 */
     protected $_db_table = '';

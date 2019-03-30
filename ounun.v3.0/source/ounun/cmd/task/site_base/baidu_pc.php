@@ -4,9 +4,8 @@ namespace ounun\cmd\task\site_base;
 
 use ounun\api_sdk\com_baidu;
 
-class push_baidu_pc_mip extends _baidu
+class baidu_pc extends _baidu
 {
-
 
     /**
      * 执行任务

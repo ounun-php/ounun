@@ -22,6 +22,7 @@ class coll extends \ounun\cmd\cmd
 
     public function execute(array $input)
     {
+
         // 打包下载
         echo "\n ---> ".date("Y-m-d H:i:s ").' '.__CLASS__.' ok'."\n";
     }
