@@ -1,9 +1,7 @@
 <?php
 namespace ounun\cmd\task\coll_base;
 
-use ounun\api_sdk\com_baidu;
 use ounun\api_sdk\com_showapi;
-use ounun\cmd\task\logs;
 use ounun\cmd\task\manage;
 use ounun\cmd\task\task_base;
 use ounun\config;
@@ -25,8 +23,29 @@ abstract class _coll extends task_base
 
     /** @var pdo 采集数据录入的数据库 */
     protected $_db_caiji;
-    /** @var string  表名 */
-    protected $_table_list = '';
+    /** @var string  列表01 - 表名 */
+    protected $_table_list01 = '';
+    /** @var string  列表02 - 表名 */
+    protected $_table_list02 = '';
+    /** @var string  列表03 - 表名 */
+    protected $_table_list03 = '';
+    /** @var string  数据01 - 表名 */
+    protected $_table_data01 = '';
+    /** @var string  封面 - 表名 */
+    protected $_table_cover = '';
+    /** @var string  数据02 - 表名 */
+    protected $_table_data02 = '';
+    /** @var string  数据03 - 表名 */
+    protected $_table_data03 = '';
+    /** @var string  附件 - 表名 */
+    protected $_table_attachment = '';
+
+    /** @var pdo 网站数据 */
+    protected $_db_site;
+    /** @var string  网站数据 - 数据 - 表名 */
+    protected $_table_site_data       = '';
+    /** @var string  网站数据 - 附件 - 表名 */
+    protected $_table_site_attachment = '';
 
     /**
      * @param string $url_root
@@ -54,57 +73,60 @@ abstract class _coll extends task_base
 
 
     /**
-     * @param array $paras
-     * @param bool  $is_check
+     * @param array $input
+     * @param int $mode
+     * @param bool $is_pass_check
      */
-    public function run(array $paras = [], bool $is_check = false)
+    public function execute(array $input = [], int $mode = manage::Mode_Dateup,bool $is_pass_check = false)
     {
-        if( !$this->check($is_check) ) { return ; }
-
-
-        $this->logs_init($this->_tag,$this->_tag_sub);
-        if($paras) {
-            $this->_mode      = in_array($paras[0],array_keys(manage::Mode))?$paras[0]:1;
-        }else {
-            $this->_mode      = $this->_args['mode'];
+        if( !$this->check($is_pass_check) )  {
+            return ;
         }
+        $this->_mode = $mode;
 
 
         try {
-            $this->_logs_state = manage::Logs_Succeed;
+            manage::$logs_state = manage::Logs_Succeed;
             // $this->url_refresh();
             // print_r(['$paras'=>$paras,'_args'=>$this->_args]);
             // list($libs_key,$in_table,$out_table) = explode(',',$this->_args['exts']);
             // $mode  = $this->_args['mode'];
             // $site_tag = \scfg::$app;
-            $this->data();
+            $this->list_01();
             // print_r(['$paras'=>$paras,'_args'=>$this->_args,'$libs_key'=>$libs_key,'$in_table'=>$in_table,'$out_table'=>$out_table,'\scfg::$app'=>\scfg::$app]);
             // print_r(['$libs_key'=>$libs_key,'$in_table'=>$in_table,'$out_table'=>$out_table]);
             // $this->data($libs_key, $in_table, $out_table, \scfg::$app);
-            // $this->msg("Successful update:{$this->_args}");
+            $this->logs_msg("Successful update:{$this->_task_struct->arguments}");
         } catch (\Exception $e) {
             $this->_logs_state = manage::Logs_Fail;
-            $this->msg($e->getMessage());
-            $this->msg("Fail Coll tag:{$this->_tag} tag_sub:{$this->_tag_sub}");
+            $this->logs_msg($e->getMessage());
+            $this->logs_msg("Fail Coll tag:{$this->_tag} tag_sub:{$this->_tag_sub}");
         }
     }
 
-    /**
-     * 没有《采集》任务
-     */
-    abstract public function data();
+    /** 列表01 - 《采集》任务 */
+    abstract public function list_01();
+    /** 列表02 - 《采集》任务 */
+    abstract public function list_02();
+    /** 列表03 - 《采集》任务 */
+    abstract public function list_03();
 
-    /**
-     * 日志数据logs_data
-     * @param string $msg
-     * @param int $state   状态  0:正常(灰) 1:失败(红色) 6:突出(橙黄)  99:成功(绿色)
-     * @param int $time    时间
-     */
-    public function msg(string $msg, int $state = -1, int $time = -1)
-    {
-        echo "{$msg}\n";
-        parent::logs_msg($msg, $state, $time);
-    }
+    /** 封面 - 《采集》任务 */
+    abstract public function cover();
+    /** 数据01 - 《采集》任务 */
+    abstract public function data_01();
+    /** 数据02 - 《采集》任务 */
+    abstract public function data_02();
+    /** 数据03 - 《采集》任务 */
+    abstract public function data_03();
+
+    /** 附件 - 《采集》任务 */
+    abstract public function data_attachment();
+
+    /** 列表 - 《发布》任务 */
+    abstract public function post_site_data();
+    /** 附件 - 《发布》任务 */
+    abstract public function post_site_attachment();
 
     /**
      * 获取网络文件，并保存
@@ -135,8 +157,7 @@ abstract class _coll extends task_base
         //
         $dir_root    = "{$this->_dir_root}{$this->_dir_name}";
         $dir_pic     = "{$dir_root}/{$pic_id}/";
-        if(!file_exists($dir_pic))
-        {
+        if(!file_exists($dir_pic)) {
             mkdir($dir_pic,0777,true);
         }
         $cc          = [];
@@ -149,7 +170,7 @@ abstract class _coll extends task_base
             $file        = "{$pic_id}/s.jpg";
             $file_full   = "{$dir_root}/{$file}";
             if(!file_exists($file_full) || filesize($file_full) < $this->_wget_file_mini_size ) {
-                $this->msg("id:{$pic_id} -> wget-s:{$url}");
+                $this->logs_msg("id:{$pic_id} -> wget-s:{$url}");
                 $this->_wget_put($url,$file_full);
             }else {
                 $ok_pic[]  = $file;
@@ -164,7 +185,7 @@ abstract class _coll extends task_base
             $file      = "{$pic_id}/{$v['file']}";
             $file_full = "{$dir_root}/{$file}";
             if(!file_exists($file_full)  || filesize($file_full) < $this->_wget_file_mini_size ) {
-                $this->msg("id:{$pic_id} -> wget-p:{$url}");
+                $this->logs_msg("id:{$pic_id} -> wget-p:{$url}");
                 $this->_wget_put($url,$file_full);
                 $_is_save_db  = true;
             }elseif($url) {
@@ -174,14 +195,14 @@ abstract class _coll extends task_base
             $cc[] = $file;
         }
         if($ok_pic) {
-            $this->msg("ok-pic id:{$pic_id}->:".implode(',',$ok_pic) );
+            $this->logs_msg("ok-pic id:{$pic_id}->:".implode(',',$ok_pic) );
         }
         $pic_centent         = [ 'cover'   => "{$pic_id}/s.jpg", 'data'        => $cc ];
         $bind                = [ 'is_wget' => 1,                 'pic_centent' => json_encode($pic_centent,JSON_UNESCAPED_UNICODE) ];
         if($_is_save_db && $pic_ext) {
             $bind['pic_ext'] = json_encode($pic_ext,JSON_UNESCAPED_UNICODE);
         }
-        $this->_db_caiji->table($this->_table_list)->where(' `pic_id` =:pic_id ',['pic_id'=>$pic_id])->update($bind);
+        $this->_db_caiji->table($this->_table_list01)->where(' `pic_id` =:pic_id ',['pic_id'=>$pic_id])->update($bind);
         // echo $this->_db_libs->sql()."\n";
         // exit();
     }
@@ -325,17 +346,17 @@ abstract class _coll extends task_base
     {
         $rs    =  $this->_check($data[$fields_name]);
         if(!$rs) {
-            $this->_db_caiji->table($this->_table_list)->insert($data);
+            $this->_db_caiji->table($this->_table_list01)->insert($data);
             // echo $this->_db->sql()."\n";
             $i_id = $this->_check($data[$fields_name],$fields_name);
             if($i_id) {
-               $this->msg("ok-> 成功 {$fields_name}:{$data[$fields_name]}");
+               $this->logs_msg("ok-> 成功 {$fields_name}:{$data[$fields_name]}");
             }else {
-               $this->msg("sql:".$this->_db_caiji->last_sql() );
-               $this->msg("error-> 失败 {$fields_name}:{$data[$fields_name]}",manage::Logs_Fail);
+               $this->logs_msg("sql:".$this->_db_caiji->last_sql() );
+               $this->logs_msg("error-> 失败 {$fields_name}:{$data[$fields_name]}",manage::Logs_Fail);
             }
         }else {
-            $this->msg("warn-> 已存在 {$fields_name}:{$data[$fields_name]}",manage::Logs_Warning);
+            $this->logs_msg("warn-> 已存在 {$fields_name}:{$data[$fields_name]}",manage::Logs_Warning);
         }
     }
 

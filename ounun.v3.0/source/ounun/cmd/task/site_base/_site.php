@@ -9,8 +9,8 @@ use ounun\pdo;
 
 abstract class _site extends task_base
 {
-    /** @var com_baidu */
-    protected $_baidu_sdk;
+    /** @var pdo 网站数据 */
+    protected $_db_site;
 
     protected $_table_sitemap       = ' `z_sitemap` ';
     protected $_table_sitemap_push  = ' `z_sitemap_push` ';
@@ -29,10 +29,6 @@ abstract class _site extends task_base
     protected $_token_site   = '';
     protected $_token_xzh    = '';
     protected $_appid_xzh    = '';
-
-
-    /** @var pdo 网站数据 */
-    protected $_db_site;
 
     public function config_set(string $db_tag = '', array $db_config = [])
     {
