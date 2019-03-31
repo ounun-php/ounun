@@ -1,9 +1,7 @@
 <?php
 namespace ounun\cmd\task\site_base;
 
-use ounun\api_sdk\com_baidu;
-
-class baidu_xzh extends _baidu
+class baidu_xzh extends _site
 {
 
     /**

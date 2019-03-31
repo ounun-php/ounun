@@ -1,10 +1,7 @@
 <?php
 namespace ounun\cmd\task\site_base;
 
-
-use ounun\api_sdk\com_baidu;
-
-class baidu_pc extends _baidu
+class baidu_pc extends _site
 {
 
     /**

@@ -3,7 +3,6 @@ namespace ounun\cmd\task;
 
 abstract class task_base
 {
-
     /** @var struct 任务数据结构  */
     protected $_task_struct;
 
@@ -106,11 +105,19 @@ abstract class task_base
     }
 
     /**
+     * @param string $tag
+     * @param string $tag_sub
+     * @param string $table
+     * @param \ounun\pdo|null $db
      * @param int $time
      */
-    public function logs_init( int $time = 0)
+    public function logs_init( string $tag = '', string $tag_sub = '',string $table = '',\ounun\pdo $db = null, int $time = 0)
     {
-        manage::logs_init($this->_task_struct->task_id,$this->_tag,$this->_tag_sub,$time,manage::$table_logs,manage::db());
+        $tag     = $tag ? $tag : $this->_tag;
+        $tag_sub = $tag_sub ? $tag_sub : $this->_tag_sub;
+        $table   = $table ? $table : manage::$table_logs;
+        $db      = $db ? $db : manage::db();
+        manage::logs_init($this->_task_struct->task_id,$tag,$tag_sub,$time,$table,$db);
     }
 
     /**

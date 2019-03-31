@@ -11,8 +11,6 @@ use ounun\pdo;
 
 abstract class _coll extends task_base
 {
-    /** @var string  表名 */
-    protected $_db_table = '';
     /** @var string  根目录 */
     protected $_dir_root = '';
     /** @var string  目录名 */
@@ -27,8 +25,8 @@ abstract class _coll extends task_base
 
     /** @var pdo 采集数据录入的数据库 */
     protected $_db_caiji;
-
-    protected $_db_site;
+    /** @var string  表名 */
+    protected $_table_list = '';
 
     /**
      * @param string $url_root
@@ -47,7 +45,7 @@ abstract class _coll extends task_base
         }
         // -------------------------------------------------
         // $this->_db_libs  = null;
-        $this->_db_table = $table;
+        $this->_table_list = $table;
         $this->_url_root = $url_root;
 
         $this->_dir_root = $dir_root;
@@ -65,12 +63,9 @@ abstract class _coll extends task_base
 
 
         $this->logs_init($this->_tag,$this->_tag_sub);
-        $this->_baidu_sdk = new com_baidu($this->_db,$this->_logs);
-        if($paras)
-        {
-            $this->_mode      = in_array($paras[0],array_keys(manage::mode))?$paras[0]:1;
-        }else
-        {
+        if($paras) {
+            $this->_mode      = in_array($paras[0],array_keys(manage::Mode))?$paras[0]:1;
+        }else {
             $this->_mode      = $this->_args['mode'];
         }
 
@@ -88,7 +83,7 @@ abstract class _coll extends task_base
             // $this->data($libs_key, $in_table, $out_table, \scfg::$app);
             // $this->msg("Successful update:{$this->_args}");
         } catch (\Exception $e) {
-            $this->_logs_state = \ounun\logs::state_fail;
+            $this->_logs_state = manage::Logs_Fail;
             $this->msg($e->getMessage());
             $this->msg("Fail Coll tag:{$this->_tag} tag_sub:{$this->_tag_sub}");
         }
@@ -108,7 +103,7 @@ abstract class _coll extends task_base
     public function msg(string $msg, int $state = -1, int $time = -1)
     {
         echo "{$msg}\n";
-        parent::msg($msg, $state, $time);
+        parent::logs_msg($msg, $state, $time);
     }
 
     /**
@@ -186,7 +181,7 @@ abstract class _coll extends task_base
         if($_is_save_db && $pic_ext) {
             $bind['pic_ext'] = json_encode($pic_ext,JSON_UNESCAPED_UNICODE);
         }
-        $this->_db->table($this->_db_table)->where(' `pic_id` =:pic_id ',['pic_id'=>$pic_id])->update($bind);
+        $this->_db_caiji->table($this->_table_list)->where(' `pic_id` =:pic_id ',['pic_id'=>$pic_id])->update($bind);
         // echo $this->_db_libs->sql()."\n";
         // exit();
     }
@@ -330,17 +325,17 @@ abstract class _coll extends task_base
     {
         $rs    =  $this->_check($data[$fields_name]);
         if(!$rs) {
-            $this->_db->table($this->_db_table)->insert($data);
+            $this->_db_caiji->table($this->_table_list)->insert($data);
             // echo $this->_db->sql()."\n";
             $i_id = $this->_check($data[$fields_name],$fields_name);
             if($i_id) {
                $this->msg("ok-> 成功 {$fields_name}:{$data[$fields_name]}");
             }else {
-               $this->msg("sql:".$this->_db->last_sql() );
-               $this->msg("error-> 失败 {$fields_name}:{$data[$fields_name]}",\ounun\logs::state_fail);
+               $this->msg("sql:".$this->_db_caiji->last_sql() );
+               $this->msg("error-> 失败 {$fields_name}:{$data[$fields_name]}",manage::Logs_Fail);
             }
         }else {
-            $this->msg("warn-> 已存在 {$fields_name}:{$data[$fields_name]}",\ounun\logs::state_warn);
+            $this->msg("warn-> 已存在 {$fields_name}:{$data[$fields_name]}",manage::Logs_Warning);
         }
     }
 
@@ -352,7 +347,7 @@ abstract class _coll extends task_base
      */
     protected  function _check(int $pic_id, string $fields_name = 'pic_id')
     {
-        $rs =  $this->_db->query("SELECT `{$fields_name}` FROM {$this->_db_table} where `{$fields_name}` = :{$fields_name} limit 0,1;",[$fields_name=>$pic_id])->column_one();
+        $rs =  $this->_db_caiji->query("SELECT `{$fields_name}` FROM {$this->_table_list} where `{$fields_name}` = :{$fields_name} limit 0,1;",[$fields_name=>$pic_id])->column_one();
         if($rs && $rs[$fields_name]) {
             return $rs;
         }
@@ -366,7 +361,7 @@ abstract class _coll extends task_base
      */
     protected  function _last_id(string $fields_name = 'pic_id'):int
     {
-        $rs =  $this->_db->query("SELECT `{$fields_name}` FROM {$this->_db_table} ORDER BY `{$fields_name}` DESC limit 0,1;")->column_one();
+        $rs =  $this->_db_caiji->query("SELECT `{$fields_name}` FROM {$this->_table_list} ORDER BY `{$fields_name}` DESC limit 0,1;")->column_one();
         if($rs && $rs[$fields_name]) {
             return (int)$rs[$fields_name];
         }

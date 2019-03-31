@@ -1,13 +1,10 @@
 <?php
 namespace ounun\cmd\task\site_base;
 
+use ounun\cmd\task\libs\com_baidu;
 
-use ounun\api_sdk\com_baidu;
-use ounun\cmd\task\task_base;
-
-class sitemap extends task_base
+class sitemap extends _site
 {
-
     /** @var com_baidu  */
     protected $_baidu_sdk = null;
 

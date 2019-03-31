@@ -1,13 +1,11 @@
 <?php
 namespace ounun\cmd\task\site_base;
 
-
-use ounun\api_sdk\com_baidu;
-use ounun\cmd\task\task_base;
+use ounun\cmd\task\libs\com_baidu;
 use ounun\config;
 use ounun\mvc\model\admin\secure;
 
-class update extends task_base
+class update extends _site
 {
     /** @var com_baidu  */
     protected $_baidu_sdk = null;

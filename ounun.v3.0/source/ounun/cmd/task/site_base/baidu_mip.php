@@ -1,7 +1,7 @@
 <?php
 namespace ounun\cmd\task\site_base;
 
-class baidu_mip extends _baidu
+class baidu_mip extends _site
 {
     /**
      * 执行任务

@@ -1,13 +1,5 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: dreamxyp
- * Date: 2019/3/31
- * Time: 10:46
- */
-
 namespace ounun\cmd\task;
-
 
 use ounun\tool\crontab;
 
