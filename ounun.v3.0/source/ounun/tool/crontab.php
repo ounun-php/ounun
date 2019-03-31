@@ -1,5 +1,5 @@
 <?php
-namespace plugins;
+namespace ounun\tool;
 
 /**
  * php解析crontab时间格式
@@ -27,24 +27,22 @@ class crontab
 
     /**
      * 格式化crontab时间设置字符串,用于比较
-     *
-     * @param string $str_cron crontab的时间计划字符串，如"15 3 * * *"
+     * crontab constructor.
+     * @param string $cron_str   crontab的时间计划字符串，如"15 3 * * *"
+     * @param array $cron_array
      */
-    public function __construct(string $cron_str = '',array $cron_data=[])
+    public function __construct(string $cron_str = '',array $cron_array=[])
     {
-        if($cron_data && count($cron_data) == 5)
-        {
-            $this->_cron = $cron_data;
-        }elseif($cron_str)
-        {
+        if($cron_array && is_array($cron_array) && count($cron_array) == 5) {
+            $this->_cron = $cron_array;
+        }elseif($cron_str) {
             // 格式检查
             $cron_str = trim($cron_str);
-            $reg  = '#^([\*,\/,\-\d]+)( [,\/,\-\d\*]+){4}$#';
-            if (!preg_match($reg, $cron_str))
-            {
+            $reg      = '#^([\*,\/,\-\d]+)( [,\/,\-\d\*]+){4}$#';
+            if (!preg_match($reg, $cron_str)) {
                 $this->_cron  = [];
                 $this->_error = "格式错误:{$cron_str}";
-                return $this;
+                return;
             }
             // 分别解析 分、 时、 日、 月、 周
             $n2m   = [['min'=>0,'max'=>59,'name'=>'分'  ],
@@ -53,50 +51,42 @@ class crontab
                       ['min'=>1,'max'=>12,'name'=>'月'  ],
                       ['min'=>0,'max'=>6 ,'name'=>'周'  ]];
             $parts = explode(' ', $cron_str);
-            foreach ($parts as $k=>$v)
-            {
-                $tmp   = $this->parse($parts[$k], $n2m[$k]['min'], $n2m[$k]['max']);//分
-                if($tmp)
-                {
-                    $this->_cron[$k] = $tmp[1];
-                }else
-                {
+            foreach ($parts as $k=>$v) {
+                $tmp   = $this->parse($parts[$k], $n2m[$k]['min'], $n2m[$k]['max']); // 分
+                if(error_is($tmp)){
                     $this->_cron     = [];
-                    $this->_error    = "{$n2m[$k]['name']}:{$tmp[1]}";
-                    return $this;
+                    $this->_error    = "{$n2m[$k]['name']}:".error_message($tmp);
+                    return;
                 }
+                $this->_cron[$k] = succeed_data($tmp);
             }
-        }else
-        {
+        }else {
             $this->_cron  = [];
-            $this->_error = "cron_str与cron_data 不能为空";
+            $this->_error = "cron_str与cron_data 不能为都为空";
         }
-        return $this;
+        return;
     }
-
 
     /**
      * 检查某时间($time)是否符合某个corntab时间计划($str_cron)
-     *
-     * @param int    $time     时间戳
-     * @param string $str_cron corntab的时间计划，如，"30 2 * * 1-5"
-     *
-     * @return [bool,bool|string]  出错返回string（错误信息）
+     * @param  int $time   时间戳
+     * @return array  出错返回string（错误信息）
      */
-    public function check($time):array
+    public function check(int $time):array
     {
         $cron  = $this->cron();
-        if($cron[0])
-        {
-            $curr  = $this->format($time);
-            $cron  = $cron[1];
-            return [true,  (!$cron[0] || in_array($curr[0], $cron[0]))
-                        && (!$cron[1] || in_array($curr[1], $cron[1]))
-                        && (!$cron[2] || in_array($curr[2], $cron[2]))
-                        && (!$cron[3] || in_array($curr[3], $cron[3]))
-                        && (!$cron[4] || in_array($curr[4], $cron[4]))];
+        if(error_is($cron)) {
+            return $cron;
         }
-        return $cron;
+
+        $curr    = $this->format($time);
+        $cron    = succeed_data($cron);
+        $succeed = (!$cron[0] || in_array($curr[0], $cron[0]))
+                    && (!$cron[1] || in_array($curr[1], $cron[1]))
+                    && (!$cron[2] || in_array($curr[2], $cron[2]))
+                    && (!$cron[3] || in_array($curr[3], $cron[3]))
+                    && (!$cron[4] || in_array($curr[4], $cron[4]));
+        return succeed($succeed);
     }
 
 
@@ -117,15 +107,12 @@ class crontab
      */
     public function cron():array
     {
-        if($this->_error)
-        {
-            return [false,$this->_error];
-        }elseif($this->_cron && count($this->_cron) == 5)
-        {
-            return [true,$this->_cron];
-        }else
-        {
-            return [false,"this->cron:数据为空"];
+        if($this->_error) {
+            return error($this->_error);
+        }elseif($this->_cron && count($this->_cron) == 5) {
+            return succeed($this->_cron);
+        }else {
+            return error('对像cron:数据为空');
         }
     }
 
@@ -141,21 +128,16 @@ class crontab
     {
         $list = [];
         // 处理"," -- 列表
-        if (false !== strpos($part, ','))
-        {
+        if (false !== strpos($part, ',')) {
             $arr = explode(',', $part);
-            foreach ($arr as $v)
-            {
+            foreach ($arr as $v) {
                 $tmp  = $this->parse($v, $f_min, $f_max);
-                if($tmp && $tmp[0])
-                {
-                    $list = array_merge($list, $tmp[1]);
-                }else
-                {
+                if(error_is($tmp)){
                     return $tmp;
                 }
+                $list = array_merge($list, $tmp['data']);
             }
-            return [true,$list];
+            return succeed($list);
         }
 
         // 处理"/" -- 间隔
@@ -164,37 +146,31 @@ class crontab
         $step  = isset($tmp[1]) ? $tmp[1] : 1;
 
         // 处理"-" -- 范围
-        if (false !== strpos($part, '-'))
-        {
+        if (false !== strpos($part, '-')) {
             list($min, $max) = explode('-', $part);
-            if ($min > $max)
-            {
-                return [false,'使用"-"设置范围时，左不能大于右'];
+            if ($min > $max) {
+                return error('使用"-"设置范围时，左不能大于右');
             }
-        }elseif ('*' == $part)
-        {
+        }elseif ('*' == $part) {
             $min = $f_min;
             $max = $f_max;
-        }else
-        {
+        }else {
             // 数字
             $min = $max = $part;
         }
 
         // 空数组表示可以任意值
-        if ($min==$f_min && $max==$f_max && $step==1)
-        {
-            return [true,$list];
+        if ($min==$f_min && $max==$f_max && $step == 1) {
+            return succeed($list);
         }
 
         // 越界判断
-        if ($min < $f_min || $max > $f_max)
-        {
-            return [false,'数值越界。应该：分0-59，时0-59，日1-31，月1-12，周0-6'];
+        if ($min < $f_min || $max > $f_max) {
+            return error('数值越界。应该：分0-59，时0-59，日1-31，月1-12，周0-6');
         }
 
         $list =  $max-$min > $step ? range($min, $max, $step) : [(int)$min];
-        return [true,$list];
+        return succeed($list);
     }
 
 }

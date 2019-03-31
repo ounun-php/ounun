@@ -267,7 +267,6 @@ class config
             self::$tpl_style = $tpl_style;
         }else {
             if(self::$i18n && empty(self::$tpl_style)){
-                print_r(['self::get_i18n()'=>self::get_i18n()]);
                 self::$tpl_style = self::get_i18n()::tpl_style;
             }
         }

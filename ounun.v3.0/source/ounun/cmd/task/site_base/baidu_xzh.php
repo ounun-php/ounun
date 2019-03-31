@@ -2,12 +2,9 @@
 namespace ounun\cmd\task\site_base;
 
 use ounun\api_sdk\com_baidu;
-use ounun\cmd\task\task_base;
 
-class push_baidu_xzh extends task_base
+class baidu_xzh extends _baidu
 {
-    /** @var com_baidu  */
-    protected $_baidu_sdk = null;
 
     /**
      * 执行任务

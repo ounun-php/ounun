@@ -257,6 +257,7 @@ function error(string $message = '',int $error_code = 1,array $data = [])
 }
 
 /**
+ * 确认是否错误 数据
  * @param $data
  * @return bool
  */
@@ -270,7 +271,27 @@ function error_is($data)
 }
 
 /**
+ * 返回错误提示信息
  * @param $data
+ * @return string
+ */
+function error_message($data):string
+{
+    return $data['message'];
+}
+
+/**
+ * 返回错误代码
+ * @param $data
+ * @return int
+ */
+function error_code($data):int
+{
+    return $data['error_code'];
+}
+
+/**
+ * @param mixed $data
  * @param string $message
  * @return array
  */
@@ -283,6 +304,15 @@ function succeed($data,string $message = '')
     ];
 }
 
+/**
+ * 返回 数据
+ * @param $data
+ * @return mixed
+ */
+function succeed_data($data)
+{
+    return $data['data'];
+}
 
 /**
  * 获得 json字符串数据
@@ -291,7 +321,7 @@ function succeed($data,string $message = '')
  */
 function json_encode_unescaped($data): string
 {
-    return \json_encode($data, JSON_UNESCAPED_UNICODE);
+    return json_encode($data, JSON_UNESCAPED_UNICODE);
 }
 
 /**
@@ -301,9 +331,8 @@ function json_encode_unescaped($data): string
  */
 function json_decode_array(string $json_string)
 {
-    return \json_decode($json_string, true);
+    return json_decode($json_string, true);
 }
-
 
 /**
  * @param $string
@@ -391,36 +420,35 @@ function base58_decode($base58)
 }
 
 /**
- * 获得 exts数据php
- * @param string $ext_string
+ * 获得 extend数据php
+ * @param string $extend_string
  * @return array|mixed
  */
-function ext_decode_php(string $ext_string)
+function extend_decode_php(string $extend_string)
 {
     $ext = [];
-    if ($ext_string) {
-        $ext = unserialize($ext_string);
+    if ($extend_string) {
+        $ext = unserialize($extend_string);
     }
     return $ext;
 }
 
 /**
- * 获得 exts数据json
- * @param string $exts_string
+ * 获得 extend数据json
+ * @param string $extend_string
  * @return array|mixed
  */
-function ext_decode_json(string $exts_string)
+function extend_decode_json(string $extend_string)
 {
-    $exts = [];
-    if ($exts_string) {
-        $exts = json_decode($exts_string);
+    $extend = [];
+    if ($extend_string) {
+        $extend = json_decode($extend_string);
     }
-    return $exts;
+    return $extend;
 }
 
 /**
  * 对字符串进行编码，这样可以安全地通过URL
- *
  * @param string $string to encode
  * @return string
  */
@@ -431,7 +459,6 @@ function base64_url_encode(string $string = null): string
 
 /**
  * 解码一个 URL传递的字符串
- *
  * @param string $string to decode
  * @return string
  */
@@ -442,7 +469,6 @@ function base64_url_decode(string $string = null): string
 
 /**
  * 编号 转 字符串
- *
  * @param  $id int to encode
  * @return string
  */
@@ -462,7 +488,6 @@ function short_url_encode(int $id = 0): string
 
 /**
  * 字符串 转 编号
- *
  * @param  $string string 字符串
  * @return int
  */
@@ -501,7 +526,6 @@ function msg(string $msg, bool $outer = true, $meta = true): string
 
 /**
  * 出错提示错
- *
  * @param string $msg
  * @param bool $close
  */
@@ -535,7 +559,6 @@ function data(string $data_mod, string $data_dir)
 
 /**
  * HTTP缓存控制
- *
  * @param int $expires 缓存时间 0:为不缓存 单位:s
  * @param string $etag ETag
  * @param int $LastModified 最后更新时间
@@ -608,7 +631,6 @@ function explodes(string $delimiters, string $string)
 /**
  * Convert special characters to HTML safe entities.
  * 特殊字符转换成 HTML安全格式。
- *
  * @param string $string to encode
  * @return string
  */
@@ -621,7 +643,6 @@ function safe(string $string): string
  * Filter a valid UTF-8 string so that it contains only words, numbers,
  * dashes, underscores, periods, and spaces - all of which are safe
  * characters to use in file names, URI, XML, JSON, and (X)HTML.
- *
  * @param string $string to clean
  * @param bool $spaces TRUE to allow spaces
  * @return string
@@ -644,7 +665,6 @@ function sanitize(string $string, bool $spaces = true): string
 
 /**
  * Create a SEO friendly URL string from a valid UTF-8 string.
- *
  * @param string $string to filter
  * @return string
  */
@@ -655,7 +675,6 @@ function sanitize_url(string $string): string
 
 /**
  * Filter a valid UTF-8 string to be file name safe.
- *
  * @param string $string to filter
  * @return string
  */
@@ -689,13 +708,13 @@ abstract class v
     /**
      * 没定的方法
      * @param string $method
-     * @param String $arg
+     * @param String $arguments
      */
-    public function __call($method, $args)
+    public function __call($method, $arguments)
     {
         header('HTTP/1.1 404 Not Found');
         $this->debug = new \ounun\debug(\ounun\config::$dir_root.'data/logs/error_404_'.date('Ymd').'.txt',false,false,false,true);
-        error404("\$method:{$method} \$args:".json_encode($args)."");
+        error404("\$method:{$method} \$args:".json_encode($arguments)."");
     }
 
     /** @var \ounun\mvc\model\cms cms */
@@ -853,7 +872,6 @@ abstract class v
         }
     }
 
-
     /** @var  \ounun\template  Template句柄容器 */
     public static $tpl = null;
 
@@ -897,7 +915,6 @@ abstract class v
             '{$url_mip}' => \ounun\config::$url_mip,
             '{$url_api}' => \ounun\config::$url_api,
             '{$url_app}' => \ounun\config::url_page(),
-
 
             '{$canonical_pc}' => \ounun\config::$url_www . $url_base,
             '{$canonical_mip}' => \ounun\config::$url_mip . $url_base,

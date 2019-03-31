@@ -43,7 +43,7 @@ abstract class cmd
     /**
      *
      */
-    public function help()
+    public function help(array $argv)
     {
         console::echo("命令:",console::Color_Purple,'');
         console::echo("({$this->description})");

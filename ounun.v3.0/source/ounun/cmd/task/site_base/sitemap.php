@@ -4,7 +4,6 @@ namespace ounun\cmd\task\site_base;
 
 use ounun\api_sdk\com_baidu;
 use ounun\cmd\task\task_base;
-use ounun\logs;
 
 class sitemap extends task_base
 {

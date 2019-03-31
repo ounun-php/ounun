@@ -11,7 +11,7 @@ class console
     const Color_Black       = "\033[0;30m";
     const Color_Dark_Gray   = "\033[1;30m";
     const Color_Blue        = "\033[0;34m";
-    const Color_Light_BBlue  = "\033[1;34m";
+    const Color_Light_BBlue = "\033[1;34m";
     const Color_Green       = "\033[0;32m";
     const Color_Light_Green = "\033[1;32m";
     const Color_Cyan        = "\033[0;36m";
@@ -25,16 +25,25 @@ class console
     const Color_Light_Gray  = "\033[0;37m";
     const Color_White       = "\033[1;37m";
 
+    /** @var array 不同深度的颜色 */
+    const Depth_Colors      = [
+        self::Color_Blue,
+        self::Color_Black,
+        self::Color_Green,
+        self::Color_Cyan,
+        self::Color_Red,
+        self::Color_Purple,
+        self::Color_Brown,
+    ];
+    /** @var int 深度的颜色数量  */
+    const Depth_Colors_Count = 7;
+
     /** @var string 命令名称 */
     public $name;
-
     /** @var string 命令版本 */
     public $version;
-
     /** @var cmd[] 命令 */
     public $commands = [];
-
-
 
     /** @var array  默认提供的命令 */
     protected static $default_cmds = [
@@ -170,6 +179,34 @@ class console
             echo $msg.$end;
         }else{
             echo $color.$msg.self::Color_None.$end;
+        }
+    }
+
+    /**
+     * @param $array
+     * @param string $tab
+     * @param int $depth0
+     */
+    static public function print_r($array, $tab = '', int $depth0 = 0)
+    {
+
+        $depth = $depth0 % static::Depth_Colors_Count;
+        $color = static::Depth_Colors[$depth];
+        // echo "\$depth:{$depth} - ";
+        if(is_array($array)){
+            if(empty($array)){
+                static::echo("[]",$color);
+            }else{
+                static::echo("[",$color);
+                foreach ($array as $k => $v){
+                    static::echo("\t".$tab.(is_numeric($k)?$k:'"'.$k.'"'),$color,'');
+                    static::echo( ' => ',static::Color_Light_Gray,'');
+                    static::print_r($v,"\t".$tab,$depth+1);
+                }
+                static::echo($tab."]",$color);
+            }
+        }else {
+            static::echo( is_numeric($array)?$array:'"'.$array.'"',$color);
         }
     }
 }

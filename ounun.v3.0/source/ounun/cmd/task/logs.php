@@ -1,56 +1,34 @@
 <?php
-namespace ounun;
+namespace ounun\cmd\task;
 
 class logs
 {
-    /** @var int 0:正常(灰)  */
-    const state_normal = 0;
-    /** @var int 1:失败(红色) */
-    const state_fail   = 1;
-    /** @var int 6:警告突出(橙黄)  */
-    const state_warn   = 6;
-    /** @var int 99:成功(绿色) */
-    const state_ok     = 99;
-
-    const state        = [
-        self::state_normal => '正常',
-        self::state_fail   => '失败',
-        self::state_warn   => '警告',
-        self::state_ok     => '成功',
-    ];
-
     /** @var \ounun\pdo  */
     protected $_db        = null;
     /** @var string 表名 */
     protected $_table     = '';
-//    /** @var int 自增长ID  */
-//    protected $_id      = 0;
+
     /** @var int 任务ID  */
     protected $_task_id   = 0;
     /** @var string 分类 */
     protected $_tag       = '';
     /** @var string 子分类 */
     protected $_tag_sub   = '';
-    /** @var int 状态  */
-//    protected $_state     = 0 ;
     /** @var array 日志数据logs_data  */
     protected $_data      = [];
     /** @var int 添加时间 */
     protected $_time_add  = 0;
-    /** @var int 完成时间 */
-    // protected $_time_end  = 0;
     /** @var array 任务参数paras  */
-    protected $_exts      = [];
+    protected $_extend    = [];
 
     /**
      * logs constructor.
-     * @param mysqli $db    \ounun\pdo
+     * @param \ounun\pdo $db
      * @param string $table 表名
      */
     public function __construct(\ounun\pdo $db,string $table = 'z_task_logs')
     {
-        $this->_db    = $db;
-        $this->_table = $table;
+        $this->table_set($db,$table);
     }
 
     /**
@@ -59,49 +37,63 @@ class logs
      * @param string $tag
      * @param string $tag_sub
      * @param int $time_add
+     * @param string $table
+     * @param \ounun\pdo|null $db
      */
-    public function task(int $task_id, string $tag, string $tag_sub, int $time_add)
+    public function task(int $task_id, string $tag, string $tag_sub, int $time_add,string $table = '',\ounun\pdo $db = null)
     {
         $this->_task_id  = $task_id;
         $this->_tag      = $tag;
         $this->_tag_sub  = $tag_sub;
-     // $this->_state    = $state;
         $this->_data     = [];
-        $this->_time_add = $time_add;
-     // $this->_time_end = 0;
-        $this->_exts     = [];
+        $this->_time_add = $time_add ==  0 ? time() : $time_add;
+        $this->_extend   = [];
+        // $table
+        $this->table_set($db,$table);
+    }
+
+    /**
+     * 任务参数paras/扩展json
+     * @param array $extend
+     */
+    public function extend_set(array $extend = [])
+    {
+        $this->_extend = $extend;
+    }
+
+    /**
+     * @param \ounun\pdo $db
+     * @param string $table
+     */
+    public function table_set(\ounun\pdo $db = null, string $table = '')
+    {
+        $db && $this->_db    = $db;
+        $table && $this->_table = $table;
     }
 
     /**
      * 日志数据logs_data
-     * @param bool $state   状态  0:正常(灰) 1:失败(红色) 6:突出(橙黄)  99:成功(绿色)
+     * @param int $state    状态  0:正常(灰) 1:失败(红色) 6:突出(橙黄)  99:成功(绿色)
      * @param int $time     时间
      * @param string $logs  内容
      */
     public function data(int $state,int $time,string $logs)
     {
+        $time          = $time  ==  0 ? time() : $time;
         /**  状态  时间 内容  */
         $this->_data[] = ['s'=>$state,'t'=>$time,'l'=>$logs];
     }
 
     /**
-     * 任务参数paras/扩展json
-     * @param array $paras
-     */
-    public function exts(array $paras = [])
-    {
-        $this->_exts = $paras;
-    }
-
-    /**
      * 写入日志
-     * @param bool $over_clean 写完是否清理logs数据
+     * @param int $state
+     * @param float $run_time
+     * @param bool $over_clean  写完是否清理logs数据
      */
     public function write(int $state,float $run_time,bool $over_clean = true)
     {
-        if(($this->_task_id || $this->_tag) && $this->_data)
-        {
-         // $this->_state  = $state;
+        if(($this->_task_id || $this->_tag) && $this->_data) {
+            // $this->_state  = $state;
             $bind = [
                 'task_id'  => $this->_task_id,
                 'tag'      => $this->_tag,
@@ -111,14 +103,13 @@ class logs
                 'time_add' => $this->_time_add,
                 'time_end' => time(),
                 'time_run' => $run_time,
-                'exts'     => json_encode($this->_exts,JSON_UNESCAPED_UNICODE),
+                'extend'   => json_encode($this->_extend,JSON_UNESCAPED_UNICODE),
             ];
-            $id = $this->_db->insert("`{$this->_table}`",$bind);
-            if($id && $over_clean)
-            {
+            $id = $this->_db->table("`{$this->_table}`")->insert($bind);
+            if($id && $over_clean) {
                 $this->task(0,'','',0);
             }
-            echo $this->_db->sql()."\n";
+            // echo $this->_db->sql()."\n";
         }
     }
 }

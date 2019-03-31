@@ -1,7 +1,6 @@
 <?php
 namespace ounun;
 
-
 class template
 {
     /** @var string 模板目录(当前) */

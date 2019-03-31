@@ -1,13 +1,5 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: dreamxyp
- * Date: 2019/3/2
- * Time: 23:48
- */
-
 namespace ounun\tool;
-
 
 class data
 {

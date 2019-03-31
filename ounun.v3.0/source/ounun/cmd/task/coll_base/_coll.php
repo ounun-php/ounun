@@ -3,6 +3,7 @@ namespace ounun\cmd\task\coll_base;
 
 use ounun\api_sdk\com_baidu;
 use ounun\api_sdk\com_showapi;
+use ounun\cmd\task\logs;
 use ounun\cmd\task\manage;
 use ounun\cmd\task\task_base;
 use ounun\config;
@@ -10,21 +11,24 @@ use ounun\pdo;
 
 abstract class _coll extends task_base
 {
-    /**  表名 */
+    /** @var string  表名 */
     protected $_db_table = '';
-    /**  根目录 */
+    /** @var string  根目录 */
     protected $_dir_root = '';
-    /**  目录名 */
+    /** @var string  目录名 */
     protected $_dir_name = '';
-    /**  目标网址根 */
+    /** @var string  目标网址根 */
     protected $_url_root = '';
 
-    /** @var int 模式  0:采集全部  1:检查 2:更新   见 \task\manage::mode_XXX */
-    protected $_mode     =  manage::mode_dateup;
     /** @var int 图片wget max */
     protected $_wget_loop_max       = 3;
     /** @var int 文件最小文件大小 */
     protected $_wget_file_mini_size = 1024;
+
+    /** @var pdo 采集数据录入的数据库 */
+    protected $_db_caiji;
+
+    protected $_db_site;
 
     /**
      * @param string $url_root
@@ -33,12 +37,12 @@ abstract class _coll extends task_base
      * @param string $dir_root
      * @param string $libs_key
      */
-    public function configs(string $url_root,string $table,string $dir_name,string $dir_root,string $libs_key = '')
+    public function config_set(string $url_root, string $table, string $dir_name, string $dir_root, string $libs_key = '')
     {
         if($libs_key) {
             $libs = config::$global['caiji'][$libs_key];
             if($libs && $libs['db']) {
-                $this->_db   = pdo::instance($libs['db']);
+                $this->_db   = pdo::instance($libs_key,$libs['db']);
             }
         }
         // -------------------------------------------------
@@ -72,7 +76,7 @@ abstract class _coll extends task_base
 
 
         try {
-            $this->_logs_state = \ounun\logs::state_ok;
+            $this->_logs_state = manage::Logs_Succeed;
             // $this->url_refresh();
             // print_r(['$paras'=>$paras,'_args'=>$this->_args]);
             // list($libs_key,$in_table,$out_table) = explode(',',$this->_args['exts']);
