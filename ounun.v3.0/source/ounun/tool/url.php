@@ -17,9 +17,9 @@ class url
      * @param string $a_ext
      * @return string
      */
-    public function a(array $data, int $len=0, string $a_ext=''):string
+    public function a(array $data, int $len = 0, string $a_ext = ''): string
     {
-        $tag  = $len?str::msubstr($data['title'],0,$len,true) :$data['title'];
+        $tag = $len ? str::msubstr($data['title'], 0, $len, true) : $data['title'];
         return "<a href=\"{$data['url']}\" title=\"{$data['title']}\" {$a_ext}>{$tag}</a>";
     }
 
@@ -28,15 +28,13 @@ class url
      * @param int $len
      * @return array
      */
-    public function a_m(array $urls, int $len=0):array
+    public function a_m(array $urls, int $len = 0): array
     {
-        $rs       = [];
-        foreach($urls as $v)
-        {
-            if($v['url'] && $v['title'])
-            {
-                $ext  = $v['ext']?$v['ext']:'';
-                $rs[] = $this->a($v,$len,$ext);
+        $rs = [];
+        foreach ($urls as $v) {
+            if ($v['url'] && $v['title']) {
+                $ext = $v['ext'] ? $v['ext'] : '';
+                $rs[] = $this->a($v, $len, $ext);
             }
         }
         return $rs;
@@ -48,10 +46,10 @@ class url
      * @param int $len
      * @return string
      */
-    public function a_s(array $urls,string $glue = "", int $len=0):string
+    public function a_s(array $urls, string $glue = "", int $len = 0): string
     {
-        $rs = $this->a_m($urls,$len);
-        return implode($glue,$rs);
+        $rs = $this->a_m($urls, $len);
+        return implode($glue, $rs);
     }
 
     /**
@@ -60,19 +58,17 @@ class url
      * @param bool $is_html
      * @return array
      */
-    public function kv2a_m(array $array, string $url_fun, $is_html=true):array
+    public function kv2a_m(array $array, string $url_fun, $is_html = true): array
     {
-        $rs       = [];
-        foreach ($array as $id => $title)
-        {
-            $url  = $this->$url_fun($id);
+        $rs = [];
+        foreach ($array as $id => $title) {
+            $url = $this->$url_fun($id);
             $rs[] = [
                 'title' => $title,
-                'url'   => $url
+                'url' => $url
             ];
         }
-        if($is_html)
-        {
+        if ($is_html) {
             $rs = $this->a_m($rs);
         }
         return $rs;
@@ -85,9 +81,9 @@ class url
      * @param string $glue
      * @return string
      */
-    public function kv2a_s(array $array, string $url_fun,string $glue = ""):string
+    public function kv2a_s(array $array, string $url_fun, string $glue = ""): string
     {
-        $rs = $this->kv2a_m($array,$url_fun,true);
-        return implode($glue,$rs);
+        $rs = $this->kv2a_m($array, $url_fun, true);
+        return implode($glue, $rs);
     }
 }

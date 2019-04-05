@@ -16,7 +16,7 @@ class time
      * @param int $day_nums
      * @return int
      */
-    static public function xtime(int $day_nums):int
+    static public function xtime(int $day_nums): int
     {
         $day_time = time() - $day_nums * 3600 * 24;
         return strtotime(date("Y-m-d 00:00:00", $day_time));

@@ -64,6 +64,7 @@ echo $bitcoin->error;
 echo $bitcoin->status;
 
 */
+
 namespace plugins\bitcoin;
 
 class bitcoin
@@ -95,14 +96,14 @@ class bitcoin
      */
     public function __construct($username, $password, $host = 'localhost', $port = 8332, $url = null)
     {
-        $this->username      = $username;
-        $this->password      = $password;
-        $this->host          = $host;
-        $this->port          = $port;
-        $this->url           = $url;
+        $this->username = $username;
+        $this->password = $password;
+        $this->host = $host;
+        $this->port = $port;
+        $this->url = $url;
 
         // Set some defaults
-        $this->proto         = 'http';
+        $this->proto = 'http';
         $this->ca_certificate = null;
     }
 
@@ -111,16 +112,16 @@ class bitcoin
      */
     public function setSSL($certificate = null)
     {
-        $this->proto         = 'https'; // force HTTPS
+        $this->proto = 'https'; // force HTTPS
         $this->ca_certificate = $certificate;
     }
 
     public function __call($method, $params)
     {
-        $this->status       = null;
-        $this->error        = null;
+        $this->status = null;
+        $this->error = null;
         $this->raw_response = null;
-        $this->response     = null;
+        $this->response = null;
 
         // If no parameters are passed, this will be an empty array
         $params = array_values($params);
@@ -132,20 +133,20 @@ class bitcoin
         $request = json_encode(array(
             'method' => $method,
             'params' => $params,
-            'id'     => $this->id
+            'id' => $this->id
         ));
 
         // Build the cURL session
-        $curl    = curl_init("{$this->proto}://{$this->host}:{$this->port}/{$this->url}");
+        $curl = curl_init("{$this->proto}://{$this->host}:{$this->port}/{$this->url}");
         $options = array(
-            CURLOPT_HTTPAUTH       => CURLAUTH_BASIC,
-            CURLOPT_USERPWD        => $this->username . ':' . $this->password,
+            CURLOPT_HTTPAUTH => CURLAUTH_BASIC,
+            CURLOPT_USERPWD => $this->username . ':' . $this->password,
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_FOLLOWLOCATION => true,
-            CURLOPT_MAXREDIRS      => 10,
-            CURLOPT_HTTPHEADER     => array('Content-type: application/json'),
-            CURLOPT_POST           => true,
-            CURLOPT_POSTFIELDS     => $request
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_HTTPHEADER => array('Content-type: application/json'),
+            CURLOPT_POST => true,
+            CURLOPT_POSTFIELDS => $request
         );
 
         // This prevents users from getting the following warning when open_basedir is set:
@@ -171,7 +172,7 @@ class bitcoin
 
         // Execute the request and decode to an array
         $this->raw_response = curl_exec($curl);
-        $this->response     = json_decode($this->raw_response, true);
+        $this->response = json_decode($this->raw_response, true);
 
         // If the status is not 200, something is wrong
         $this->status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
@@ -206,8 +207,7 @@ class bitcoin
             }
         }
 
-        if ($this->error)
-        {
+        if ($this->error) {
             return false;
         }
 

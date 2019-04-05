@@ -1,11 +1,12 @@
 <?php
+
 namespace plugins\html2markdown;
 
 /**
  * default configuration
  */
 define('MDFY_BODYWIDTH', false);
-define('MDFY_KEEPHTML' , true);
+define('MDFY_KEEPHTML', true);
 
 /**
  * HTML to Markdown converter class

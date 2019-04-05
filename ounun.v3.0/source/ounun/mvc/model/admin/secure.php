@@ -1,5 +1,8 @@
 <?php
+
 namespace ounun\mvc\model\admin;
+
+use plugins\xxtea;
 
 class secure
 {
@@ -31,75 +34,73 @@ class secure
      * @param  $data array
      * @return string
      */
-    public function url(string $url = '',array $data = [])
+    public function url(string $url = '', array $data = [])
     {
         unset($data['sign']);
 
         // 没有时间 自动加上
-        if(!$data['time'])
-        {
+        if (!$data['time']) {
             $data['time'] = time();
         }
 
         ksort($data);
-        $rs      = [];
-        foreach ($data as $k => $v)
-        {
-            $rs[]= "{$k}={$v}";
+        $rs = [];
+        foreach ($data as $k => $v) {
+            $rs[] = "{$k}={$v}";
         }
-        $rs[]         = "key={$this->key}";
-        $sign2_s      = implode('&',$rs);
+        $rs[] = "key={$this->key}";
+        $sign2_s = implode('&', $rs);
 
         $data['sign'] = md5($sign2_s);
-        return url($url,$data);
+        return url_build_query($url, $data);
     }
 
     /**
      * @param string $url_root
-     * @param array  $paras
+     * @param array $paras
      * @return array
      */
-    public function wget(string $url_root,array $paras = [])
+    public function wget(string $url_root, array $paras = [])
     {
-        $url  = $this->url($url_root,$paras);
-        $c    = @\plugins\curl\http::file_get_contents($url);
+        $url = $this->url($url_root, $paras);
+        $c = @\plugins\curl\http::file_get_contents($url);
         echo "\$url:{$url}\n";
         // '$c'=>$c
         // print_r(['$url'=>$url,'$c'=>$c]);
-        if($c) {
+        if ($c) {
             $json = json_decode($c, true);
-            if($json && $json['ret'] && $json['data']) {
+            if ($json && $json['ret'] && $json['data']) {
                 $data = $this->decode($json['data']);
-                if($data) {
-                    $json['ret']  = true;
+                if ($data) {
+                    $json['ret'] = true;
                     $json['data'] = $data;
                     return $json;
-                }else {
+                } else {
                     $error_msg = "出错:解码出错:({$json['data']})";
                 }
-            }elseif($json && $json['error']) {
-                $json['ret']   = false;
+            } elseif ($json && $json['error']) {
+                $json['ret'] = false;
                 return $json;
-            }else {
+            } else {
                 $error_msg = "出错:数据出错:({$c})";
             }
-        }else {
+        } else {
             $error_msg = "出错:服务器没反:({$url_root})";
         }
-        return ['ret'=>false,'error'=>$error_msg];
+        return ['ret' => false, 'error' => $error_msg];
     }
-    
+
     /**
      * 输出
      * @param array $data
      */
     public function outs(array $data)
     {
-        $data['ret'] = $data['ret']?true:false;
-        if($data['ret'] && $data['data']) {
+        $data['ret'] = $data['ret'] ? true : false;
+        if ($data['ret'] && $data['data']) {
             $data['data'] = $this->encode($data['data']);
         }
-        exit(json_encode($data,JSON_UNESCAPED_UNICODE));
+        exit(json_encode($data, JSON_UNESCAPED_UNICODE));
     }
 
     /**
@@ -109,28 +110,28 @@ class secure
      * @param int $time_fault_tolerant
      * @return array [true,'ok'] | [false,Error]
      */
-    public function check(array $data,int $time_now,int $time_fault_tolerant = 600):array 
+    public function check(array $data, int $time_now, int $time_fault_tolerant = 600): array
     {
-        $time_diff    = $time_now - (int)$data['time'];
+        $time_diff = $time_now - (int)$data['time'];
         if ($time_diff > $time_fault_tolerant) {
             return error("出错:运行超时");
         }
-        if($time_diff < 0-$time_fault_tolerant/10) {
+        if ($time_diff < 0 - $time_fault_tolerant / 10) {
             return error("出错:运行超时(服务器时间有误:{$time_diff})");
         }
-        $sign    = $data['sign'];
+        $sign = $data['sign'];
         unset($data['sign']);
         //
         ksort($data);
-        $rs      = [];
-        foreach ($data as $k => $v)  {
-            $rs[]= "{$k}={$v}";
+        $rs = [];
+        foreach ($data as $k => $v) {
+            $rs[] = "{$k}={$v}";
         }
-        $rs[]    = "key={$this->key}";
-        $sign2_s = implode('&',$rs);
-        $sign2   = md5($sign2_s);
+        $rs[] = "key={$this->key}";
+        $sign2_s = implode('&', $rs);
+        $sign2 = md5($sign2_s);
         // print_r(['$sign2'=>$sign2,'$sign'=>$sign,'$sign2_s'=>$sign2_s]);
-        if($sign && 32 == strlen($sign) && $sign2 == $sign) {
+        if ($sign && 32 == strlen($sign) && $sign2 == $sign) {
             return succeed('ok');
         }
         return error("出错:校验出错");
@@ -142,8 +143,8 @@ class secure
      */
     public function encode($data)
     {
-        $data_json  = json_encode($data);
-        return \ounun\xxtea::encrypt($data_json,$this->key);
+        $data_json = json_encode($data);
+        return xxtea::encrypt($data_json, $this->key);
     }
 
     /**
@@ -152,7 +153,7 @@ class secure
      */
     public function decode(string $data_json)
     {
-        $data_json2 = \ounun\xxtea::decrypt($data_json,$this->key);
-        return json_decode($data_json2,true);
+        $data_json2 = xxtea::decrypt($data_json, $this->key);
+        return json_decode($data_json2, true);
     }
 }

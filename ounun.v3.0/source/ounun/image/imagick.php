@@ -5,6 +5,7 @@ namespace ounun\image;
 
 class imagick
 {
+    /** @var \Imagick */
     private $image = null;
     private $type = null;
 
@@ -39,7 +40,7 @@ class imagick
             $canvas = new Imagick();
             $images = $image->coalesceImages();
             foreach ($images as $frame) {
-                $img = new Imagick();
+                $img = new \Imagick();
                 $img->readImageBlob($frame);
                 $img->cropImage($width, $height, $x, $y);
                 $canvas->addImage($img);
@@ -301,7 +302,7 @@ class imagick
     public function set_type($type = 'png')
     {
         $this->type = $type;
-        $this->image->setImageFormat($type);
+        $this->image->setimageformat($type);
     }
 
     // 获取源图像类型

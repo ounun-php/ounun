@@ -16,10 +16,10 @@ class collect
      * @param string $content
      * @return array
      */
-    static function img_urls(string $content):array
+    static function img_urls(string $content): array
     {
-        preg_match_all('/<img(.*?)src="(.*?)(?=")/si',$content,$imgarr);///(?<=img.src=").*?(?=")/si
-        preg_match_all('/(?<=src=").*?(?=")/si',implode('" ',$imgarr[0]).'" ',$imgarr);
+        preg_match_all('/<img(.*?)src="(.*?)(?=")/si', $content, $imgarr);///(?<=img.src=").*?(?=")/si
+        preg_match_all('/(?<=src=").*?(?=")/si', implode('" ', $imgarr[0]) . '" ', $imgarr);
         return $imgarr[0];
     }
 }

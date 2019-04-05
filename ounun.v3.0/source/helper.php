@@ -23,10 +23,10 @@ defined('Environment') || define('Environment', environment());
 function ip(): string
 {
     static $hdr_ip;
-    if(empty($hdr_ip)){
-        if(isset($_SERVER['HTTP_CDN_SRC_IP'])) {
+    if (empty($hdr_ip)) {
+        if (isset($_SERVER['HTTP_CDN_SRC_IP'])) {
             $hdr_ip = stripslashes($_SERVER['HTTP_CDN_SRC_IP']);
-        }else {
+        } else {
             if (isset($_SERVER['HTTP_CLIENT_IP'])) {
                 $hdr_ip = stripslashes($_SERVER['HTTP_CLIENT_IP']);
             } else {
@@ -34,7 +34,7 @@ function ip(): string
                     $hdr_ip = stripslashes($_SERVER['HTTP_X_FORWARDED_FOR']);
                 } else {
                     $hdr_ip = stripslashes($_SERVER['REMOTE_ADDR']);
-                    if(empty($hdr_ip)){
+                    if (empty($hdr_ip)) {
                         $hdr_ip = '127.0.0.1';
                     }
                 }
@@ -49,7 +49,7 @@ function ip(): string
  * 输出带参数的URL
  * @param string $url URL
  * @param array $data_query 数据
- * @param array $replace_ext  要替换的数据
+ * @param array $replace_ext 要替换的数据
  * @param array $skip 忽略的数据 如:page
  * @return string
  */
@@ -75,7 +75,7 @@ function url_build_query(string $url, array $data_query, array $replace_ext = []
                 }
             }
         }
-        $rs     = [];
+        $rs = [];
         $rs_str = '';
         foreach ($data_query as $key => $value) {
             if ('{page}' === $value) {
@@ -146,7 +146,7 @@ function url_to_mod(string $uri): array
 function url_check(string $url_original = "", bool $ext_req = true, string $domain = '')
 {
     // URL去重
-    $url       = explode('?', $_SERVER['REQUEST_URI'], 2);
+    $url = explode('?', $_SERVER['REQUEST_URI'], 2);
     $url_reset = '';
     if (false == $ext_req && $url[1]) {
         $url_reset = $url_original;
@@ -243,16 +243,16 @@ function go_msg(string $msg, string $url = ''): void
 /**
  * 返回一个错误
  * @param string $message
- * @param int    $error_code
- * @param array  $data
+ * @param int $error_code
+ * @param array $data
  * @return array
  */
-function error(string $message = '',int $error_code = 1,array $data = [])
+function error(string $message = '', int $error_code = 1, array $data = [])
 {
     return [
-        'message'    => $message,
+        'message' => $message,
         'error_code' => $error_code,
-        'data'       => $data
+        'data' => $data
     ];
 }
 
@@ -275,7 +275,7 @@ function error_is($data)
  * @param $data
  * @return string
  */
-function error_message($data):string
+function error_message($data): string
 {
     return $data['message'];
 }
@@ -285,7 +285,7 @@ function error_message($data):string
  * @param $data
  * @return int
  */
-function error_code($data):int
+function error_code($data): int
 {
     return $data['error_code'];
 }
@@ -295,12 +295,12 @@ function error_code($data):int
  * @param string $message
  * @return array
  */
-function succeed($data,string $message = '')
+function succeed($data, string $message = '')
 {
     return [
-        'message'    => $message,
+        'message' => $message,
         'error_code' => 0,
-        'data'       => $data
+        'data' => $data
     ];
 }
 
@@ -372,7 +372,7 @@ function base58_encode($string)
         }
         break;
     }
-    return (string) $output;
+    return (string)$output;
 }
 
 /**
@@ -392,7 +392,7 @@ function base58_decode($base58)
         return '';
     }
     $indexes = array_flip(str_split($alphabet));
-    $chars   = str_split($base58);
+    $chars = str_split($base58);
     foreach ($chars as $char) {
         if (isset($indexes[$char]) === false) {
             return false;
@@ -569,7 +569,7 @@ function expires(int $expires = 0, string $etag = '', int $LastModified = 0)
         $time = time();
         header("Expires: " . gmdate("D, d M Y H:i:s", $time + $expires) . " GMT");
         header("Cache-Control: max-age=" . $expires);
-        if($LastModified) {
+        if ($LastModified) {
             header("Last-Modified: " . gmdate("D, d M Y H:i:s", $LastModified) . " GMT");
         }
         if ($etag) {
@@ -784,6 +784,7 @@ abstract class v
             static::$debug->logs($k, $log);
         }
     }
+
     /**
      * 停止 调试
      */
@@ -803,8 +804,8 @@ abstract class v
         if (!$mod) {
             $mod = [\ounun\config::def_method];
         }
-        $method             = $mod[0];
-        \ounun\config::$view  = $this;
+        $method = $mod[0];
+        \ounun\config::$view = $this;
         $this->$method($mod);
     }
 
@@ -827,28 +828,28 @@ abstract class v
     {
         // url_check
         $this->page_file = $page_file;
-        $this->page_url  = \ounun\config::url_page($this->page_file);
+        $this->page_url = \ounun\config::url_page($this->page_file);
         url_check($this->page_url, $ext_req, $domain);
 
         // cache_html
-        $this->cache_html_trim     = '' == Environment ? $cache_html_trim : false;
+        $this->cache_html_trim = '' == Environment ? $cache_html_trim : false;
         if ($is_cache_html) {
             $this->cache_html_time = $cache_html_time > 300 ? $cache_html_time : static::$cache_html_time;
             $this->cache_html($this->page_url);
         }
 
         // cms
-        $cls       = \ounun\config::$app_cms_classname;
+        $cls = \ounun\config::$app_cms_classname;
 
 
         // template
-        self::$tpl   || self::$tpl   = new \ounun\template(\ounun\config::$tpl_style, \ounun\config::$tpl_default, static::$cache_html_trim);
+        self::$tpl || self::$tpl = new \ounun\template(\ounun\config::$tpl_style, \ounun\config::$tpl_default, static::$cache_html_trim);
 
         // db
-        if(empty(static::$db_v)){
+        if (empty(static::$db_v)) {
             static::$db_v = \ounun\pdo::instance(\ounun\config::$database_default);
         }
-        self::$cms     = new $cls(static::$db_v);
+        self::$cms = new $cls(static::$db_v);
     }
 
     /**
@@ -891,7 +892,7 @@ abstract class v
     public function __call($method, $arguments)
     {
         header('HTTP/1.1 404 Not Found');
-        $this->debug = new \ounun\debug(\ounun\config::$dir_root.'data/logs/error_404_'.date('Ymd').'.txt',false,false,false,true);
-        error404("\$method:{$method} \$args:".json_encode($arguments)."");
+        $this->debug = new \ounun\debug(\ounun\config::$dir_root . 'data/logs/error_404_' . date('Ymd') . '.txt', false, false, false, true);
+        error404("\$method:{$method} \$args:" . json_encode($arguments) . "");
     }
 }

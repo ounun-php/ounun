@@ -1,4 +1,5 @@
 <?php
+
 namespace plugins\html2markdown;
 
 class converter_extra extends converter

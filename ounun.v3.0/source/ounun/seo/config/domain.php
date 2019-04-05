@@ -1,4 +1,5 @@
 <?php
+
 namespace ounun\seo\config;
 
 
@@ -8,40 +9,40 @@ class domain
     const tpl_count = 1;
 
     /** 二级顶级域名 */
-    const pix_sub   = [
-        'com.af','net.af','org.af','com.ag','net.ag','nom.ag','org.ag','com.ar','co.at','or.at','com.au','id.au','net.au','org.au',
-        'com.br','co.bz','com.bz','net.bz','org.bz','co.cm','com.cm','net.cm',
-        'ac.cn','ah.cn','bj.cn','com.cn','cq.cn','fj.cn','gd.cn','gov.cn','gs.cn','gx.cn','gz.cn','ha.cn','hb.cn','he.cn','hi.cn','hk.cn','hl.cn','hn.cn','jl.cn','js.cn','jx.cn','ln.cn','mo.cn','net.cn','nm.cn','nx.cn','org.cn','qh.cn','sc.cn','sd.cn','sh.cn','sn.cn','sx.cn','tj.cn','tw.cn','xj.cn','xz.cn','yn.cn','zj.cn',
+    const pix_sub = [
+        'com.af', 'net.af', 'org.af', 'com.ag', 'net.ag', 'nom.ag', 'org.ag', 'com.ar', 'co.at', 'or.at', 'com.au', 'id.au', 'net.au', 'org.au',
+        'com.br', 'co.bz', 'com.bz', 'net.bz', 'org.bz', 'co.cm', 'com.cm', 'net.cm',
+        'ac.cn', 'ah.cn', 'bj.cn', 'com.cn', 'cq.cn', 'fj.cn', 'gd.cn', 'gov.cn', 'gs.cn', 'gx.cn', 'gz.cn', 'ha.cn', 'hb.cn', 'he.cn', 'hi.cn', 'hk.cn', 'hl.cn', 'hn.cn', 'jl.cn', 'js.cn', 'jx.cn', 'ln.cn', 'mo.cn', 'net.cn', 'nm.cn', 'nx.cn', 'org.cn', 'qh.cn', 'sc.cn', 'sd.cn', 'sh.cn', 'sn.cn', 'sx.cn', 'tj.cn', 'tw.cn', 'xj.cn', 'xz.cn', 'yn.cn', 'zj.cn',
         'com.co',
-        'ar.com','br.com','cn.com','de.com','eu.com','gb.com','gr.com','hu.com','jpn.com','kr.com','no.com','qc.com','ru.com','sa.com','se.com','uk.com','us.com','uy.com','za.com',
-        'net.co','nom.co','com.de',
-        'com.ec','fin.ec','info.ec','med.ec','net.ec','pro.ec','com.es','nom.es','org.es','co.gg','net.gg','org.gg','co.gl','com.gl','net.gl','org.gl','com.gr',
-        'co.gy','com.gy','net.gy','com.hk','com.hn','net.hn','org.hn','com.ht','info.ht','net.ht','org.ht','co.im','com.im','net.im','org.im','co.in','firm.in','gen.in','ind.in','net.in','org.in','co.je','net.je','org.je','biz.ki','com.ki','info.ki','net.ki','org.ki','co.kr','co.lc','com.lc','net.lc','org.lc','com.lv','net.lv','org.lv','co.mg','com.mg','net.mg','org.mg','co.ms','com.ms','org.ms','co.mu','com.mu','net.mu','org.mu','com.mx','org.mx','gb.net','hu.net','in.net','jp.net','se.net','uk.net','co.nl','co.nz','kiwi.nz','net.nz','org.nz','com.pe','net.pe','nom.pe','org.pe','com.ph','net.ph','org.ph','biz.pl','com.pl','info.pl','net.pl','org.pl','com.pt','com.ro','org.ro','com.ru','net.ru','org.ru','pp.ru','com.sb','net.sb','org.sb','com.sc','net.sc','org.sc','com.sg','com.so','net.so','org.so','club.tw','com.tw','ebiz.tw','game.tw','idv.tw','co.uk','me.uk','org.uk',
-        'com.vc','net.vc','org.vc','ac.vn','com.vn','gov.vn','health.vn','info.vn','int.vn','name.vn','net.vn','org.vn','pro.vn',
+        'ar.com', 'br.com', 'cn.com', 'de.com', 'eu.com', 'gb.com', 'gr.com', 'hu.com', 'jpn.com', 'kr.com', 'no.com', 'qc.com', 'ru.com', 'sa.com', 'se.com', 'uk.com', 'us.com', 'uy.com', 'za.com',
+        'net.co', 'nom.co', 'com.de',
+        'com.ec', 'fin.ec', 'info.ec', 'med.ec', 'net.ec', 'pro.ec', 'com.es', 'nom.es', 'org.es', 'co.gg', 'net.gg', 'org.gg', 'co.gl', 'com.gl', 'net.gl', 'org.gl', 'com.gr',
+        'co.gy', 'com.gy', 'net.gy', 'com.hk', 'com.hn', 'net.hn', 'org.hn', 'com.ht', 'info.ht', 'net.ht', 'org.ht', 'co.im', 'com.im', 'net.im', 'org.im', 'co.in', 'firm.in', 'gen.in', 'ind.in', 'net.in', 'org.in', 'co.je', 'net.je', 'org.je', 'biz.ki', 'com.ki', 'info.ki', 'net.ki', 'org.ki', 'co.kr', 'co.lc', 'com.lc', 'net.lc', 'org.lc', 'com.lv', 'net.lv', 'org.lv', 'co.mg', 'com.mg', 'net.mg', 'org.mg', 'co.ms', 'com.ms', 'org.ms', 'co.mu', 'com.mu', 'net.mu', 'org.mu', 'com.mx', 'org.mx', 'gb.net', 'hu.net', 'in.net', 'jp.net', 'se.net', 'uk.net', 'co.nl', 'co.nz', 'kiwi.nz', 'net.nz', 'org.nz', 'com.pe', 'net.pe', 'nom.pe', 'org.pe', 'com.ph', 'net.ph', 'org.ph', 'biz.pl', 'com.pl', 'info.pl', 'net.pl', 'org.pl', 'com.pt', 'com.ro', 'org.ro', 'com.ru', 'net.ru', 'org.ru', 'pp.ru', 'com.sb', 'net.sb', 'org.sb', 'com.sc', 'net.sc', 'org.sc', 'com.sg', 'com.so', 'net.so', 'org.so', 'club.tw', 'com.tw', 'ebiz.tw', 'game.tw', 'idv.tw', 'co.uk', 'me.uk', 'org.uk',
+        'com.vc', 'net.vc', 'org.vc', 'ac.vn', 'com.vn', 'gov.vn', 'health.vn', 'info.vn', 'int.vn', 'name.vn', 'net.vn', 'org.vn', 'pro.vn',
         'co.za'
     ];
 
     /** 顶级域名 */
-    const pix       = [
-        'ac','accountant','ae','aero','af','ag','am','as','asia','at','auction','audio','auto',
-        'band','bar','be','best','bi','bid','bike','biz','black','blue','business','bz',
-        'ca','cab','cafe','camera','car','cards','cars','cash','cc','center','ceo','ch','chat','city','cl','click','clothing','club','cm','cn','co','coffee','college','com','company','construction','cool','credit','cricket','cx','cz',
-        'date','de','desi','design','diet','dk','dm','dog','domains','download',
-        'ec','ee','email','engineer','equipment','es','estate','eu','expert',
-        'faith','family','fans','feedback','fi','fish','fit','flowers','fm','fr','fun','fund','fyi',
-        'game','games','gd','gg','gift','gives','gl','gold','gr','group','gs','guru','gy',
-        'haus','help','hk','hn','holiday','host','hosting','house','ht','hu',
-        'ie','im','in','info','ink','io','is','it',
-        'je','jobs','jp','ki','kim','kr','la','land','lawyer','lc','li','life','link','live','loan','lol','love','lt','ltd','lu','lv',
-        'market','marketing','mba','md','me','media','men','mg','mn','mobi','mom','money','ms','mu','mx','my',
-        'name','net','network','news','nf','ninja','nl','no','nu',
-        'online','ooo','org','party','pe','pet','ph','photo','photography','photos','pics','pink','pk','pl','plus','pm','press','pro','property','ps','pt','pub','pw',
-        'racing','re','red','ren','rent','review','reviews','rip','ro','rocks','ru','run',
-        'sale','sc','school','science','se','services','sex','sexy','sg','sh','shop','show','si','site','sk','so','social','software','solutions','space','store','studio','style','su','support','sx',
-        'taipei','tax','tc','team','tech','tel','tf','tips','tk','tl','tm','today','tools','top','town','toys','trade','travel','tt','tv','tw',
-        'ua','us','uz','vc','ventures','vet','vg','video','vin','vip','vn',
-        'wang','watch','webcam','website','wf','wiki','win','wine','work','works','world','ws','wtf',
-        'xin','xxx','xyz','yoga','yt','zone'
+    const pix = [
+        'ac', 'accountant', 'ae', 'aero', 'af', 'ag', 'am', 'as', 'asia', 'at', 'auction', 'audio', 'auto',
+        'band', 'bar', 'be', 'best', 'bi', 'bid', 'bike', 'biz', 'black', 'blue', 'business', 'bz',
+        'ca', 'cab', 'cafe', 'camera', 'car', 'cards', 'cars', 'cash', 'cc', 'center', 'ceo', 'ch', 'chat', 'city', 'cl', 'click', 'clothing', 'club', 'cm', 'cn', 'co', 'coffee', 'college', 'com', 'company', 'construction', 'cool', 'credit', 'cricket', 'cx', 'cz',
+        'date', 'de', 'desi', 'design', 'diet', 'dk', 'dm', 'dog', 'domains', 'download',
+        'ec', 'ee', 'email', 'engineer', 'equipment', 'es', 'estate', 'eu', 'expert',
+        'faith', 'family', 'fans', 'feedback', 'fi', 'fish', 'fit', 'flowers', 'fm', 'fr', 'fun', 'fund', 'fyi',
+        'game', 'games', 'gd', 'gg', 'gift', 'gives', 'gl', 'gold', 'gr', 'group', 'gs', 'guru', 'gy',
+        'haus', 'help', 'hk', 'hn', 'holiday', 'host', 'hosting', 'house', 'ht', 'hu',
+        'ie', 'im', 'in', 'info', 'ink', 'io', 'is', 'it',
+        'je', 'jobs', 'jp', 'ki', 'kim', 'kr', 'la', 'land', 'lawyer', 'lc', 'li', 'life', 'link', 'live', 'loan', 'lol', 'love', 'lt', 'ltd', 'lu', 'lv',
+        'market', 'marketing', 'mba', 'md', 'me', 'media', 'men', 'mg', 'mn', 'mobi', 'mom', 'money', 'ms', 'mu', 'mx', 'my',
+        'name', 'net', 'network', 'news', 'nf', 'ninja', 'nl', 'no', 'nu',
+        'online', 'ooo', 'org', 'party', 'pe', 'pet', 'ph', 'photo', 'photography', 'photos', 'pics', 'pink', 'pk', 'pl', 'plus', 'pm', 'press', 'pro', 'property', 'ps', 'pt', 'pub', 'pw',
+        'racing', 're', 'red', 'ren', 'rent', 'review', 'reviews', 'rip', 'ro', 'rocks', 'ru', 'run',
+        'sale', 'sc', 'school', 'science', 'se', 'services', 'sex', 'sexy', 'sg', 'sh', 'shop', 'show', 'si', 'site', 'sk', 'so', 'social', 'software', 'solutions', 'space', 'store', 'studio', 'style', 'su', 'support', 'sx',
+        'taipei', 'tax', 'tc', 'team', 'tech', 'tel', 'tf', 'tips', 'tk', 'tl', 'tm', 'today', 'tools', 'top', 'town', 'toys', 'trade', 'travel', 'tt', 'tv', 'tw',
+        'ua', 'us', 'uz', 'vc', 'ventures', 'vet', 'vg', 'video', 'vin', 'vip', 'vn',
+        'wang', 'watch', 'webcam', 'website', 'wf', 'wiki', 'win', 'wine', 'work', 'works', 'world', 'ws', 'wtf',
+        'xin', 'xxx', 'xyz', 'yoga', 'yt', 'zone'
     ];
 
     /** 单词二级域名 */
@@ -2817,11 +2818,11 @@ class domain
     const sld_len = 2767;
 
     /** 二级域名 字符串 */
-    const str36   = [
-        '0','1','2','3','4','5','6','7','8','9',
-        'q','w','e','r','t','y','u','i','o','p',
-        'a','s','d','f','g','h','j','k','l','z',
-        'x','c','v','b','n','m'
+    const str36 = [
+        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+        'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p',
+        'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'z',
+        'x', 'c', 'v', 'b', 'n', 'm'
     ];
 
     /**
@@ -2831,25 +2832,19 @@ class domain
      */
     public static function domain($host)
     {
-        $array_domain  = explode(".", $host);
-        $array_num     = count($array_domain);
-        if($array_num <= 2)
-        {
+        $array_domain = explode(".", $host);
+        $array_num = count($array_domain);
+        if ($array_num <= 2) {
             return $host;
-        }else
-        {
-            foreach(self::pix_sub as $v)
-            {
-                if($v == $array_domain[$array_num - 2] . "." . $array_domain[$array_num - 1])
-                {
-                    return $array_domain[$array_num - 3]. "." .$v;
+        } else {
+            foreach (self::pix_sub as $v) {
+                if ($v == $array_domain[$array_num - 2] . "." . $array_domain[$array_num - 1]) {
+                    return $array_domain[$array_num - 3] . "." . $v;
                 }
             }
-            foreach(self::pix as $v)
-            {
-                if($v == $array_domain[$array_num - 1])
-                {
-                    return $array_domain[$array_num - 2]. "." .$v;
+            foreach (self::pix as $v) {
+                if ($v == $array_domain[$array_num - 1]) {
+                    return $array_domain[$array_num - 2] . "." . $v;
                 }
             }
         }

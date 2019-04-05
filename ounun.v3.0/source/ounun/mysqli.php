@@ -5,36 +5,37 @@
  * 作者:(dreamxyp@gmail.com)[QQ:31996798]
  * 更新:2007.7.10
  * <meta http-equiv="Content-Type" content="text/html; charset=utf-8"> */
+
 namespace ounun;
 
 
 class mysqli
 {
     /** @var string 当前数据库名 */
-    protected static $_curr_db      = '';
+    protected static $_curr_db = '';
     /** @var string 当前数据库charset */
     protected static $_curr_charset = '';
     /** @var \mysqli_result */
     protected $_rs;
     /** @var \mysqli  connection */
-    protected $_conn           = null; //_connection
+    protected $_conn = null; //_connection
     /** @var string */
-    protected $_sql            = '';
+    protected $_sql = '';
     /** @var int */
-    protected $_insert_id      = 0;
+    protected $_insert_id = 0;
     /** @var int */
-    protected $_query_times    = 0;
+    protected $_query_times = 0;
     /** @var int */
     protected $_query_affected = 0;
     /** @var string db charset */
-    protected $_charset        = 'utf8'; //,'utf8','gbk',latin1;
+    protected $_charset = 'utf8'; //,'utf8','gbk',latin1;
 
     /** @var string */
     protected $_database = '';
     protected $_username = '';
     protected $_password = '';
-    protected $_host     = '';
-    protected $_post     = 3306;
+    protected $_host = '';
+    protected $_post = 3306;
 
     /**
      * 创建MYSQL类
@@ -43,13 +44,12 @@ class mysqli
      */
     public function __construct(array $cfg)
     {
-        if($cfg['charset'])
-        {
+        if ($cfg['charset']) {
             $this->_charset = $cfg['charset'];
         }
-        $host            = explode(':',$cfg['host']);
-        $this->_post     = (int)$host[1];
-        $this->_host     =      $host[0];
+        $host = explode(':', $cfg['host']);
+        $this->_post = (int)$host[1];
+        $this->_host = $host[0];
         $this->_database = $cfg['database'];
         $this->_username = $cfg['username'];
         $this->_password = $cfg['password'];
@@ -61,17 +61,14 @@ class mysqli
      */
     public function active()
     {
-        if(null == $this->_conn)
-        {
-            $this->_conn = new \mysqli($this->_host,$this->_username,$this->_password,$this->_database,$this->_post);
+        if (null == $this->_conn) {
+            $this->_conn = new \mysqli($this->_host, $this->_username, $this->_password, $this->_database, $this->_post);
         }
-        if($this->_database && self::$_curr_db != $this->_database )
-        {
+        if ($this->_database && self::$_curr_db != $this->_database) {
             $this->_conn->select_db($this->_database);
             self::$_curr_db = $this->_database;
         }
-        if($this->_charset && self::$_curr_charset != $this->_charset )
-        {
+        if ($this->_charset && self::$_curr_charset != $this->_charset) {
             $this->_conn->set_charset($this->_charset);
             self::$_curr_charset = $this->_charset;
         }
@@ -84,21 +81,15 @@ class mysqli
      * @param null|array $bind
      * @return string
      */
-    protected function format(string $sql, $bind = null):string
+    protected function format(string $sql, $bind = null): string
     {
-        if($bind)
-        {
-            if(strpos($sql, '?') !== false)
-            {
+        if ($bind) {
+            if (strpos($sql, '?') !== false) {
                 return $this->quote_into($sql, $bind);
-            }
-            else
-            {
+            } else {
                 return $this->bind_value($sql, $bind);
             }
-        }
-        else
-        {
+        } else {
             return $sql;
         }
     }
@@ -110,21 +101,17 @@ class mysqli
      * @param  $bind
      * @return string
      */
-    protected function bind_value(string $sql, $bind):string
+    protected function bind_value(string $sql, $bind): string
     {
-        $rs  = preg_split('/(\:[A-Za-z0-9_]+)\b/', $sql, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY);
+        $rs = preg_split('/(\:[A-Za-z0-9_]+)\b/', $sql, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY);
         $rs2 = [];
-        foreach ($rs as $v)
-        {
-        	if($v[0] == ':')
-        	{
-        		$rs2[] = $this->quote($bind[substr($v, 1)]);
-        	}
-        	else 
-        	{
-        		$rs2[] = $v;
-        	}
-        }  
+        foreach ($rs as $v) {
+            if ($v[0] == ':') {
+                $rs2[] = $this->quote($bind[substr($v, 1)]);
+            } else {
+                $rs2[] = $v;
+            }
+        }
         return implode('', $rs2);
     }
 
@@ -135,7 +122,7 @@ class mysqli
      * @param $value
      * @return string
      */
-    protected function quote_into(string $text, $value):string
+    protected function quote_into(string $text, $value): string
     {
         return str_replace('?', $this->quote($value), $text);
     }
@@ -148,17 +135,13 @@ class mysqli
      */
     public function quote($value)
     {
-        if(is_array($value))
-        {
+        if (is_array($value)) {
             $vals = [];
-            foreach ($value as $val)
-            {
+            foreach ($value as $val) {
                 $vals[] = $this->quote($val);
             }
             return implode(', ', $vals);
-        }
-        else
-        {
+        } else {
             return "'" . $this->_conn->real_escape_string($value) . "'";
         }
     }
@@ -167,20 +150,18 @@ class mysqli
      * 发送一条 MySQL 查询
      *
      * @param string $sql
-     * @param null   $bind
+     * @param null $bind
      * @return bool|\mysqli_result
      */
     public function conn(string $sql = '', $bind = null, bool $check_active = true)
     {
-        if($check_active)
-        {
+        if ($check_active) {
             $this->active();
         }
-        if($sql)
-        {
-			$this->_sql = $this->format( $sql, $bind);
-		}
-        $this->_rs		= $this->_conn->query($this->_sql);
+        if ($sql) {
+            $this->_sql = $this->format($sql, $bind);
+        }
+        $this->_rs = $this->_conn->query($this->_sql);
         $this->_query_times++;
         return $this->_rs;
     }
@@ -195,70 +176,60 @@ class mysqli
      * @param array $bind2 数据
      * @return int $insert_id
      */
-    public function insert(string $table, array $bind, string $params = '', string $ext = '', array $bind2 = []):int
+    public function insert(string $table, array $bind, string $params = '', string $ext = '', array $bind2 = []): int
     {
         $this->active();
         // Check for associative array
-        if(array_keys($bind) !== range(0, count($bind) - 1))
-        {
+        if (array_keys($bind) !== range(0, count($bind) - 1)) {
             // Associative array
-            $cols 	= array_keys($bind);
-            $sql 	= "INSERT {$params} INTO {$table} " . '(`' . implode('`, `', $cols) . '`) ' . 'VALUES (:' . implode(', :', $cols) . ') ' . $this->format($ext, $bind2).';';
+            $cols = array_keys($bind);
+            $sql = "INSERT {$params} INTO {$table} " . '(`' . implode('`, `', $cols) . '`) ' . 'VALUES (:' . implode(', :', $cols) . ') ' . $this->format($ext, $bind2) . ';';
 
-            $this->conn($sql, $bind,false);
-        }
-        else
-        {
+            $this->conn($sql, $bind, false);
+        } else {
             // Indexed array
-            $tmpArray 	= [];
-            $cols 		= array_keys($bind[0]);
-            foreach ($bind as $v)
-            {
+            $tmpArray = [];
+            $cols = array_keys($bind[0]);
+            foreach ($bind as $v) {
                 $tmpArray[] = $this->format(' :' . implode(', :', $cols) . ' ', $v);
             }
-            $sql = "INSERT {$params} INTO {$table} " . '(`' . implode('`, `', $cols) . '`) ' . 'VALUES (' . implode('),(', $tmpArray) . ') ' . $this->format($ext, $bind2).';';
-            $this->conn($sql,null,false);
+            $sql = "INSERT {$params} INTO {$table} " . '(`' . implode('`, `', $cols) . '`) ' . 'VALUES (' . implode('),(', $tmpArray) . ') ' . $this->format($ext, $bind2) . ';';
+            $this->conn($sql, null, false);
         }
-        
-        $this->_insert_id 	     = $this->_conn->insert_id;     // 取得上一步 INSERT 操作产生的 ID
-        $this->_query_affected   = $this->_conn->affected_rows; // 取得前一次 MySQL 操作所影响的记录行数
+
+        $this->_insert_id = $this->_conn->insert_id;     // 取得上一步 INSERT 操作产生的 ID
+        $this->_query_affected = $this->_conn->affected_rows; // 取得前一次 MySQL 操作所影响的记录行数
         return $this->_insert_id;
     }
 
     /**
      * 插入一條或更新一条
      *
-     * @param string $table  表名
+     * @param string $table 表名
      * @param array $primary 数据
-     * @param array $bind    数据
+     * @param array $bind 数据
      * @param string $operate
      * @return int insert_id
      */
-    public function insert_update(string $table, array $primary, array $bind, string $operate='update'):int
+    public function insert_update(string $table, array $primary, array $bind, string $operate = 'update'): int
     {
-        $update= [];
-        foreach ($bind as $col=>$val)
-        {
-        	if($operate =='add')
-        	{
-            	$update[] = "`$col` = `$col` + ". (float)$val;
-        	}
-        	elseif($operate =='cut')
-        	{
-        		$update[] = "`$col` = `$col` - ". (float)$val;
-        	}
-        	else 
-        	{
-        		$update[] = "`$col` = :$col ";//.$this->quote($val);
-        	}
-        }    	
-        $primary = $primary+$bind;
-        
-        $cols    = array_keys($primary);
-        $sql     = "INSERT  INTO {$table} " . '(`' . implode('`, `', $cols) . '`) ' . 'VALUES (:' . implode(', :', $cols) . ')  ON DUPLICATE KEY UPDATE '.implode(' , ',$update).';';
-        $this->conn($sql,$primary);
-        
-        $this->_insert_id 	   = $this->_conn->insert_id; //取得上一步 INSERT 操作产生的 ID
+        $update = [];
+        foreach ($bind as $col => $val) {
+            if ($operate == 'add') {
+                $update[] = "`$col` = `$col` + " . (float)$val;
+            } elseif ($operate == 'cut') {
+                $update[] = "`$col` = `$col` - " . (float)$val;
+            } else {
+                $update[] = "`$col` = :$col ";//.$this->quote($val);
+            }
+        }
+        $primary = $primary + $bind;
+
+        $cols = array_keys($primary);
+        $sql = "INSERT  INTO {$table} " . '(`' . implode('`, `', $cols) . '`) ' . 'VALUES (:' . implode(', :', $cols) . ')  ON DUPLICATE KEY UPDATE ' . implode(' , ', $update) . ';';
+        $this->conn($sql, $primary);
+
+        $this->_insert_id = $this->_conn->insert_id; //取得上一步 INSERT 操作产生的 ID
         $this->_query_affected = $this->_conn->affected_rows; //取得前一次 MySQL 操作所影响的记录行数
         return $this->_insert_id;
     }
@@ -267,16 +238,16 @@ class mysqli
      * 快速地从一个或多个表中向一个表中插入多个行
      *
      * @param string $table 表名
-     * @param string $sql   INSERT ... SELECT语法
-     * @param array  $bind  INSERT ... SELECT语法 中的$bind
+     * @param string $sql INSERT ... SELECT语法
+     * @param array $bind INSERT ... SELECT语法 中的$bind
      * @param string $param 可选参数  //[LOW_PRIORITY | DELAYED(仅适用于MyISAM, MEMORY和ARCHIVE表) | HIGH_PRIORITY] [IGNORE]
      * @return int insert_id
      */
-    public function insert_import(string $table, array $sql, array $bind, string $param = ''):int
+    public function insert_import(string $table, array $sql, array $bind, string $param = ''): int
     {
         $this->conn("INSERT {$param} INTO {$table} {$sql} ", $bind);
-        
-        $this->_insert_id 	   = $this->_conn->insert_id;     // 取得上一步 INSERT 操作产生的 ID
+
+        $this->_insert_id = $this->_conn->insert_id;     // 取得上一步 INSERT 操作产生的 ID
         $this->_query_affected = $this->_conn->affected_rows; // 取得前一次 MySQL 操作所影响的记录行数
         return $this->_insert_id;
     }
@@ -284,33 +255,29 @@ class mysqli
     /**
      * 替换(插入)一條或多条記錄
      *
-     * @param string $table   表名
-     * @param array  $bind    数据  Array
-     * @param string $param   可选参数  //[LOW_PRIORITY | DELAYED(仅适用于MyISAM, MEMORY和ARCHIVE表)]
+     * @param string $table 表名
+     * @param array $bind 数据  Array
+     * @param string $param 可选参数  //[LOW_PRIORITY | DELAYED(仅适用于MyISAM, MEMORY和ARCHIVE表)]
      * @return int insert_id
      */
-    public function replace(string $table,array $bind,string $param = ''):int
+    public function replace(string $table, array $bind, string $param = ''): int
     {
         // Check for associative array
-        if(array_keys($bind) !== range(0, count($bind) - 1))
-        {
+        if (array_keys($bind) !== range(0, count($bind) - 1)) {
             // Associative array
             $cols = array_keys($bind);
-            $sql  = "REPLACE {$param} INTO {$table} " . '(`' . implode('`, `', $cols) . '`) ' . 'VALUES (:' . implode(', :', $cols) . ') ;';
+            $sql = "REPLACE {$param} INTO {$table} " . '(`' . implode('`, `', $cols) . '`) ' . 'VALUES (:' . implode(', :', $cols) . ') ;';
             $this->conn($sql, $bind);
-        }
-        else
-       {
+        } else {
             // Indexed array
             $tmpArray = [];
-            $cols 	  = array_keys($bind[0]);
-            foreach ($bind as $v)
-            {
+            $cols = array_keys($bind[0]);
+            foreach ($bind as $v) {
                 $tmpArray[] = $this->format(' :' . implode(', :', $cols) . ' ', $v);
             }
             $sql = "REPLACE {$param} INTO {$table} " . '(`' . implode('`, `', $cols) . '`) ' . 'VALUES (' . implode('),(', $tmpArray) . ') ;';
             $this->conn($sql);
-        } 
+        }
         $this->_query_affected = $this->_conn->affected_rows; //取得前一次 MySQL 操作所影响的记录行数
         return $this->_query_affected;
     }
@@ -320,11 +287,11 @@ class mysqli
      *
      * @param string $table 表名
      * @param string $sql
-     * @param array  $bind  数据  Array
+     * @param array $bind 数据  Array
      * @param string $param 可选参数  //[LOW_PRIORITY | DELAYED(仅适用于MyISAM, MEMORY和ARCHIVE表)]
      * @return int insert_id
      */
-    public function replace_import(string $table, string $sql ='', $bind = null, string $param = ''):int
+    public function replace_import(string $table, string $sql = '', $bind = null, string $param = ''): int
     {
         $this->conn("REPLACE {$param} INTO {$table} {$sql} ", $bind);
 
@@ -336,26 +303,24 @@ class mysqli
      * 用新值更新原有表行中的各列
      *
      * @param string $table 表名
-     * @param array  $data  数据数组
+     * @param array $data 数据数组
      * @param string $where 条件
-     * @param array  $bind  条件数组
+     * @param array $bind 条件数组
      * @param string $param 可选参数 [LOW_PRIORITY] [IGNORE]
      * @return int query_affected
      */
-    public function update(string $table, array $data, string $where = '', $bind = null,string $param = '',int $limit = 0):int
+    public function update(string $table, array $data, string $where = '', $bind = null, string $param = '', int $limit = 0): int
     {
         $this->active();
-        if($where && $bind)
-        {
-           $where = $this->format($where, $bind);
+        if ($where && $bind) {
+            $where = $this->format($where, $bind);
         }
         $set = [];
-        foreach ($data as $col=>$value)
-        {
-            $set[] = "`$col` = ".$this->quote($value);
+        foreach ($data as $col => $value) {
+            $set[] = "`$col` = " . $this->quote($value);
         }
-        $sql = "UPDATE {$param} {$table} " . 'SET ' . implode(', ', $set) . (($where)?" WHERE {$where}":'') . ($limit?' LIMIT ' . $limit:'');
-        $this->conn($sql,null,false);
+        $sql = "UPDATE {$param} {$table} " . 'SET ' . implode(', ', $set) . (($where) ? " WHERE {$where}" : '') . ($limit ? ' LIMIT ' . $limit : '');
+        $this->conn($sql, null, false);
 
         $this->_query_affected = $this->_conn->affected_rows; //取得前一次 MySQL 操作所影响的记录行数
         return $this->_query_affected;
@@ -364,27 +329,25 @@ class mysqli
     /**
      * 數椐疊加
      *
-     * @param string $table  表名
-     * @param array  $data   数据数组
-     * @param string $where  条件
-     * @param array  $bind   条件数组
-     * @param string $param  可选参数 [LOW_PRIORITY] [IGNORE]
+     * @param string $table 表名
+     * @param array $data 数据数组
+     * @param string $where 条件
+     * @param array $bind 条件数组
+     * @param string $param 可选参数 [LOW_PRIORITY] [IGNORE]
      * @return int query_affected
      */
-    public function add(string $table,array $data,string $where = '', $bind = null,string $param = ''):int
+    public function add(string $table, array $data, string $where = '', $bind = null, string $param = ''): int
     {
         $this->active();
-        if($where && $bind)
-        {
+        if ($where && $bind) {
             $where = $this->format($where, $bind);
         }
         $set = [];
-        foreach ($data as $col=>$val)
-        {
+        foreach ($data as $col => $val) {
             $set[] = "`$col` = `$col` + " . (float)$val;
         }
-        $sql = "UPDATE {$param} {$table} " . 'SET ' . implode(', ', $set) . (($where)?" WHERE {$where}":'');
-        $this->conn($sql,null,false);
+        $sql = "UPDATE {$param} {$table} " . 'SET ' . implode(', ', $set) . (($where) ? " WHERE {$where}" : '');
+        $this->conn($sql, null, false);
 
         $this->_query_affected = $this->_conn->affected_rows; //取得前一次 MySQL 操作所影响的记录行数
         return $this->_query_affected;
@@ -394,26 +357,24 @@ class mysqli
      * 數椐递减
      *
      * @param string $table 表名
-     * @param array $data   数据数组
+     * @param array $data 数据数组
      * @param string $where 条件
-     * @param array $bind   条件数组
+     * @param array $bind 条件数组
      * @param string $param 可选参数 [LOW_PRIORITY] [IGNORE]
      * @return int query_affected
      */
-    public function cut(string $table, array $data, string $where = '', $bind = null,string $param = ''):int
+    public function cut(string $table, array $data, string $where = '', $bind = null, string $param = ''): int
     {
         $this->active();
-        if($where && $bind)
-        {
+        if ($where && $bind) {
             $where = $this->format($where, $bind);
         }
         $set = [];
-        foreach ($data as $col=>$val)
-        {
+        foreach ($data as $col => $val) {
             $set[] = "`$col` = `$col` - " . (float)$val;
         }
-        $sql = "UPDATE {$param} {$table} " . 'SET ' . implode(', ', $set) . (($where)?" WHERE {$where}":'');
-        $this->conn($sql,null,false);
+        $sql = "UPDATE {$param} {$table} " . 'SET ' . implode(', ', $set) . (($where) ? " WHERE {$where}" : '');
+        $this->conn($sql, null, false);
 
         $this->_query_affected = $this->_conn->affected_rows; //取得前一次 MySQL 操作所影响的记录行数
         return $this->_query_affected;
@@ -424,13 +385,13 @@ class mysqli
      *
      * @param string $table 表名
      * @param string $where 条件
-     * @param array  $bind  条件数组
+     * @param array $bind 条件数组
      * @param string $param 可选参数 [LOW_PRIORITY] [QUICK] [IGNORE]
      * @return int query_affected
      */
-    public function delete(string $table,string $where = '', $bind = null,string $param = ''):int
+    public function delete(string $table, string $where = '', $bind = null, string $param = ''): int
     {
-        $sql = "DELETE {$param} FROM {$table} " . (($where)?" WHERE $where":'');
+        $sql = "DELETE {$param} FROM {$table} " . (($where) ? " WHERE $where" : '');
         $this->conn($sql, $bind);
 
         $this->_query_affected = $this->_conn->affected_rows; //取得前一次 MySQL 操作所影响的记录行数
@@ -441,17 +402,15 @@ class mysqli
      * 得到數椐的行數
      *
      * @param string $sql
-     * @param array  $bind 条件数组
+     * @param array $bind 条件数组
      * @return int
      */
-    public function rows(string $sql = '', $bind = null):int
+    public function rows(string $sql = '', $bind = null): int
     {
         $sql && $this->conn($sql, $bind);
-        if($this->_rs)
-        {
+        if ($this->_rs) {
             return $this->_rs->num_rows;
-        }else
-        {
+        } else {
             return 0;
         }
     }
@@ -460,17 +419,15 @@ class mysqli
      * 得到一条數椐數組
      *
      * @param string $sql
-     * @param array  $bind 条件数组
+     * @param array $bind 条件数组
      * @return array
      */
-    public function row(string $sql = '', $bind = null):array
+    public function row(string $sql = '', $bind = null): array
     {
         $sql && $this->conn($sql, $bind);
-        if($this->_rs)
-        {
-            $rs =  $this->_rs->fetch_assoc();
-            if($rs)
-            {
+        if ($this->_rs) {
+            $rs = $this->_rs->fetch_assoc();
+            if ($rs) {
                 return $rs;
             }
         }
@@ -484,14 +441,12 @@ class mysqli
      * @param array $bind 条件数组
      * @return array
      */
-    public function data_array(string $sql = '', $bind = null):array
+    public function data_array(string $sql = '', $bind = null): array
     {
         $sql && $this->conn($sql, $bind);
-        $rs	= [];
-        if($this->_rs)
-        {
-            while ( $rss = $this->_rs->fetch_assoc()  )
-            {
+        $rs = [];
+        if ($this->_rs) {
+            while ($rss = $this->_rs->fetch_assoc()) {
                 $rs[] = $rss;
             }
             $this->free();
@@ -503,26 +458,21 @@ class mysqli
      * 从结果集中取得一行(指定行)作为关联数组
      *
      * @param string $sql
-     * @param array  $bind  条件数组
+     * @param array $bind 条件数组
      * @param string $key_field 可选 指定行
      * @return array
      */
-    public function fetch_assoc(string $sql = '', $bind = null,string $key_field = ''):array
+    public function fetch_assoc(string $sql = '', $bind = null, string $key_field = ''): array
     {
         $sql && $this->conn($sql, $bind);
         $rs = [];
-        if($key_field)
-        {
-        	while ($rss = $this->_rs->fetch_assoc() )
-            {
+        if ($key_field) {
+            while ($rss = $this->_rs->fetch_assoc()) {
                 $rs[$rss[$key_field]] = $rss;
             }
-        }
-        else
-        {
-            while ($rss = $this->_rs->fetch_assoc() )
-            {
-                $tmp 		 = array_values($rss);
+        } else {
+            while ($rss = $this->_rs->fetch_assoc()) {
+                $tmp = array_values($rss);
                 $rs[$tmp[0]] = $rss;
             }
         }
@@ -538,12 +488,11 @@ class mysqli
      * @param string $value
      * @return boolean 有返回true 沒有為false
      */
-    public function row_repeat(string $table, string $field,string $value)
+    public function row_repeat(string $table, string $field, string $value)
     {
-        if($table && $field && $value)
-        {
+        if ($table && $field && $value) {
             $row = $this->row("select count(`{$field}`) as cc from {$table} where `{$field}` = ? ", $value);
-            return $row['cc']?true:false;
+            return $row['cc'] ? true : false;
         }
         return false;
     }
@@ -573,7 +522,7 @@ class mysqli
      *
      * @return string
      */
-    public function sql():string
+    public function sql(): string
     {
         return $this->_sql;
     }
@@ -583,7 +532,7 @@ class mysqli
      *
      * @return int
      */
-    public function affected():int
+    public function affected(): int
     {
         return $this->_query_affected;
     }
@@ -591,8 +540,7 @@ class mysqli
     /** 清空内存 */
     public function free()
     {
-        if($this->_rs)
-        {
+        if ($this->_rs) {
             $this->_rs->free_result();
         }
     }
@@ -600,16 +548,15 @@ class mysqli
     /** 關閉打開的連接  */
     public function close()
     {
-        if($this->_conn)
-        {
+        if ($this->_conn) {
             $this->_conn->close();
         }
     }
-    
+
     /** 關閉打開的連接   */
-    public function is_connect():bool
+    public function is_connect(): bool
     {
-    	return $this->_conn ? true :false;
+        return $this->_conn ? true : false;
     }
 
 
@@ -622,11 +569,11 @@ class mysqli
      */
     private function exception_log($message = "", $sql = "")
     {
-        $sql             = $sql?$sql:$this->_sql;
+        $sql = $sql ? $sql : $this->_sql;
 
-        $exception       = "Unhandled Exception. <br />\r\n";
-        $exception      .= $message ? $message ."<br />\r\n":'';
-        $exception      .= $sql     ? $sql     ."<br />\r\n":'';
+        $exception = "Unhandled Exception. <br />\r\n";
+        $exception .= $message ? $message . "<br />\r\n" : '';
+        $exception .= $sql ? $sql . "<br />\r\n" : '';
 
         return $exception;
     }

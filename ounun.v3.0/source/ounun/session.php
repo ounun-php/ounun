@@ -1,4 +1,5 @@
 <?php
+
 namespace ounun;
 
 
@@ -14,14 +15,14 @@ class session implements \SessionHandlerInterface, \SessionUpdateTimestampHandle
     /** @var pdo */
     private $_db;
 
-    /** @var string  */
+    /** @var string */
     private $_session_table = 'session';
 
     /** @var string 唯一ID uniqid */
-    private $_session_id    = '';
+    private $_session_id = '';
 
     /** @var string 用在 cookie 或者 URL 中的会话名称 */
-    private $_session_name  = 'PHPSESSID';
+    private $_session_name = 'PHPSESSID';
 
     /**
      * session constructor.
@@ -29,11 +30,11 @@ class session implements \SessionHandlerInterface, \SessionUpdateTimestampHandle
      * @param string $session_table
      * @param string $session_name
      */
-    public function __construct(pdo $db,string $session_table,string $session_name)
+    public function __construct(pdo $db, string $session_table, string $session_name)
     {
-        $this->_db            = $db;
+        $this->_db = $db;
         $this->_session_table = $session_table;
-        $this->_session_name  = $session_name;
+        $this->_session_name = $session_name;
     }
 
     /**
@@ -61,11 +62,10 @@ class session implements \SessionHandlerInterface, \SessionUpdateTimestampHandle
     public function read($session_id)
     {
         $rs = $this->_db->table($this->_session_table)
-                        ->where('','')
-                        ->column_one();
-        if($rs)
-        {
-            return json_decode($rs['data'],true);
+            ->where('', '')
+            ->column_one();
+        if ($rs) {
+            return json_decode($rs['data'], true);
         }
         return null;
     }
@@ -77,9 +77,9 @@ class session implements \SessionHandlerInterface, \SessionUpdateTimestampHandle
      */
     public function write($session_id, $data)
     {
-        $time  = time() + 3600;
-        $rs    = $this->_db->replace('',[]);
-        return $rs?true:false;
+        $time = time() + 3600;
+        $rs = $this->_db->replace('', []);
+        return $rs ? true : false;
     }
 
     /**
@@ -106,17 +106,13 @@ class session implements \SessionHandlerInterface, \SessionUpdateTimestampHandle
      */
     public function create_sid()
     {
-        if($this->_session_id)
-        {
+        if ($this->_session_id) {
             return $this->_session_id;
-        }elseif($_REQUEST[$this->_session_name] && 32 == strlen($_REQUEST[$this->_session_name]) )
-        {
+        } elseif ($_REQUEST[$this->_session_name] && 32 == strlen($_REQUEST[$this->_session_name])) {
             $this->_session_id = $_REQUEST[$this->_session_name];
-        }elseif($_COOKIE[$this->_session_name] && 32 == strlen($_COOKIE[$this->_session_name]) )
-        {
+        } elseif ($_COOKIE[$this->_session_name] && 32 == strlen($_COOKIE[$this->_session_name])) {
             $this->_session_id = $_COOKIE[$this->_session_name];
-        }else
-        {
+        } else {
 //            $uniqid_prefix     = '';
 //            $uniqid_filename   = '/tmp/php_session_uniqid.txt';
 //            if(!file_exists($uniqid_filename))
@@ -144,8 +140,7 @@ class session implements \SessionHandlerInterface, \SessionUpdateTimestampHandle
 
     public function validateId($session_id)
     {
-        if(32 == strlen($session_id))
-        {
+        if (32 == strlen($session_id)) {
             return $session_id;
         }
         return $this->_session_id;
@@ -170,9 +165,9 @@ class session implements \SessionHandlerInterface, \SessionUpdateTimestampHandle
      * @param string $session_name
      * @return session
      */
-    public static function start(pdo $db,string $session_table = 'session',string $session_name='PHPSESSID'):session
+    public static function start(pdo $db, string $session_table = 'session', string $session_name = 'PHPSESSID'): session
     {
-        $handler = new session($db,$session_table,$session_name);
+        $handler = new session($db, $session_table, $session_name);
         session_set_save_handler($handler, true);
         session_start();
         return $handler;

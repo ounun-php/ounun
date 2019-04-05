@@ -23,7 +23,7 @@ class cms
      */
     public function __construct(\ounun\pdo $db = null)
     {
-        if($db){
+        if ($db) {
             $this->db = $db;
         }
         static::$instance = $this;

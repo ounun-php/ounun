@@ -1,5 +1,6 @@
 <?php
 /** 命名空间 */
+
 namespace ounun\mvc\model;
 
 /**
@@ -12,17 +13,17 @@ class user
     /** 通信私钥   */
     protected $_key_private = '';
     /** cookie域名 */
-    protected $_domain      = '';
+    protected $_domain = '';
 
     /**
      * 设定 私钥&域名
      * @param $key_private
      * @param $domain
      */
-    public function __construct($key_private,$domain)
+    public function __construct($key_private, $domain)
     {
         $this->_key_private = $key_private;
-        $this->_domain      = $domain;
+        $this->_domain = $domain;
     }
 
     /**
@@ -31,21 +32,21 @@ class user
      */
     public function check()
     {
-        if($_COOKIE['_']) {
-            list($yg, ,$openid_en,$time_en,$type,$hex) = explode('.',$_COOKIE['_']);
-            if($yg == 'yg' && $openid_en && $time_en && $hex) {
-                $openid   = \short_url_decode($openid_en);
-                $time     = \short_url_decode($time_en);
+        if ($_COOKIE['_']) {
+            list($yg, , $openid_en, $time_en, $type, $hex) = explode('.', $_COOKIE['_']);
+            if ($yg == 'yg' && $openid_en && $time_en && $hex) {
+                $openid = \short_url_decode($openid_en);
+                $time = \short_url_decode($time_en);
                 $now_time = time();
-                if($time > $now_time) {
+                if ($time > $now_time) {
                     return -1; // 登录时间 比现在还晚
                 }
-                if($type && $time + $type*3600 < $now_time) {
+                if ($type && $time + $type * 3600 < $now_time) {
                     return -2; // 登录超时
                 }
-                $str     = $openid.$time.$type.$this->_key_private;
-                $hex_old = substr(md5($str),12,6).substr(sha1($str),16,10);
-                if($hex == $hex_old) {
+                $str = $openid . $time . $type . $this->_key_private;
+                $hex_old = substr(md5($str), 12, 6) . substr(sha1($str), 16, 10);
+                if ($hex == $hex_old) {
                     return $openid;
                 }
                 return -3; // $hex
@@ -61,18 +62,18 @@ class user
      * @param int $type 0:不限  n:小时
      * @return string
      */
-    public function login($openid,$oauth_type,$type=0,$pre='yg')
+    public function login($openid, $oauth_type, $type = 0, $pre = 'yg')
     {
-        $cstr      = '';
-        if($openid) {
-            $time       = time();
-            $str        = $openid.$time.$type.$this->_key_private;
-            $openid_en  = \short_url_encode($openid);
-            $time_en    = \short_url_encode($time);
-            $ot         = $this->_oauth_types($oauth_type);
-            $ot         = implode('-',$ot);
-            $cstr       = "{$pre}.{$ot}.{$openid_en}.{$time_en}.{$type}.".substr(md5($str),12,6).substr(sha1($str),16,10);
-            setcookie('_',$cstr,$time*2,'/',$this->_domain);
+        $cstr = '';
+        if ($openid) {
+            $time = time();
+            $str = $openid . $time . $type . $this->_key_private;
+            $openid_en = \short_url_encode($openid);
+            $time_en = \short_url_encode($time);
+            $ot = $this->_oauth_types($oauth_type);
+            $ot = implode('-', $ot);
+            $cstr = "{$pre}.{$ot}.{$openid_en}.{$time_en}.{$type}." . substr(md5($str), 12, 6) . substr(sha1($str), 16, 10);
+            setcookie('_', $cstr, $time * 2, '/', $this->_domain);
         }
         return $cstr;
     }
@@ -82,24 +83,24 @@ class user
      */
     public function out()
     {
-        setcookie('_','',-1,'/',$this->_domain);
+        setcookie('_', '', -1, '/', $this->_domain);
     }
 
     /**
-     * @param  int    $oauth_type
+     * @param  int $oauth_type
      * @param  string $_
      * @return array
      */
-    private function _oauth_types($oauth_type=0,$_='')
+    private function _oauth_types($oauth_type = 0, $_ = '')
     {
-        $_  = $_?$_:$_COOKIE['_'];
+        $_ = $_ ? $_ : $_COOKIE['_'];
         $rs = [];
-        if($_) {
-            $ts = explode('.',$_COOKIE['_'])[1];
-            if($ts) {
-                $ts = explode('-',$ts);
-                if($ts) {
-                    foreach($ts as $v) {
+        if ($_) {
+            $ts = explode('.', $_COOKIE['_'])[1];
+            if ($ts) {
+                $ts = explode('-', $ts);
+                if ($ts) {
+                    foreach ($ts as $v) {
                         $v = (int)$v;
                         $rs[$v] = $v;
                     }
@@ -107,10 +108,10 @@ class user
             }
         }
         $oauth_type = (int)$oauth_type;
-        if($oauth_type) {
+        if ($oauth_type) {
             $rs[$oauth_type] = $oauth_type;
         }
-        if($rs) {
+        if ($rs) {
             return array_values($rs);
         }
         return $rs;
