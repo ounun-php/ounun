@@ -4,10 +4,10 @@ namespace ounun\cmd\task;
 
 class logs
 {
-    /** @var \ounun\pdo */
-    protected $_db = null;
     /** @var string 表名 */
-    protected $_table = '';
+    protected $_table_logs_task = '';
+    /** @var string 表名 */
+    protected $_table_logs_task_details = '';
 
     /** @var int 任务ID */
     protected $_task_id = 0;
@@ -24,13 +24,14 @@ class logs
 
     /**
      * logs constructor.
-     * @param \ounun\pdo $db
-     * @param string $table 表名
+     * @param string $table_logs_task          表名
+     * @param string $table_logs_task_details  表名
      */
-    public function __construct(\ounun\pdo $db, string $table = 'z_task_logs')
+    public function __construct(string $table_logs_task = '', string $table_logs_task_details = '')
     {
-        $this->table_set($db, $table);
+        $this->table_set($table_logs_task, $table_logs_task_details);
     }
+
 
     /**
      * 任务日志
@@ -38,10 +39,10 @@ class logs
      * @param string $tag
      * @param string $tag_sub
      * @param int $time_add
-     * @param string $table
-     * @param \ounun\pdo|null $db
+     * @param string $table_logs_task
+     * @param string $table_logs_task_details
      */
-    public function task(int $task_id, string $tag, string $tag_sub, int $time_add, string $table = '', \ounun\pdo $db = null)
+    public function task(int $task_id, string $tag, string $tag_sub, int $time_add, string $table_logs_task = '', string $table_logs_task_details = '')
     {
         $this->_task_id = $task_id;
         $this->_tag = $tag;
@@ -50,7 +51,7 @@ class logs
         $this->_time_add = $time_add == 0 ? time() : $time_add;
         $this->_extend = [];
         // $table
-        $this->table_set($db, $table);
+        $this->table_set($table_logs_task, $table_logs_task_details);
     }
 
     /**
@@ -63,13 +64,13 @@ class logs
     }
 
     /**
-     * @param \ounun\pdo $db
-     * @param string $table
+     * @param string $table_logs_task
+     * @param string $table_logs_task_details
      */
-    public function table_set(\ounun\pdo $db = null, string $table = '')
+    public function table_set(string $table_logs_task = '', string $table_logs_task_details = '')
     {
-        $db && $this->_db = $db;
-        $table && $this->_table = $table;
+        $table_logs_task && $this->_table_logs_task = $table_logs_task;
+        $table_logs_task_details && $this->_table_logs_task_details = $table_logs_task_details;
     }
 
     /**
@@ -106,7 +107,16 @@ class logs
                 'time_run' => $run_time,
                 'extend' => json_encode($this->_extend, JSON_UNESCAPED_UNICODE),
             ];
-            $id = $this->_db->table("`{$this->_table}`")->insert($bind);
+            $id = 0;
+            $db = manage::db_biz();
+            if($db){
+                $id = $db->table("`{$this->_table_logs_task}`")->insert($bind);
+                if($id){
+                    $bind_details = [];
+                    $db->table("`{$this->_table_logs_task_details}`")->insert($bind_details);
+                }
+            }
+
             if ($id && $over_clean) {
                 $this->task(0, '', '', 0);
             }

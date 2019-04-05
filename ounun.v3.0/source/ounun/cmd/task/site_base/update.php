@@ -2,8 +2,6 @@
 
 namespace ounun\cmd\task\site_base;
 
-use ounun\cmd\console;
-use ounun\cmd\task\libs\com_baidu;
 use ounun\cmd\task\manage;
 use ounun\cmd\task\struct;
 use ounun\config;
