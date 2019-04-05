@@ -1,15 +1,16 @@
 <?php
+
 namespace ounun\cmd\task\site_base;
 
 use ounun\cmd\task\manage;
 use ounun\cmd\task\struct;
 
-abstract  class baidu_mip extends _site
+abstract class baidu_mip extends _site
 {
     public function __construct(struct $task_struct, string $tag = '', string $tag_sub = '')
     {
-        $this->_tag       = 'baidu_mip';
-        $this->_tag_sub   = '';
+        $this->_tag = 'baidu_mip';
+        $this->_tag_sub = '';
         parent::__construct($task_struct, $tag, $tag_sub);
     }
 
@@ -19,7 +20,7 @@ abstract  class baidu_mip extends _site
      * @param int $mode
      * @param bool $is_pass_check
      */
-    public function execute(array $input = [], int $mode = manage::Mode_Dateup,bool $is_pass_check = false)
+    public function execute(array $input = [], int $mode = manage::Mode_Dateup, bool $is_pass_check = false)
     {
         try {
             $this->_logs_state = manage::Logs_Succeed;

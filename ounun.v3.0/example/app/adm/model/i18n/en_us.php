@@ -2,7 +2,9 @@
 namespace app\adm\model\i18n;
 
 // "en_us"=>"English",
-class en_US extends \model\i18n
+use app\adm\model\i18n;
+
+class en_US extends i18n
 {
     /** 语言标识 */
     const lang             = 'en_us';

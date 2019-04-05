@@ -3,8 +3,18 @@
 <head>
     <meta charset="utf-8">
     <style>
-        body{background-color: #2c3035;}
-        #weixinStyle{ width:100%; display:none; text-align:center; font-size:46px; padding-top:50px;color: white;}
+        body {
+            background-color: #2c3035;
+        }
+
+        #weixinStyle {
+            width: 100%;
+            display: none;
+            text-align: center;
+            font-size: 46px;
+            padding-top: 50px;
+            color: white;
+        }
     </style>
 </head>
 
@@ -17,20 +27,20 @@
 </div>
 
 <script type="text/javascript">
-    var weixin=document.getElementById("weixinStyle");
-    window.onload = function() {
-        if(isWeixin() || isQQ()){
-            weixin.style.display="block";
-        }else{
-            location.replace("/api/mobile_go/?ref=<?php echo urlencode($_GET['ref'])?>&t="+Math.round(Math.random()*10));
+    var weixin = document.getElementById("weixinStyle");
+    window.onload = function () {
+        if (isWeixin() || isQQ()) {
+            weixin.style.display = "block";
+        } else {
+            location.replace("/api/mobile_go/?ref=<?php echo urlencode($_GET['ref'])?>&t=" + Math.round(Math.random() * 10));
         }
     }
 
-    function isWeixin(){
-        var WxObj=window.navigator.userAgent.toLowerCase();
-        if(WxObj.match(/microMessenger/i)=='micromessenger'){
+    function isWeixin() {
+        var WxObj = window.navigator.userAgent.toLowerCase();
+        if (WxObj.match(/microMessenger/i) == 'micromessenger') {
             return true;
-        }else{
+        } else {
             return false;
         }
     }

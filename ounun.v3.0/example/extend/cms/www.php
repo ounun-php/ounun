@@ -1,4 +1,5 @@
 <?php
+
 namespace extend\cms;
 
 class www extends \ounun\mvc\model\cms
