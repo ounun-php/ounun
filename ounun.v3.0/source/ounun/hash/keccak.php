@@ -1,14 +1,16 @@
 <?php
+
 namespace ounun\hash;
 
 class keccak
 {
-    private const KECCAK_ROUNDS  = 24;
-    private const LFSR           = 0x01;
-    private const ENCODING       = '8bit';
+    private const KECCAK_ROUNDS = 24;
+    private const LFSR = 0x01;
+    private const ENCODING = '8bit';
     private static $keccakf_rotc = [1, 3, 6, 10, 15, 21, 28, 36, 45, 55, 2, 14, 27, 41, 56, 8, 25, 43, 62, 18, 39, 61, 20, 44];
-    private static $keccakf_piln = [10, 7, 11, 17, 18, 3, 5, 16, 8, 21, 24, 4, 15, 23, 19, 13, 12,2, 20, 14, 22, 9, 6, 1];
-    private static $x64          = (PHP_INT_SIZE === 8);
+    private static $keccakf_piln = [10, 7, 11, 17, 18, 3, 5, 16, 8, 21, 24, 4, 15, 23, 19, 13, 12, 2, 20, 14, 22, 9, 6, 1];
+    private static $x64 = (PHP_INT_SIZE === 8);
+
     private static function keccakf64(&$st, $rounds): void
     {
         $keccakf_rndc = [
@@ -20,11 +22,9 @@ class keccak
             [0x80000000, 0x80008081], [0x80000000, 0x00008080], [0x00000000, 0x80000001], [0x80000000, 0x80008008]
         ];
         $bc = [];
-        for ($round = 0; $round < $rounds; $round++)
-        {
+        for ($round = 0; $round < $rounds; $round++) {
             // Theta
-            for ($i = 0; $i < 5; $i++)
-            {
+            for ($i = 0; $i < 5; $i++) {
                 $bc[$i] = [
                     $st[$i][0] ^ $st[$i + 5][0] ^ $st[$i + 10][0] ^ $st[$i + 15][0] ^ $st[$i + 20][0],
                     $st[$i][1] ^ $st[$i + 5][1] ^ $st[$i + 10][1] ^ $st[$i + 15][1] ^ $st[$i + 20][1]
@@ -55,7 +55,7 @@ class keccak
                     $hi = $t[1];
                     $lo = $t[0];
                 }
-                $st[$j] =[
+                $st[$j] = [
                     (($hi << $n) | ($lo >> (32 - $n))) & (0xFFFFFFFF),
                     (($lo << $n) | ($hi >> (32 - $n))) & (0xFFFFFFFF)
                 ];
@@ -80,6 +80,7 @@ class keccak
             ];
         }
     }
+
     private static function keccak64($in_raw, int $capacity, int $outputlength, $suffix, bool $raw_output): string
     {
         $capacity /= 8;
@@ -119,6 +120,7 @@ class keccak
         $r = mb_substr($out, 0, $outputlength / 8, self::ENCODING);
         return $raw_output ? $r : bin2hex($r);
     }
+
     private static function keccakf32(&$st, $rounds): void
     {
         $keccakf_rndc = [
@@ -130,8 +132,7 @@ class keccak
             [0x8000, 0x0000, 0x8000, 0x8081], [0x8000, 0x0000, 0x0000, 0x8080], [0x0000, 0x0000, 0x8000, 0x00001], [0x8000, 0x0000, 0x8000, 0x8008]
         ];
         $bc = [];
-        for ($round = 0; $round < $rounds; $round++)
-        {
+        for ($round = 0; $round < $rounds; $round++) {
             // Theta
             for ($i = 0; $i < 5; $i++) {
                 $bc[$i] = [
@@ -164,11 +165,11 @@ class keccak
                 $bc[0] = $st[$j];
                 $n = self::$keccakf_rotc[$i] >> 4;
                 $m = self::$keccakf_rotc[$i] % 16;
-                $st[$j] =  [
-                    ((($t[(0+$n) %4] << $m) | ($t[(1+$n) %4] >> (16-$m))) & (0xFFFF)),
-                    ((($t[(1+$n) %4] << $m) | ($t[(2+$n) %4] >> (16-$m))) & (0xFFFF)),
-                    ((($t[(2+$n) %4] << $m) | ($t[(3+$n) %4] >> (16-$m))) & (0xFFFF)),
-                    ((($t[(3+$n) %4] << $m) | ($t[(0+$n) %4] >> (16-$m))) & (0xFFFF))
+                $st[$j] = [
+                    ((($t[(0 + $n) % 4] << $m) | ($t[(1 + $n) % 4] >> (16 - $m))) & (0xFFFF)),
+                    ((($t[(1 + $n) % 4] << $m) | ($t[(2 + $n) % 4] >> (16 - $m))) & (0xFFFF)),
+                    ((($t[(2 + $n) % 4] << $m) | ($t[(3 + $n) % 4] >> (16 - $m))) & (0xFFFF)),
+                    ((($t[(3 + $n) % 4] << $m) | ($t[(0 + $n) % 4] >> (16 - $m))) & (0xFFFF))
                 ];
                 $t = $bc[0];
             }
@@ -195,6 +196,7 @@ class keccak
             ];
         }
     }
+
     private static function keccak32($in_raw, int $capacity, int $outputlength, $suffix, bool $raw_output): string
     {
         $capacity /= 8;
@@ -220,7 +222,7 @@ class keccak
         $temp = mb_substr($in_raw, $in_t, $inlen, self::ENCODING);
         $temp = str_pad($temp, $rsiz, "\x0", STR_PAD_RIGHT);
         $temp[$inlen] = chr($suffix);
-        $temp[$rsiz - 1] = chr((int) $temp[$rsiz - 1] | 0x80);
+        $temp[$rsiz - 1] = chr((int)$temp[$rsiz - 1] | 0x80);
         for ($i = 0; $i < $rsizw; $i++) {
             $t = unpack('v*', mb_substr($temp, $i * 8, 8, self::ENCODING));
             $st[$i] = [
@@ -233,29 +235,30 @@ class keccak
         self::keccakf32($st, self::KECCAK_ROUNDS);
         $out = '';
         for ($i = 0; $i < 25; $i++) {
-            $out .= $t = pack('v*', $st[$i][3],$st[$i][2], $st[$i][1], $st[$i][0]);
+            $out .= $t = pack('v*', $st[$i][3], $st[$i][2], $st[$i][1], $st[$i][0]);
         }
         $r = mb_substr($out, 0, $outputlength / 8, self::ENCODING);
-        return $raw_output ? $r: bin2hex($r);
+        return $raw_output ? $r : bin2hex($r);
     }
+
     private static function keccak($in_raw, int $capacity, int $outputlength, $suffix, bool $raw_output): string
     {
         return self::$x64
             ? self::keccak64($in_raw, $capacity, $outputlength, $suffix, $raw_output)
             : self::keccak32($in_raw, $capacity, $outputlength, $suffix, $raw_output);
     }
+
     public static function hash($in, int $mdlen, bool $raw_output = false): string
     {
-        if (!in_array($mdlen, [224, 256, 384, 512], true))
-        {
+        if (!in_array($mdlen, [224, 256, 384, 512], true)) {
             throw new \Exception('Unsupported Keccak Hash output size.');
         }
         return self::keccak($in, $mdlen, $mdlen, self::LFSR, $raw_output);
     }
+
     public static function shake($in, int $security_level, int $outlen, bool $raw_output = false): string
     {
-        if (!in_array($security_level, [128, 256], true))
-        {
+        if (!in_array($security_level, [128, 256], true)) {
             throw new \Exception('Unsupported Keccak Shake security level.');
         }
         return self::keccak($in, $security_level, $outlen, 0x1f, $raw_output);

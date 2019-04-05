@@ -1,5 +1,5 @@
 <?php
-namespace extend;
+namespace extend\_test;
 
 // "en_US"=>"English",
 class oss

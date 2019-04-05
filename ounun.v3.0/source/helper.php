@@ -705,117 +705,17 @@ function environment()
  */
 abstract class v
 {
-    /**
-     * 没定的方法
-     * @param string $method
-     * @param String $arguments
-     */
-    public function __call($method, $arguments)
-    {
-        header('HTTP/1.1 404 Not Found');
-        $this->debug = new \ounun\debug(\ounun\config::$dir_root.'data/logs/error_404_'.date('Ymd').'.txt',false,false,false,true);
-        error404("\$method:{$method} \$args:".json_encode($arguments)."");
-    }
-
     /** @var \ounun\mvc\model\cms cms */
     public static $cms;
 
-    /**
-     * ounun_view constructor.
-     * @param $mod
-     */
-    public function __construct($mod)
-    {
-        if (!$mod) {
-            $mod = [\ounun\config::def_method];
-        }
-        $method             = $mod[0];
-        \ounun\config::$view  = $this;
-        $this->$method($mod);
-    }
+    /** @var \ounun\pdo DB */
+    public static $db_v;
 
     /** @var int cache_html_time */
-    protected $_cache_html_time = 2678400; // 31天
+    public static $cache_html_time = 2678400; // 31天
 
     /** @var bool html_trim */
-    protected $_cache_html_trim = true;
-
-    /** @var string 当前面页(网址) */
-    protected $_page_url = '';
-
-    /** @var string 当前面页(文件名) */
-    protected $_page_file = '';
-
-    /** @var \ounun\pdo DB */
-    protected $_db_v;
-
-    /**
-     * 初始化Page
-     * @param string $page_file
-     * @param bool $is_cache_html
-     * @param bool $ext_req
-     * @param string $domain
-     * @param int $cache_html_time
-     * @param bool $cache_html_trim
-     */
-    public function init_page(string $page_file = '', bool $is_cache_html = true, bool $ext_req = true, string $domain = '', int $cache_html_time = 0, bool $cache_html_trim = true)
-    {
-        // url_check
-        $this->_page_file = $page_file;
-        $this->_page_url  = \ounun\config::url_page($this->_page_file);
-        url_check($this->_page_url, $ext_req, $domain);
-
-        // cache_html
-        $this->_cache_html_trim     = '' == Environment ? $cache_html_trim : false;
-        if ($is_cache_html) {
-            $this->_cache_html_time = $cache_html_time > 300 ? $cache_html_time : $this->_cache_html_time;
-            $this->cache_html($this->_page_url);
-        }
-
-        // cms
-        $cls       = \ounun\config::$app_cms_classname;
-
-
-        // template
-        self::$tpl   || self::$tpl   = new \ounun\template(\ounun\config::$tpl_style, \ounun\config::$tpl_default, $this->_cache_html_trim);
-
-        // db
-        $this->_db_v || $this->_db_v = \ounun\pdo::instance(\ounun\config::$app_name);
-        self::$cms     = new $cls($this->_db_v);
-        self::$cms->db = $this->_db_v;
-    }
-
-    /** @var string title */
-    protected $_seo_title;
-
-    /** @var string keywords */
-    protected $_seo_keywords;
-
-    /** @var string description */
-    protected $_seo_description;
-
-    /** @var string h1 */
-    protected $_seo_h1;
-
-    /** @var string etag */
-    protected $_seo_etag;
-
-    /**
-     * 设定TKD
-     * @param string $title
-     * @param string $keywords
-     * @param string $description
-     * @param string $h1
-     * @param string $etag
-     */
-    public function tkd(string $title = '', string $keywords = '', string $description = '', string $h1 = '', string $etag = '')
-    {
-        $title && $this->_seo_title = $title;
-        $keywords && $this->_seo_keywords = $keywords;
-        $description && $this->_seo_description = $description;
-        $h1 && $this->_seo_h1 = $h1;
-        $etag && $this->_seo_etag = $etag;
-    }
+    public static $cache_html_trim = true;
 
     /** @var \ounun\cache\html cache_html */
     public static $cache_html;
@@ -830,7 +730,7 @@ abstract class v
             $cfg = \ounun\config::$global['cache_html'];
             $cfg['mod'] = 'html_' . \ounun\config::$app_name . \ounun\config::$tpl_style;
             $key2 = \ounun\config::$app_name . '_' . \ounun\config::$tpl_style . '_' . $key;
-            self::$cache_html = new \ounun\cache\html($cfg, $key2, $this->_cache_html_time, $this->_cache_html_trim, '' != Environment);
+            self::$cache_html = new \ounun\cache\html($cfg, $key2, static::$cache_html_time, static::$cache_html_trim, '' != Environment);
             self::$cache_html->run(true);
         }
     }
@@ -847,33 +747,8 @@ abstract class v
         }
     }
 
-    /** @var \ounun\debug 调试 相关 */
-    public $debug = null;
-
-    /**
-     * 调试日志
-     * @param $k
-     * @param $log
-     */
-    public function debug_logs(string $k, $log)
-    {
-        if ($this->debug) {
-            $this->debug->logs($k, $log);
-        }
-    }
-
-    /**
-     * 停止 调试
-     */
-    public function debug_stop()
-    {
-        if ($this->debug) {
-            $this->debug->stop();
-        }
-    }
-
     /** @var  \ounun\template  Template句柄容器 */
-    public static $tpl = null;
+    public static $tpl;
 
     /**
      * (兼容)返回一个 模板文件地址(绝对目录,相对root)
@@ -882,7 +757,7 @@ abstract class v
      */
     static public function tpl_fixed(string $filename): string
     {
-        return self::$tpl->tpl_fixed($filename);
+        return static::$tpl->tpl_fixed($filename);
     }
 
     /**
@@ -892,44 +767,88 @@ abstract class v
      */
     static public function tpl_curr(string $filename): string
     {
-        return self::$tpl->tpl_curr($filename);
+        return static::$tpl->tpl_curr($filename);
+    }
+
+    /** @var \ounun\debug 调试 相关 */
+    public static $debug;
+
+    /**
+     * 调试日志
+     * @param $k
+     * @param $log
+     */
+    public function debug_logs(string $k, $log)
+    {
+        if (static::$debug) {
+            static::$debug->logs($k, $log);
+        }
+    }
+    /**
+     * 停止 调试
+     */
+    public function debug_stop()
+    {
+        if (static::$debug) {
+            static::$debug->stop();
+        }
     }
 
     /**
-     * 赋值(默认) $seo + $url
+     * ounun_view constructor.
+     * @param $mod
      */
-    public function tpl_replace_str_default()
+    public function __construct($mod)
     {
-        $url_base = substr($this->_page_url, 1);
-        \ounun\config::$tpl_replace_str += [
-            '{$seo_title}' => $this->_seo_title,
-            '{$seo_keywords}' => $this->_seo_keywords,
-            '{$seo_description}' => $this->_seo_description,
-            '{$seo_h1}' => $this->_seo_h1,
-            '{$etag}' => $this->_seo_etag,
-            '{$page_url}' => $this->_page_url,
-            '{$page_file}' => $this->_page_file,
+        if (!$mod) {
+            $mod = [\ounun\config::def_method];
+        }
+        $method             = $mod[0];
+        \ounun\config::$view  = $this;
+        $this->$method($mod);
+    }
 
-            '{$url_www}' => \ounun\config::$url_www,
-            '{$url_wap}' => \ounun\config::$url_wap,
-            '{$url_mip}' => \ounun\config::$url_mip,
-            '{$url_api}' => \ounun\config::$url_api,
-            '{$url_app}' => \ounun\config::url_page(),
+    /** @var string 当前面页(网址) */
+    public $page_url = '';
 
-            '{$canonical_pc}' => \ounun\config::$url_www . $url_base,
-            '{$canonical_mip}' => \ounun\config::$url_mip . $url_base,
-            '{$canonical_wap}' => \ounun\config::$url_wap . $url_base,
+    /** @var string 当前面页(文件名) */
+    public $page_file = '';
 
-            '{$app}' => \ounun\config::$app_name,
-            '{$domain}' => \ounun\config::$app_domain,
+    /**
+     * 初始化Page
+     * @param string $page_file
+     * @param bool $is_cache_html
+     * @param bool $ext_req
+     * @param string $domain
+     * @param int $cache_html_time
+     * @param bool $cache_html_trim
+     */
+    public function init_page(string $page_file = '', bool $is_cache_html = true, bool $ext_req = true, string $domain = '', int $cache_html_time = 0, bool $cache_html_trim = true)
+    {
+        // url_check
+        $this->page_file = $page_file;
+        $this->page_url  = \ounun\config::url_page($this->page_file);
+        url_check($this->page_url, $ext_req, $domain);
 
-            '{$sres}' => \ounun\config::$url_res,
-            '{$static}' => \ounun\config::$url_static,
-            '{$upload}' => \ounun\config::$url_upload,
-            '{$static_g}' => \ounun\config::$url_static_g,
-            '/public/static/' => \ounun\config::$url_static,
-            '/public/upload/' => \ounun\config::$url_upload,
-        ];
+        // cache_html
+        $this->cache_html_trim     = '' == Environment ? $cache_html_trim : false;
+        if ($is_cache_html) {
+            $this->cache_html_time = $cache_html_time > 300 ? $cache_html_time : static::$cache_html_time;
+            $this->cache_html($this->page_url);
+        }
+
+        // cms
+        $cls       = \ounun\config::$app_cms_classname;
+
+
+        // template
+        self::$tpl   || self::$tpl   = new \ounun\template(\ounun\config::$tpl_style, \ounun\config::$tpl_default, static::$cache_html_trim);
+
+        // db
+        if(empty(static::$db_v)){
+            static::$db_v = \ounun\pdo::instance(\ounun\config::$database_default);
+        }
+        self::$cms     = new $cls(static::$db_v);
     }
 
     /**
@@ -962,5 +881,17 @@ abstract class v
     public function favicon($mod)
     {
         go_url(\ounun\config::$url_static . 'favicon.ico', false, 301);
+    }
+
+    /**
+     * 没定的方法
+     * @param string $method
+     * @param String $arguments
+     */
+    public function __call($method, $arguments)
+    {
+        header('HTTP/1.1 404 Not Found');
+        $this->debug = new \ounun\debug(\ounun\config::$dir_root.'data/logs/error_404_'.date('Ymd').'.txt',false,false,false,true);
+        error404("\$method:{$method} \$args:".json_encode($arguments)."");
     }
 }

@@ -735,9 +735,14 @@ class pdo
         return $this->_stmt;
     }
 
+    /**
+     * @param bool $debug
+     * @return $this
+     */
     public function debug(bool $debug = true)
     {
         $this->_is_debug = $debug;
+        return $this;
     }
 
     /**

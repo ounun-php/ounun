@@ -1,28 +1,28 @@
 <?php
+
 namespace ounun\cmd\task;
 
-
-use ounun\mvc\controller\admin\adm;
+use ounun\cmd\console;
 use ounun\pdo;
 
 class manage
 {
     /** @var int 定时任务 */
-    const Type_Crontab  = 0;
+    const Type_Crontab = 0;
     /** @var int 循环任务 */
     const Type_Interval = 1;
-    /** @var array 任务类型列表  */
+    /** @var array 任务类型列表 */
     const Type = [
-        self::Type_Crontab  => '定时',
+        self::Type_Crontab => '定时',
         self::Type_Interval => '循环',
     ];
 
     /** @var int 0:采集全部 */
-    const Mode_All    = 0; // 0:采集全部   1:检查   2:更新
+    const Mode_All = 0; // 0:采集全部   1:检查   2:更新
     /** @var int 2:更新 */
     const Mode_Dateup = 1; // 2:更新
     /** @var int 1:检查 */
-    const Mode_Check  = 99; // 1:检查
+    const Mode_Check = 99; // 1:检查
     /** @var array 模式 0:采集全部   1:检查   2:更新 */
     const Mode = [
         self::Mode_All => '采集全部',
@@ -31,11 +31,11 @@ class manage
     ];
 
     /** @var int 等待空置状态 */
-    const Status_Await   = 1;
+    const Status_Await = 1;
     /** @var int 工作中... */
-    const Status_Runing  = 2;
+    const Status_Runing = 2;
     /** @var int 过载状态 */
-    const Status_Full    = 99;
+    const Status_Full = 99;
     /** @var array 1:空置(等待) 2:运行中... 99:满载(过载) */
     const Status = [
         self::Status_Await => '空置(等待)',
@@ -44,90 +44,129 @@ class manage
     ];
 
     /** @var int 正常(灰) */
-    const Logs_Normal       = 0;
+    const Logs_Normal = 0;
     /** @var int 失败(红色) */
-    const Logs_Fail         = 1;
+    const Logs_Fail = 1;
     /** @var int 突出(橙黄) */
-    const Logs_Warning      = 6;
+    const Logs_Warning = 6;
     /** @var int 成功(绿色) */
-    const Logs_Succeed      = 99;
+    const Logs_Succeed = 99;
     /** @var array 0:正常(灰) 1:失败(红色) 6:突出(橙黄)  99:成功(绿色) */
     const Logs = [
-        self::Logs_Normal  => '正常(灰)',
-        self::Logs_Fail    => '失败(红色)',
+        self::Logs_Normal => '正常(灰)',
+        self::Logs_Fail => '失败(红色)',
         self::Logs_Warning => '突出(橙黄)',
         self::Logs_Succeed => '成功(绿色)',
     ];
 
-    /** @var self 单例 */
-    protected static $_instance;
-    /** @var \ounun\pdo   */
-    protected static $_db;
     /** @var string 任务表名 */
-    public static $table_task    = '';
+    public static $table_task = '';
     /** @var string 运行中的任务表名 */
     public static $table_process = '';
     /** @var string 日志的任务表名 */
-    public static $table_logs    = '';
-
-    /** @var logs */
-    protected static $_logs;
+    public static $table_logs = '';
     /** @var int 状态  0:正常(灰) 1:失败(红色) 6:突出(橙黄)  99:成功(绿色) */
-    public static $logs_state    = 0;
+    public static $logs_state = 0;
+    /** @var logs */
+    protected static $_instance_logs;
+    /** @var self 单例 */
+    protected static $_instance_manage;
+    /** @var \ounun\pdo */
+    protected static $_db_biz;
+    /** @var \ounun\pdo */
+    protected static $_db_caiji;
+    /** @var \ounun\pdo */
+    protected static $_db_site;
 
     /**
      * 返回数据库连接对像
-     * @param \ounun\pdo|null $db
+     * @param pdo|null $db_task
+     * @param pdo|null $db_logs
      * @return manage
      */
-    public static function instance(\ounun\pdo $db = null):self
+    public static function instance(\ounun\pdo $db_task = null, \ounun\pdo $db_caiji = null, \ounun\pdo $db_site = null): self
     {
-        if(empty(static::$_instance)) {
-            if(empty($db)){
-                $db = static::db();
-            }
-            static::$_instance = new static($db);
+        if (empty(static::$_instance_manage)) {
+            static::$_instance_manage = new static();
         }
-        return static::$_instance;
+        if ($db_task) {
+            static::$_db_biz = $db_task;
+        }
+        if ($db_caiji) {
+            static::$_db_caiji = $db_caiji;
+        }
+        if ($db_site) {
+            static::$_db_site = $db_site;
+        }
+        return static::$_instance_manage;
     }
 
     /**
-     * @return \ounun\pdo
+     * @param string $db_tag
+     * @param array $db_config
+     * @return pdo 任务 数据库
      */
-    public static function db()
+    public static function db_biz(string $db_tag = 'biz', array $db_config = [])
     {
-        if(empty( static::$_db )){
-            static::$_db = pdo::instance('biz');
+        if (empty(static::$_db_biz)) {
+            static::$_db_biz = pdo::instance($db_tag, $db_config);
         }
-        return static::$_db;
+        return static::$_db_biz;
+    }
+
+
+    /**
+     * @param string $db_tag
+     * @param array $db_config
+     * @return pdo 采集 数据库
+     */
+    public static function db_caiji(string $db_tag = 'caiji', array $db_config = [])
+    {
+        if (empty(static::$_db_biz)) {
+            static::$_db_biz = pdo::instance($db_tag, $db_config);
+        }
+        return static::$_db_biz;
+    }
+
+    /**
+     * @param string $db_tag
+     * @param array $db_config
+     * @return pdo 站点 数据库
+     */
+    public static function db_site(string $db_tag = 'site', array $db_config = [])
+    {
+        if (empty(static::$_db_site)) {
+            static::$_db_site = pdo::instance($db_tag, $db_config);
+        }
+        return static::$_db_site;
     }
 
     /**
      * @return logs
      */
-    public static function logs()
+    public static function instance_logs()
     {
-        if(empty(static::$_logs)) {
-            static::$_logs = new logs(static::db());
+        if (empty(static::$_instance_logs)) {
+            static::$_instance_logs = new logs(static::db_biz());
         }
-        return static::$_logs;
+        return static::$_instance_logs;
     }
 
     /**
      * 设定任务表与运行中的任务表
-     * @param string $table_task      任务表
-     * @param string $table_process   运行中的任务表
-     * @param string $table_logs      日志的任务表
+     * @param string $table_task 任务表
+     * @param string $table_process 运行中的任务表
+     * @param string $table_logs 日志的任务表
      */
-    public static function table_set(string $table_task = 'sys_task',string $table_process = 'sys_task_process',string $table_logs = 'sys_logs_task')
+    public static function table_set(string $table_task = '`sys_task`', string $table_process = '`sys_task_process`', string $table_logs = '`sys_logs_task`')
     {
-        if($table_task){
+        if ($table_task) {
             self::$table_task = $table_task;
         }
-        if($table_process){
+        if ($table_process) {
             self::$table_process = $table_process;
         }
-        if($table_logs){
+        if ($table_logs) {
             self::$table_logs = $table_logs;
         }
     }
@@ -141,43 +180,54 @@ class manage
      * @param string $table
      * @param pdo|null $db
      */
-    static public function logs_init(int $task_id, string $tag = '', string $tag_sub = '', int $time = 0,string $table = '',\ounun\pdo $db = null)
+    static public function logs_init(int $task_id, string $tag = '', string $tag_sub = '', int $time = 0, string $table = '', \ounun\pdo $db = null)
     {
-        self::logs()->task($task_id,$tag,$tag_sub,$time,$table,$db);
+        $table = $table ? $table : self::$table_logs;
+        $db = $db ? $db : self::db_biz();
+        self::instance_logs()->task($task_id, $tag, $tag_sub, $time, $table, $db);
     }
 
     /**
      * 日志数据logs_data
-     * @param string $msg  内容
-     * @param int $state   状态  0:正常(灰) 1:失败(红色) 6:突出(橙黄)  99:成功(绿色)
-     * @param int $time    时间
+     * @param string $msg 内容
+     * @param int $state 状态  0:正常(灰) 1:失败(红色) 6:突出(橙黄)  99:成功(绿色)
+     * @param int $time 时间
      */
-    static public function logs_msg(string $msg,int $state= self::Logs_Normal ,int $time = 0)
+    static public function logs_msg(string $msg, int $state = self::Logs_Normal, int $time = 0)
     {
-        static::$_logs->data($state,$time,$msg);
+        static::$_instance_logs->data($state, $time, $msg);
     }
 
     /** @var array<task_id,task> 所有触发的任务Map */
-    protected $_tasks     = [];
-    /** @var array<task_id>      正在运行中的任务task_ids  */
-    protected $_process   = [];
+    protected $_tasks = [];
+    /** @var array<task_id>      正在运行中的任务task_ids */
+    protected $_process = [];
+    /** @var task_base 当前动行中的 */
+    protected $_task_curr;
 
     /** @var int 任务ID */
     protected $_task_id = 0;
-    /** @var struct 当前动行中的 */
-    protected $_task;
     /** @var int 模式 */
-    protected $_mode    = self::Mode_Dateup;
+    protected $_mode = self::Mode_Dateup;
     /** @var int 运行状态 */
-    protected $_status  = 0;
+    protected $_status = 0;
+    /** @var int 间隔(秒,默认5秒) */
+    protected $_time_sleep = 5;
+    /** @var int 寿命(秒,默认300秒) */
+    protected $_time_live = 59;
+    /** @var int 当前时间 */
+    protected $_time_curr = 0;
+    /** @var int 过去的时间 */
+    protected $_time_past = 0;
+    /** @var int 执行次数 */
+    protected $_run_count = 0;
 
-    /**
-     * _task constructor.
-     * @param \ounun\pdo $db
-     */
-    public function __construct(\ounun\pdo $db)
+    /**  */
+    public function init()
     {
-        static::$_db  = $db;
+        if (empty($this->_status)) {
+            $this->status();
+        }
     }
 
     /**
@@ -186,72 +236,53 @@ class manage
      */
     public function status()
     {
-
         return succeed([
-            'task_id' => (empty($this->_task)?'':'"'.$this->_task->task_name.'"')."[task_id:{$this->_task_id}]",
-            'mode'    => static::Mode[$this->_mode]."[mode:{$this->_mode}]",
-            'status'  => static::Status[$this->_status]."[status:{$this->_status}]",
+            'task_id' => (empty($this->_task) ? '' : '"' . $this->_task->task_name . '"') . "[task_id:{$this->_task_id}]",
+            'mode' => static::Mode[$this->_mode] . "[mode:{$this->_mode}]",
+            'status' => static::Status[$this->_status] . "[status:{$this->_status}]",
         ]);
     }
 
     /**
      * 执行任务
-     * @param int $task_id  任务
-     * @param int $mode     运行模式
+     * @param int $task_id 任务
+     * @param int $mode 运行模式
      */
-    public function execute(int $task_id,int $mode, array $input = [])
+    public function execute(int $task_id, int $mode, int $time_sleep, int $time_live, array $input = [])
     {
+        $time_sleep = $time_sleep <= 5 ? 5 : $time_sleep;
+        $time_live = $time_live <= 60 ? 60 : $time_live;
+        $is_pass_check = $task_id ? true : false;
+
         $this->_task_id = $task_id;
-        $this->_mode    = $mode;
+        $this->_mode = $mode;
+        $this->_time_sleep = $time_sleep;
+        $this->_time_live = $time_live;
+        $this->_time_curr = time();
+        $this->_time_past = 0;
+        $this->_run_count = 0;
 
-        if(empty($this->_status)){
-            $this->status();
-        }
+        $this->init();
 
-        $is_pass_check  = $task_id ? true : false;
-        if($this->_status < manage::Status_Full){
-           $tasks = $this->tasks();
-           if($tasks && is_array($tasks)) {
-               /** @var task_base $task */
-               foreach ($tasks as $task) {
-                   $run_time   = 0-microtime(true);
-                   $task->execute($input, $this->_mode,$is_pass_check);
-                   $run_time += microtime(true);
-               }
-           }
-        }
-    }
-
-    /**
-     * php index.php zrun_cmd,crontab,5,595 adm
-     * @param $mod
-     */
-    public function execute2()
-    {
-        print_r($mod);
-
-        $time_sleep     = (int)$mod[1];
-        $time_live      = (int)$mod[2];
-        $time_sleep     = $time_sleep <= 1  ? 1  : $time_sleep;
-        $time_live      = $time_live  <= 60 ? 60 : $time_live;
-
-        $time_curr      = time();
-        $time_past      = 0;
-        $times          = 0;
-
-        $task_manage    = new manage($this->_db);
-        $task_manage->init();
-        do{
-            $run_time   = 0-microtime(true);
-            $task_manage->run_all();
-            $run_time += microtime(true);
-            echo "-------exec:".str_pad(round($run_time,4).'s', 8)."  ".
-                "sleep:".str_pad($time_sleep, 5)." \$times:".str_pad($times, 5)."  ".
-                "PastTime:".str_pad($time_past, 5)." \$live:".str_pad($time_live, 5)."\n";
+        do {
+            $tasks = $this->tasks();
+            console::echo("Start          \$tasks_count:" . str_pad(count($tasks), 5) .
+                "\$sleep:" . str_pad($time_sleep, 5) . " \$count:" . str_pad($this->_run_count, 5) . "  " .
+                "\$past:" . str_pad($this->_time_past, 5) . " \$live:" . str_pad($time_live, 5) . ' ----------------- ', console::Color_Purple);
+            /** @var task_base $task */
+            foreach ($tasks as $task) {
+                // var_dump(['$task'=>$task]);
+                if ($task && is_subclass_of($task, "ounun\\cmd\\task\\task_base")) {
+                    $this->_task_curr = $task;
+                    console::echo("\$task_id:" . str_pad($task->struct_get()->task_id, 5) . " \$run_time:" . str_pad(round($task->run_time_get(), 4) . 's', 8), console::Color_Brown);
+                    $this->_task_curr->execute_do($input, $this->_mode, $is_pass_check);
+                }
+            }
+            $this->_run_count++;
             sleep($time_sleep);
-            $times++;
-            $time_past   = time() - $time_curr;
-        }while($time_past <= $time_live);
+            $this->_time_past = time() - $this->_time_curr;
+            $this->status();
+        } while ($this->_time_past < $this->_time_live);
     }
 
     /**
@@ -260,23 +291,34 @@ class manage
      */
     public function tasks()
     {
-        if(empty($this->_tasks)) {
-            $this->_tasks  = [];
-            if(0 == $this->_task_id){
+        if (empty($this->_tasks)) {
+            $this->_tasks = [];
+            if (0 < $this->_task_id) {
                 $where = ' `task_id` = :task_id ';
-                $param = ['task_id'=>$this->_task_id];
-            }else {
+                $param = ['task_id' => $this->_task_id];
+            } else {
                 $where = ' `time_ignore` <= :time and `time_begin` <= :time and `time_end` >= :time  ';
-                $param = ['time'=>time()];
+                $param = ['i:time' => time()];
             }
-            $rs  = self::$_db->table(static::$table_task)->field('*')->where($where,$param)->column_all();
-            foreach ($rs as $v){
-                if($v && $v['task_id'] && $v['task_class']){
-                    $cls    = '\\extend\\task\\'.$v['task_class'];
-                    $struct = new struct($v);
-                    /** @var task_base $task */
-                    $task   = new $cls($struct,$v['tag'],$v['tag_sub']);
-                    $this->_tasks[$v['task_id']] = $task;
+            $rs = static::$_db_biz->table(static::$table_task)->field('*')->where($where, $param)->column_all();
+            // static::$_db_task->stmt()->debugDumpParams();
+            // print_r(['static::$_db_task->stmt()->queryString'=>static::$_db_task->stmt()->queryString,'$rs'=>$rs]);
+            foreach ($rs as $v) {
+                if ($v && $v['task_id'] && $v['task_class']) {
+                    $cls = '\\extend\\task\\' . $v['task_class'];
+                    if (class_exists($cls)) {
+                        $struct = new struct($v);
+                        /** @var task_base $task */
+                        $task = new $cls($struct, $v['tag'], $v['tag_sub']);
+                        if (is_subclass_of($task, "ounun\\cmd\\task\\task_base")) {
+                            $this->_tasks[$v['task_id']] = $task;
+                        } else {
+                            console::echo("error --> class:{$cls} not subclass:task\\task_base", console::Color_Red);
+                        }
+                    } else {
+                        console::echo("error --> class_exists:{$cls}", console::Color_Red);
+                    }
+
                 }
             }
         }
@@ -289,11 +331,11 @@ class manage
      */
     public function process()
     {
-        if(empty($this->_process)){
+        if (empty($this->_process)) {
             $this->_process = [];
-            $rs    = self::$_db->table(static::$table_process)->field('*')->column_all();
+            $rs = self::$_db_biz->table(static::$table_process)->field('*')->column_all();
             foreach ($rs as $v) {
-                if($v && $v['task_id']){
+                if ($v && $v['task_id']) {
                     $this->_process[$v['task_id']] = $v;
                 }
             }
@@ -304,58 +346,8 @@ class manage
     /**
      * @return int 返回模式
      */
-    public function mode()
+    public function mode_get()
     {
         return $this->_mode;
-    }
-
-    /**
-     * php index.php zrun_cmd,crontab_step,5 adm   任务ID
-     * @param $mod
-     */
-    public function crontab_step($mod)
-    {
-        print_r($mod);
-
-        $task_id      = $mod[1];
-        $paras        = array_slice($mod,2);
-        // print_r(['$paras'=>$paras]);
-
-        $task_manage  = new manage($this->_db);
-        $task_manage->init($task_id);
-        $task_manage->start($task_id,$paras);
-    }
-
-
-    /**
-     * php index.php zrun_cmd,crontab,5,595 adm
-     * @param $mod
-     */
-    public function crontab($mod)
-    {
-        print_r($mod);
-
-        $time_sleep     = (int)$mod[1];
-        $time_live      = (int)$mod[2];
-        $time_sleep     = $time_sleep <= 1  ? 1  : $time_sleep;
-        $time_live      = $time_live  <= 60 ? 60 : $time_live;
-
-        $time_curr      = time();
-        $time_past      = 0;
-        $times          = 0;
-
-        $task_manage    = new manage($this->_db);
-        $task_manage->init();
-        do{
-            $run_time   = 0-microtime(true);
-            $task_manage->run_all();
-            $run_time += microtime(true);
-            echo "-------exec:".str_pad(round($run_time,4).'s', 8)."  ".
-                "sleep:".str_pad($time_sleep, 5)." \$times:".str_pad($times, 5)."  ".
-                "PastTime:".str_pad($time_past, 5)." \$live:".str_pad($time_live, 5)."\n";
-            sleep($time_sleep);
-            $times++;
-            $time_past   = time() - $time_curr;
-        }while($time_past <= $time_live);
     }
 }

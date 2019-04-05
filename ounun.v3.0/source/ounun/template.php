@@ -131,9 +131,7 @@ class template
         }
 
         // 替换
-        config::$view->tpl_replace_str_default();
-        $buffer     = strtr($buffer,config::$tpl_replace_str);
-
+        $buffer     = strtr($buffer,config::get_tpl_replace_str());
         exit($buffer);
     }
 }

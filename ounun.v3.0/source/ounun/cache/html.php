@@ -1,33 +1,34 @@
-<?php 
+<?php
+
 namespace ounun\cache;
 
 class html
 {
     /** Cache最小文件大小           */
-    const Cache_Mini_Size       = 2024;
+    const Cache_Mini_Size = 2024;
     /** Cache生成过程最长临时过度时间 */
-    const Cache_Time_Interval   = 300;
+    const Cache_Time_Interval = 300;
 
-    /** @var bool  */
-    public $stop			    = false;
+    /** @var bool */
+    public $stop = false;
 
     /** @var int 当前时间 */
     protected $_now_time;
     /** @var int cache时间长度 */
-    protected $_expire          = 3600;
+    protected $_expire = 3600;
 
 
     // 下面 高级应用
-    /** @var bool  */
-    protected $_gzip	        = true;
-    /** @var int  */
-    protected $_cache_time		= 0;
-    /** @var null|html_base  */
-    protected $_cache           = null;
+    /** @var bool */
+    protected $_gzip = true;
+    /** @var int */
+    protected $_cache_time = 0;
+    /** @var null|html_base */
+    protected $_cache = null;
     /** @var bool 是否去空格 换行 */
-    protected $_is_trim			= false;
-    /** @var bool  */
-    protected $_is_debug		= false;
+    protected $_is_trim = false;
+    /** @var bool */
+    protected $_is_debug = false;
 
     /**
      * 创建缓存对像 cache_html constructor.
@@ -37,43 +38,43 @@ class html
      * @param bool $trim
      * @param bool $debug
      */
-    public function __construct($cache_config,string $key='',int $expire=3600,bool $trim=true,bool $debug=true)
+    public function __construct($cache_config, string $key = '', int $expire = 3600, bool $trim = true, bool $debug = true)
     {
-        $this->stop          = false;
+        $this->stop = false;
         // 初始化参数
-        $this->_expire       = $expire;
-        $this->_now_time     = time();
+        $this->_expire = $expire;
+        $this->_now_time = time();
 
-        $this->_cache_time   = 0;
+        $this->_cache_time = 0;
 
-        $this->_is_trim      = $trim;
-        $this->_is_debug     = $debug;
+        $this->_is_trim = $trim;
+        $this->_is_debug = $debug;
         // 是否支持gzip
-        if(stripos($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip') === false) {
-            $this->_gzip    = false;
-        }else {
-            $this->_gzip    = true;
+        if (stripos($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip') === false) {
+            $this->_gzip = false;
+        } else {
+            $this->_gzip = true;
         }
         // Cache
-        $this->_cache       = new html_base($cache_config,$this->_is_debug);
+        $this->_cache = new html_base($cache_config, $this->_is_debug);
         $this->_cache->key($key);
     }
 
     /**
      * [1/1] 判断->执行缓存->输出
-     * @param bool $outpt  ( 是否输出 )
+     * @param bool $outpt ( 是否输出 )
      */
     public function run(bool $output = true)
     {
         // 是否清理本缓存
-        if($_GET && $_GET['clean']) {
+        if ($_GET && $_GET['clean']) {
             unset($_GET['clean']);
             $this->clean();
         }
         // 执行
-        $is_cache  = $this->run_cache_check();
-        if($is_cache) {
-            if($output) {
+        $is_cache = $this->run_cache_check();
+        if ($is_cache) {
+            if ($output) {
                 $this->run_output();
             }
         } else {
@@ -87,17 +88,17 @@ class html
      */
     public function run_cache_check()
     {
-        $this->_cache_time  = $this->_cache->cache_time();
+        $this->_cache_time = $this->_cache->cache_time();
         //exit("\$this->_cache_time:{$this->_cache_time }");
         // \debug::header('time',  $this->_cache_time,$this->_is_debug,__FUNCTION__,__LINE__);
         // \debug::header('expire',$this->_expire,    $this->_is_debug,__FUNCTION__,__LINE__);
-        if( $this->_cache_time + $this->_expire > $this->_now_time ) {
+        if ($this->_cache_time + $this->_expire > $this->_now_time) {
             // \debug::header('xypc',$this->_cache->filename(),$this->_is_debug,__FUNCTION__,__LINE__);
             return true;
         }
-        $cache_time_t       = $this->_cache->cache_time_tmp();
+        $cache_time_t = $this->_cache->cache_time_tmp();
         // \debug::header('time_t',$cache_time_t,$this->_is_debug,__FUNCTION__,__LINE__);
-        if($cache_time_t + self::Cache_Time_Interval > $this->_now_time) {
+        if ($cache_time_t + self::Cache_Time_Interval > $this->_now_time) {
             // \debug::header('xypc_t',$this->_cache->filename().'.t time:'.$cache_time_t,true,__FUNCTION__,__LINE__);
             return true;
         }
@@ -107,7 +108,7 @@ class html
 
     /**
      * [2/3] 执行缓存程序
-     * @param  bool $outpt  ( 是否输出 )
+     * @param  bool $outpt ( 是否输出 )
      */
     public function run_execute(bool $output)
     {
@@ -116,31 +117,30 @@ class html
         $this->_cache->cache_set_time_tmp();
         // 生成
         ob_start();
-        register_shutdown_function(array($this,'callback'),$output);
+        register_shutdown_function(array($this, 'callback'), $output);
     }
 
     /**
      * [3/3] 输出缓存
-     * @param bool  $temp  ( 是否读取临时文件. 默认读取正式文件 )
+     * @param bool $temp ( 是否读取临时文件. 默认读取正式文件 )
      */
     public function run_output()
     {
-        if($this->_cache_time)
-        {
+        if ($this->_cache_time) {
             // 处理 etag
-            $etag       = $this->_cache_time;
-            $etag_http  = isset($_SERVER['HTTP_IF_NONE_MATCH'])?$_SERVER['HTTP_IF_NONE_MATCH']:'';
+            $etag = $this->_cache_time;
+            $etag_http = isset($_SERVER['HTTP_IF_NONE_MATCH']) ? $_SERVER['HTTP_IF_NONE_MATCH'] : '';
 
             // 处理 cache expire
-            header('Expires: '. gmdate('D, d M Y H:i:s', $this->_now_time + $this->_expire). ' GMT');
-            header('Cache-Control: max-age='. $this->_expire);
-            header('Last-Modified: '.gmdate('D, d M Y H:i:s', $this->_cache_time).' GMT');
+            header('Expires: ' . gmdate('D, d M Y H:i:s', $this->_now_time + $this->_expire) . ' GMT');
+            header('Cache-Control: max-age=' . $this->_expire);
+            header('Last-Modified: ' . gmdate('D, d M Y H:i:s', $this->_cache_time) . ' GMT');
 
-            if($etag && $etag == $etag_http) {
+            if ($etag && $etag == $etag_http) {
                 header('Etag: ' . $etag, true, 304);
                 exit;
             }
-            header('Etag: '.    $etag);
+            header('Etag: ' . $etag);
             // 输出
             $this->_cache->cache_out($this->_gzip);
         }
@@ -154,37 +154,37 @@ class html
      */
     public function callback(bool $output)
     {
-        if($this->stop){
+        if ($this->stop) {
             return;
         }
         // 执行
-        $buffer     = ob_get_contents();
-        $filesize   = strlen($buffer);
+        $buffer = ob_get_contents();
+        $filesize = strlen($buffer);
         ob_clean();
         ob_implicit_flush(1);
         // 写文件
         // \debug::header('xypm_size',$filesize,$this->_is_debug,__FUNCTION__,__LINE__);
-        if($filesize > self::Cache_Mini_Size){
+        if ($filesize > self::Cache_Mini_Size) {
             // \debug::header('xypm_ok',$this->_cache->filename(),$this->_is_debug,__FUNCTION__,__LINE__);
-            \ounun\config::$view->tpl_replace_str_default();
-            $buffer = strtr($buffer,\ounun\config::$tpl_replace_str);
 
-            if($this->_is_trim){
-                $buffer = preg_replace(['/<!--.*?-->/','/[^:\-\"]\/\/[^\S].*?\n/', '/\/\*.*?\*\//', '/[\n\r\t]*?/', '/\s{2,}/','/>\s?</','/<!--.*?-->/','/\"\s?>/'],
-                                       [''            ,''                        , ''             , ''            , ' '       ,'><'     ,''            ,'">'],
-                                       $buffer);
+            $buffer = strtr($buffer, \ounun\config::get_tpl_replace_str());
+
+            if ($this->_is_trim) {
+                $buffer = preg_replace(['/<!--.*?-->/', '/[^:\-\"]\/\/[^\S].*?\n/', '/\/\*.*?\*\//', '/[\n\r\t]*?/', '/\s{2,}/', '/>\s?</', '/<!--.*?-->/', '/\"\s?>/'],
+                    ['', '', '', '', ' ', '><', '', '">'],
+                    $buffer);
             }
-            $buffer     = gzencode($buffer, 9);
+            $buffer = gzencode($buffer, 9);
             $this->_cache->cache_html($buffer);
             $this->_cache_time = $this->_cache->cache_time();
-            if($output){
+            if ($output) {
                 $this->run_output();
             }
-        }else{
+        } else {
             $this->_cache->delete();
             // \debug::header('xypm_noc','nocache',$this->_is_debug,__FUNCTION__,__LINE__);
-            if($output){
-                header('Content-Length: '. $filesize);
+            if ($output) {
+                header('Content-Length: ' . $filesize);
                 exit($buffer);
             }
         }
@@ -202,7 +202,7 @@ class html
      * 看是否存在cache
      * @return int 小于0:无Cache 大于0:创建Cache时间
      */
-    public function cache_time():int
+    public function cache_time(): int
     {
         return $this->_cache_time;
     }
@@ -214,7 +214,7 @@ class html
     public function stop(bool $output)
     {
         $this->stop = true;
-        if($output){
+        if ($output) {
             \v::$tpl->replace();
             $this->run_output();
         }

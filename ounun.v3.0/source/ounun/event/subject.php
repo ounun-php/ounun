@@ -1,9 +1,10 @@
 <?php
+
 namespace ounun\event;
 
 class subject implements \SplSubject
 {
-    /** @var \SplObjectStorage  */
+    /** @var \SplObjectStorage */
     protected $observers;
 
     /** @var string 当前事件 */
@@ -41,7 +42,7 @@ class subject implements \SplSubject
      */
     public function notify($event = '')
     {
-        if($event){
+        if ($event) {
             $this->event = $event;
         }
         $this->observers->rewind();

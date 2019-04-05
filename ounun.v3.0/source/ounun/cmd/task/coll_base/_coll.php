@@ -1,7 +1,9 @@
 <?php
+
 namespace ounun\cmd\task\coll_base;
 
 use ounun\api_sdk\com_showapi;
+use ounun\cmd\console;
 use ounun\cmd\task\manage;
 use ounun\cmd\task\task_base;
 use ounun\config;
@@ -17,7 +19,7 @@ abstract class _coll extends task_base
     protected $_url_root = '';
 
     /** @var int 图片wget max */
-    protected $_wget_loop_max       = 3;
+    protected $_wget_loop_max = 3;
     /** @var int 文件最小文件大小 */
     protected $_wget_file_mini_size = 1024;
 
@@ -43,7 +45,7 @@ abstract class _coll extends task_base
     /** @var pdo 网站数据 */
     protected $_db_site;
     /** @var string  网站数据 - 数据 - 表名 */
-    protected $_table_site_data       = '';
+    protected $_table_site_data = '';
     /** @var string  网站数据 - 附件 - 表名 */
     protected $_table_site_attachment = '';
 
@@ -54,12 +56,12 @@ abstract class _coll extends task_base
      * @param string $dir_root
      * @param string $libs_key
      */
-    public function config_set(string $url_root, string $table, string $dir_name, string $dir_root, string $libs_key = '')
+    public function coll_set(string $url_root, string $table, string $dir_name, string $dir_root, string $libs_key = '')
     {
-        if($libs_key) {
+        if ($libs_key) {
             $libs = config::$global['caiji'][$libs_key];
-            if($libs && $libs['db']) {
-                $this->_db   = pdo::instance($libs_key,$libs['db']);
+            if ($libs && $libs['db']) {
+                $this->_db = pdo::instance($libs_key, $libs['db']);
             }
         }
         // -------------------------------------------------
@@ -71,20 +73,20 @@ abstract class _coll extends task_base
         $this->_dir_name = $dir_name;
     }
 
+    public function status()
+    {
+        console::echo("error:" . __METHOD__, console::Color_Red);
+        return [];
+    }
 
     /**
      * @param array $input
      * @param int $mode
      * @param bool $is_pass_check
      */
-    public function execute(array $input = [], int $mode = manage::Mode_Dateup,bool $is_pass_check = false)
+    public function execute(array $input = [], int $mode = manage::Mode_Dateup, bool $is_pass_check = false)
     {
-        if( !$this->check($is_pass_check) )  {
-            return ;
-        }
-        $this->_mode = $mode;
-
-
+        console::echo(__METHOD__, console::Color_Red);
         try {
             manage::$logs_state = manage::Logs_Succeed;
             // $this->url_refresh();
@@ -96,37 +98,93 @@ abstract class _coll extends task_base
             // print_r(['$paras'=>$paras,'_args'=>$this->_args,'$libs_key'=>$libs_key,'$in_table'=>$in_table,'$out_table'=>$out_table,'\scfg::$app'=>\scfg::$app]);
             // print_r(['$libs_key'=>$libs_key,'$in_table'=>$in_table,'$out_table'=>$out_table]);
             // $this->data($libs_key, $in_table, $out_table, \scfg::$app);
-            $this->logs_msg("Successful update:{$this->_task_struct->arguments}");
+            console::echo("Successful update:{$this->_task_struct->task_id}/{$this->_task_struct->task_name}");
         } catch (\Exception $e) {
-            $this->_logs_state = manage::Logs_Fail;
-            $this->logs_msg($e->getMessage());
-            $this->logs_msg("Fail Coll tag:{$this->_tag} tag_sub:{$this->_tag_sub}");
+            manage::$logs_state = manage::Logs_Fail;
+            console::echo($e->getMessage());
+            console::echo("Fail Coll tag:{$this->_tag} tag_sub:{$this->_tag_sub}");
         }
     }
 
     /** 列表01 - 《采集》任务 */
-    abstract public function list_01();
+    public function list_01()
+    {
+
+    }
+
     /** 列表02 - 《采集》任务 */
-    abstract public function list_02();
+    public function list_02()
+    {
+
+    }
+
     /** 列表03 - 《采集》任务 */
-    abstract public function list_03();
+    public function list_03()
+    {
+
+    }
 
     /** 封面 - 《采集》任务 */
-    abstract public function cover();
+    public function cover()
+    {
+
+    }
+
     /** 数据01 - 《采集》任务 */
-    abstract public function data_01();
+    public function data_01()
+    {
+
+    }
+
     /** 数据02 - 《采集》任务 */
-    abstract public function data_02();
+    public function data_02()
+    {
+
+    }
+
     /** 数据03 - 《采集》任务 */
-    abstract public function data_03();
+    public function data_03()
+    {
+
+    }
 
     /** 附件 - 《采集》任务 */
-    abstract public function data_attachment();
+    public function data_attachment()
+    {
+
+    }
 
     /** 列表 - 《发布》任务 */
-    abstract public function post_site_data();
+    public function post_site_data()
+    {
+
+    }
+
     /** 附件 - 《发布》任务 */
-    abstract public function post_site_attachment();
+    public function post_site_attachment()
+    {
+
+    }
+
+    /**
+     * @param int $data_id
+     * @param string $fields_name
+     * @return  bool
+     */
+    protected function data_check(int $data_id, string $fields_name = 'data_id')
+    {
+        return false;
+    }
+
+
+    /**
+     * @param string $fields_name
+     * @return int 最后的data_id
+     */
+    protected function data_last_id(string $fields_name = 'data_id')
+    {
+        return 0;
+    }
 
     /**
      * 获取网络文件，并保存
@@ -135,15 +193,15 @@ abstract class _coll extends task_base
      */
     protected function _wget_put(string $url, string $file_save)//,int $mini_size = 1024)
     {
-        $do  =  $this->_wget_loop_max;
+        $do = $this->_wget_loop_max;
         do {
             $do--;
-            $c = \plugins\curl\http::file_get_contents($url,$this->_url_root);
-            if($c  && strlen($c) > $this->_wget_file_mini_size) {
+            $c = \plugins\curl\http::file_get_contents($url, $this->_url_root);
+            if ($c && strlen($c) > $this->_wget_file_mini_size) {
                 $do = 0;
-                file_put_contents($file_save,$c);
+                file_put_contents($file_save, $c);
             }
-        }while($do);
+        } while ($do);
     }
 
     /**
@@ -155,54 +213,52 @@ abstract class _coll extends task_base
     {
         $_is_save_db = false;
         //
-        $dir_root    = "{$this->_dir_root}{$this->_dir_name}";
-        $dir_pic     = "{$dir_root}/{$pic_id}/";
-        if(!file_exists($dir_pic)) {
-            mkdir($dir_pic,0777,true);
+        $dir_root = "{$this->_dir_root}{$this->_dir_name}";
+        $dir_pic = "{$dir_root}/{$pic_id}/";
+        if (!file_exists($dir_pic)) {
+            mkdir($dir_pic, 0777, true);
         }
-        $cc          = [];
-        $ok_pic      = [];
+        $cc = [];
+        $ok_pic = [];
 
         // ------------------------------------------------------------------
-        if($data['cover'])
-        {
-            $url         = $data['cover'];
-            $file        = "{$pic_id}/s.jpg";
-            $file_full   = "{$dir_root}/{$file}";
-            if(!file_exists($file_full) || filesize($file_full) < $this->_wget_file_mini_size ) {
-                $this->logs_msg("id:{$pic_id} -> wget-s:{$url}");
-                $this->_wget_put($url,$file_full);
-            }else {
-                $ok_pic[]  = $file;
-            }
-            $cc[]          = $file;
-        }
-
-        // ------------------------------------------------------------------
-        foreach ($data['data'] as $v)
-        {
-            $url       = $v['url'];
-            $file      = "{$pic_id}/{$v['file']}";
+        if ($data['cover']) {
+            $url = $data['cover'];
+            $file = "{$pic_id}/s.jpg";
             $file_full = "{$dir_root}/{$file}";
-            if(!file_exists($file_full)  || filesize($file_full) < $this->_wget_file_mini_size ) {
-                $this->logs_msg("id:{$pic_id} -> wget-p:{$url}");
-                $this->_wget_put($url,$file_full);
-                $_is_save_db  = true;
-            }elseif($url) {
-                $ok_pic[]     = $file;
-                $_is_save_db  = true;
+            if (!file_exists($file_full) || filesize($file_full) < $this->_wget_file_mini_size) {
+                manage::logs_msg("id:{$pic_id} -> wget-s:{$url}");
+                $this->_wget_put($url, $file_full);
+            } else {
+                $ok_pic[] = $file;
             }
             $cc[] = $file;
         }
-        if($ok_pic) {
-            $this->logs_msg("ok-pic id:{$pic_id}->:".implode(',',$ok_pic) );
+
+        // ------------------------------------------------------------------
+        foreach ($data['data'] as $v) {
+            $url = $v['url'];
+            $file = "{$pic_id}/{$v['file']}";
+            $file_full = "{$dir_root}/{$file}";
+            if (!file_exists($file_full) || filesize($file_full) < $this->_wget_file_mini_size) {
+                manage::logs_msg("id:{$pic_id} -> wget-p:{$url}");
+                $this->_wget_put($url, $file_full);
+                $_is_save_db = true;
+            } elseif ($url) {
+                $ok_pic[] = $file;
+                $_is_save_db = true;
+            }
+            $cc[] = $file;
         }
-        $pic_centent         = [ 'cover'   => "{$pic_id}/s.jpg", 'data'        => $cc ];
-        $bind                = [ 'is_wget' => 1,                 'pic_centent' => json_encode($pic_centent,JSON_UNESCAPED_UNICODE) ];
-        if($_is_save_db && $pic_ext) {
-            $bind['pic_ext'] = json_encode($pic_ext,JSON_UNESCAPED_UNICODE);
+        if ($ok_pic) {
+            manage::logs_msg("ok-pic id:{$pic_id}->:" . implode(',', $ok_pic));
         }
-        $this->_db_caiji->table($this->_table_list01)->where(' `pic_id` =:pic_id ',['pic_id'=>$pic_id])->update($bind);
+        $pic_centent = ['cover' => "{$pic_id}/s.jpg", 'data' => $cc];
+        $bind = ['is_wget' => 1, 'pic_centent' => json_encode($pic_centent, JSON_UNESCAPED_UNICODE)];
+        if ($_is_save_db && $pic_ext) {
+            $bind['pic_ext'] = json_encode($pic_ext, JSON_UNESCAPED_UNICODE);
+        }
+        $this->_db_caiji->table($this->_table_list01)->where(' `pic_id` =:pic_id ', ['pic_id' => $pic_id])->update($bind);
         // echo $this->_db_libs->sql()."\n";
         // exit();
     }
@@ -232,161 +288,129 @@ abstract class _coll extends task_base
      * @param int $add_time
      * @return array
      */
-    protected  function _fields_pics_v1(int $pic_id, string $pic_title,array $pic_centent,array $pic_ext,string $pic_origin_url,
-                                        array $tags = [], int $pic_goods = 0,int $pic_collect_count = 1,
-                                        string $site_name = '', string $site_class_key = '', string $site_class_name = '',
-                                        string $site_sub_key = '', string $site_sub_name = '', string $site_ext_key = '', string $site_ext_name = '',
-                                        int $is_qiniu =0,int $is_wget = 1,int $is_done = 0,
-                                        int $update_interval = 0,int $update_time = 0,int $update_count = 1,int $add_time = 0)
+    protected function _fields_pics_v1(int $pic_id, string $pic_title, array $pic_centent, array $pic_ext, string $pic_origin_url,
+                                       array $tags = [], int $pic_goods = 0, int $pic_collect_count = 1,
+                                       string $site_name = '', string $site_class_key = '', string $site_class_name = '',
+                                       string $site_sub_key = '', string $site_sub_name = '', string $site_ext_key = '', string $site_ext_name = '',
+                                       int $is_qiniu = 0, int $is_wget = 1, int $is_done = 0,
+                                       int $update_interval = 0, int $update_time = 0, int $update_count = 1, int $add_time = 0)
     {
-        $time      = time();
-        $tags3     = com_showapi::tag($pic_title);
-        if($tags) {
-            $tags3 = array_merge($tags,$tags3);
+        $time = time();
+        $tags3 = com_showapi::tag($pic_title);
+        if ($tags) {
+            $tags3 = array_merge($tags, $tags3);
         }
         return [
-            'pic_id'            => $pic_id,
-            'pic_goods'         => $pic_goods,
+            'pic_id' => $pic_id,
+            'pic_goods' => $pic_goods,
             'pic_collect_count' => $pic_collect_count,
-            'pic_title'         => $pic_title,
-            'pic_tag'           => json_encode($tags3      ,JSON_UNESCAPED_UNICODE),
-            'pic_centent'       => json_encode($pic_centent,JSON_UNESCAPED_UNICODE), //\mm_pics::pics_class[$pic_class].", ".$data['pic_title'].", ".$pic_tag,
-            'pic_ext'           => json_encode($pic_ext    ,JSON_UNESCAPED_UNICODE),
-            'pic_origin_url'    => $pic_origin_url,
+            'pic_title' => $pic_title,
+            'pic_tag' => json_encode($tags3, JSON_UNESCAPED_UNICODE),
+            'pic_centent' => json_encode($pic_centent, JSON_UNESCAPED_UNICODE), //\mm_pics::pics_class[$pic_class].", ".$data['pic_title'].", ".$pic_tag,
+            'pic_ext' => json_encode($pic_ext, JSON_UNESCAPED_UNICODE),
+            'pic_origin_url' => $pic_origin_url,
 
-            'site_name'       => $site_name,
-            'site_class_key'  => $site_class_key,
+            'site_name' => $site_name,
+            'site_class_key' => $site_class_key,
             'site_class_name' => $site_class_name,
 
-            'site_sub_key'    => $site_sub_key ,
-            'site_sub_name'   => $site_sub_name,
-            'site_ext_key'    => $site_ext_key ,
-            'site_ext_name'   => $site_ext_name,
+            'site_sub_key' => $site_sub_key,
+            'site_sub_name' => $site_sub_name,
+            'site_ext_key' => $site_ext_key,
+            'site_ext_name' => $site_ext_name,
 
-            'is_qiniu'        => $is_qiniu,
-            'is_wget'         => $is_wget,
-            'is_done'         => $is_done,
+            'is_qiniu' => $is_qiniu,
+            'is_wget' => $is_wget,
+            'is_done' => $is_done,
 
             'update_interval' => $update_interval,
-            'update_time'     => $update_time > 0 ? $update_time:$time,
-            'update_count'    => $update_count,
-            'add_time'        => $add_time    > 0 ? $add_time   :$time,
+            'update_time' => $update_time > 0 ? $update_time : $time,
+            'update_count' => $update_count,
+            'add_time' => $add_time > 0 ? $add_time : $time,
         ];
     }
 
 
-    protected  function _fields_v2(int $data_id,string $title,array $tags,array $data,array $data_origin,array $exts,string $origin_url,
-                                   int $time_add = 0, int $coll_count=0,
-                                   array $coll_exts=[],array $site=[],array $is=[],array $update=[])
+    protected function _fields_v2(int $data_id, string $title, array $tags, array $data, array $data_origin, array $exts, string $origin_url,
+                                  int $time_add = 0, int $coll_count = 0,
+                                  array $coll_exts = [], array $site = [], array $is = [], array $update = [])
     {
-        $tags3     = com_showapi::tag($title);
-        if($tags) {
-            $tags3 = array_merge($tags,$tags3);
+        $tags3 = com_showapi::tag($title);
+        if ($tags) {
+            $tags3 = array_merge($tags, $tags3);
         }
         return [
-            'data_id'           => $data_id,
-            'title'             => $title,
-            'tag'               => json_encode($tags3,JSON_UNESCAPED_UNICODE),
-            'data'              => json_encode($data,JSON_UNESCAPED_UNICODE),
-            'dataorigin'        => json_encode($data_origin,JSON_UNESCAPED_UNICODE),
-            'exts'              => json_encode($exts,JSON_UNESCAPED_UNICODE),
+            'data_id' => $data_id,
+            'title' => $title,
+            'tag' => json_encode($tags3, JSON_UNESCAPED_UNICODE),
+            'data' => json_encode($data, JSON_UNESCAPED_UNICODE),
+            'dataorigin' => json_encode($data_origin, JSON_UNESCAPED_UNICODE),
+            'exts' => json_encode($exts, JSON_UNESCAPED_UNICODE),
 
-            'origin_url'        => $origin_url,
-            'coll_count'        => $coll_count,
-            'coll_exts'         => json_encode($coll_exts,JSON_UNESCAPED_UNICODE),
+            'origin_url' => $origin_url,
+            'coll_count' => $coll_count,
+            'coll_exts' => json_encode($coll_exts, JSON_UNESCAPED_UNICODE),
 
-            'site_name'         => $site['site_name']      ?$site['site_name']      :'',
-            'site_class_key'    => $site['site_class_key'] ?$site['site_class_key'] :'',
-            'site_class_name'   => $site['site_class_name']?$site['site_class_name']:'',
-            'site_sub_key'      => $site['site_sub_key']   ?$site['site_sub_key']   :'',
-            'site_sub_name'     => $site['site_sub_name']  ?$site['site_sub_name']  :'',
-            'site_ext_key'      => $site['site_ext_key']   ?$site['site_ext_key']   :'',
-            'site_ext_name'     => $site['site_ext_name']  ?$site['site_ext_name']  :'',
+            'site_name' => $site['site_name'] ? $site['site_name'] : '',
+            'site_class_key' => $site['site_class_key'] ? $site['site_class_key'] : '',
+            'site_class_name' => $site['site_class_name'] ? $site['site_class_name'] : '',
+            'site_sub_key' => $site['site_sub_key'] ? $site['site_sub_key'] : '',
+            'site_sub_name' => $site['site_sub_name'] ? $site['site_sub_name'] : '',
+            'site_ext_key' => $site['site_ext_key'] ? $site['site_ext_key'] : '',
+            'site_ext_name' => $site['site_ext_name'] ? $site['site_ext_name'] : '',
 
-            'is_data'           => $is['is_data']?$is['is_data']:0,
-            'is_wget'           => $is['is_wget']?$is['is_wget']:0,
-            'is_done'           => $is['is_done']?$is['is_done']:0,
-            'is_ext'            => json_encode($is['is_ext']?$is['is_ext']:[],JSON_UNESCAPED_UNICODE),
+            'is_data' => $is['is_data'] ? $is['is_data'] : 0,
+            'is_wget' => $is['is_wget'] ? $is['is_wget'] : 0,
+            'is_done' => $is['is_done'] ? $is['is_done'] : 0,
+            'is_ext' => json_encode($is['is_ext'] ? $is['is_ext'] : [], JSON_UNESCAPED_UNICODE),
 
-            'update_interval'   => $update['update_interval']?$update['update_interval']:0,
-            'update_time'       => $update['update_time']    ?$update['update_time']    :0,
-            'update_count'      => $update['update_count']   ?$update['update_count']   :0,
+            'update_interval' => $update['update_interval'] ? $update['update_interval'] : 0,
+            'update_time' => $update['update_time'] ? $update['update_time'] : 0,
+            'update_count' => $update['update_count'] ? $update['update_count'] : 0,
 
-            'time_add'          => $time_add<1?$time_add:time(),
+            'time_add' => $time_add < 1 ? $time_add : time(),
         ];
     }
 
-    protected  function _fields_v2_files(int $data_id,string $dir,array $data=[])
+    protected function _fields_v2_files(int $data_id, string $dir, array $data = [])
     {
         $binds = [];
-        foreach ($data as $v)
-        {
+        foreach ($data as $v) {
             $binds[] = [
                 'data_id' => $data_id,
-                'type'    => $v['type'],
-                'dir'     => $dir,
-                'file'    => $v['file'],
+                'type' => $v['type'],
+                'dir' => $dir,
+                'file' => $v['file'],
                 'src_url' => $v['src_url'],
-                'is_wget' => $v['is_wget'] ?$v['is_wget'] :0,
-                'is_done' => $v['is_done'] ?$v['is_done'] :0,
-                'time_add'=> $v['time_add']?$v['time_add']:time(),
-                'exts'    =>($v['exts'] && is_array($v['exts']) ) ? json_encode($v['exts'],JSON_UNESCAPED_UNICODE) : '',
+                'is_wget' => $v['is_wget'] ? $v['is_wget'] : 0,
+                'is_done' => $v['is_done'] ? $v['is_done'] : 0,
+                'time_add' => $v['time_add'] ? $v['time_add'] : time(),
+                'exts' => ($v['exts'] && is_array($v['exts'])) ? json_encode($v['exts'], JSON_UNESCAPED_UNICODE) : '',
             ];
         }
         return $binds;
     }
 
-
-
     /**
      * @param array $data
      * @param string $fields_name
      */
-    protected  function _insert(array $data, string $fields_name = 'pic_id')
+    protected function data_insert(array $data, string $fields_name = 'data_id')
     {
-        $rs    =  $this->_check($data[$fields_name]);
-        if(!$rs) {
+        $data_id = $data[$fields_name];
+        $rs = $this->data_check($data_id, $fields_name);
+        if (!$rs) {
             $this->_db_caiji->table($this->_table_list01)->insert($data);
             // echo $this->_db->sql()."\n";
-            $i_id = $this->_check($data[$fields_name],$fields_name);
-            if($i_id) {
-               $this->logs_msg("ok-> 成功 {$fields_name}:{$data[$fields_name]}");
-            }else {
-               $this->logs_msg("sql:".$this->_db_caiji->last_sql() );
-               $this->logs_msg("error-> 失败 {$fields_name}:{$data[$fields_name]}",manage::Logs_Fail);
+            $is_insert = $this->data_check($data_id, $fields_name);
+            if ($is_insert) {
+                manage::logs_msg("ok-> 成功 {$fields_name}:{$data_id}");
+            } else {
+                manage::logs_msg("sql:" . $this->_db_caiji->last_sql());
+                manage::logs_msg("error-> 失败 {$fields_name}:{$data_id}", manage::Logs_Fail);
             }
-        }else {
-            $this->logs_msg("warn-> 已存在 {$fields_name}:{$data[$fields_name]}",manage::Logs_Warning);
+        } else {
+            manage::logs_msg("warn-> 已存在 {$fields_name}:{$data_id}", manage::Logs_Warning);
         }
     }
-
-
-    /**
-     * @param int    $pic_id
-     * @param string $fields_name
-     * @return array|bool
-     */
-    protected  function _check(int $pic_id, string $fields_name = 'pic_id')
-    {
-        $rs =  $this->_db_caiji->query("SELECT `{$fields_name}` FROM {$this->_table_list} where `{$fields_name}` = :{$fields_name} limit 0,1;",[$fields_name=>$pic_id])->column_one();
-        if($rs && $rs[$fields_name]) {
-            return $rs;
-        }
-        return false;
-    }
-
-
-    /**
-     * @param string $fields_name
-     * @return int  最后的 pic_id
-     */
-    protected  function _last_id(string $fields_name = 'pic_id'):int
-    {
-        $rs =  $this->_db_caiji->query("SELECT `{$fields_name}` FROM {$this->_table_list} ORDER BY `{$fields_name}` DESC limit 0,1;")->column_one();
-        if($rs && $rs[$fields_name]) {
-            return (int)$rs[$fields_name];
-        }
-        return 0;
-    }
-    // ----------------------------------------------
 }

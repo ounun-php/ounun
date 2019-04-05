@@ -1,4 +1,5 @@
 <?php
+
 namespace plugins;
 
 /*
@@ -210,7 +211,8 @@ html;
 
 class markdown
 {
-    public function md2html($doc) {
+    public function md2html($doc)
+    {
         //tab to space
         $doc = str_replace("\t", str_repeat(' ', 4), $doc);
 
@@ -221,10 +223,10 @@ class markdown
         $doc = preg_replace('#\n+#i', "\n", $doc);
 
         //pre code preReplace, just replac to a tag to escape <p> tag replace
-        $preCodeTpl     = "\n<preCode %s>";    //< for p skip
+        $preCodeTpl = "\n<preCode %s>";    //< for p skip
         $preCodePattern = '#```([a-z]+)?(.*?)```#is';
-        if(preg_match_all($preCodePattern, $doc, $preCodes)) {
-            foreach($preCodes[0] as $key => $value) {
+        if (preg_match_all($preCodePattern, $doc, $preCodes)) {
+            foreach ($preCodes[0] as $key => $value) {
                 //every pre code into <preCode [index]> tag
                 $doc = preg_replace($preCodePattern, sprintf($preCodeTpl, $key), $doc, 1);
             }
@@ -240,10 +242,10 @@ class markdown
 //        }
 
         //blockquote preReplace
-        $blockquotePattern     = '#(?:\n> \*.*?(?=\n))+#is';
-        $blockquoteTpl        = "\n<blockquote %d>";
-        if(preg_match_all($blockquotePattern, $doc, $blockquotes)) {
-            foreach($blockquotes[0] as $key => $value) {
+        $blockquotePattern = '#(?:\n> \*.*?(?=\n))+#is';
+        $blockquoteTpl = "\n<blockquote %d>";
+        if (preg_match_all($blockquotePattern, $doc, $blockquotes)) {
+            foreach ($blockquotes[0] as $key => $value) {
                 $doc = preg_replace($blockquotePattern, sprintf($blockquoteTpl, $key), $doc, 1);
             }
         }
@@ -267,11 +269,11 @@ class markdown
 
         //ul li
         $liPattern = '#(?:\n\* [^\n]*?(?=\n))+#is';
-        if(preg_match_all($liPattern, $doc, $lis)) {
-            foreach($lis[0] as $key => $value) {
+        if (preg_match_all($liPattern, $doc, $lis)) {
+            foreach ($lis[0] as $key => $value) {
                 $ul = '<ul>%s</ul>';
-                $lis        = preg_replace('#(\n)\* ([^\n]*?)(?=\n)#is', '\1<li>\2</li>', "\n" . $value . "\n");
-                $ul         = sprintf($ul, $lis);
+                $lis = preg_replace('#(\n)\* ([^\n]*?)(?=\n)#is', '\1<li>\2</li>', "\n" . $value . "\n");
+                $ul = sprintf($ul, $lis);
                 $doc = preg_replace($liPattern, $ul, $doc, 1);
             }
         }
@@ -281,18 +283,18 @@ class markdown
         // $doc = preg_replace('#!\[\]\(([^\s]*?)\)#is', '<img src="\1" />', $doc);
 
         //a simple
-        if(preg_match_all('#\[([^\]]*?)\]\(([^\s]*?)(?:\s"([^"]*?)")?\)#is', $doc, $links)) {
-            $linkTpl             = '<a target="_blank" href="%s" title="%s">%s</a>';
-            foreach($links[0] as $key => $value) {
+        if (preg_match_all('#\[([^\]]*?)\]\(([^\s]*?)(?:\s"([^"]*?)")?\)#is', $doc, $links)) {
+            $linkTpl = '<a target="_blank" href="%s" title="%s">%s</a>';
+            foreach ($links[0] as $key => $value) {
                 $doc = str_replace($links[0][$key], sprintf($linkTpl, $links[2][$key], $links[3][$key], $links[1][$key]), $doc);
             }
         }
 
         //a normal
-        if(preg_match_all('#\[([^\]]*?)\]\[(\d+)\]#is', $doc, $links)) {
-            $linkTpl             = '<a target="_blank" href="%s">%s</a>';
-            foreach($links[0] as $key => $value) {
-                if(preg_match(sprintf('#\n\[%d\]: (.*?)(?=\n)#is', $links[2][$key]), $doc, $linkHref)) {
+        if (preg_match_all('#\[([^\]]*?)\]\[(\d+)\]#is', $doc, $links)) {
+            $linkTpl = '<a target="_blank" href="%s">%s</a>';
+            foreach ($links[0] as $key => $value) {
+                if (preg_match(sprintf('#\n\[%d\]: (.*?)(?=\n)#is', $links[2][$key]), $doc, $linkHref)) {
                     $doc = str_replace($links[0][$key], sprintf($linkTpl, $linkHref[1], $links[1][$key]), $doc);
                 }
             }
@@ -301,30 +303,30 @@ class markdown
         $doc = preg_replace('#\n\[\d+\]:.*?(?=\n)#is', '', $doc);
 
         //a footnote
-        if(preg_match_all('#\[\^(.*?)\]#is', $doc, $footnotes)) {
+        if (preg_match_all('#\[\^(.*?)\]#is', $doc, $footnotes)) {
             $footnoteTpl = '<a href="#fn:%s" id="fnref:%s" title="go to footnote" class="footnote">[%s]</a>';
             $footnoteReplaced = array();
-            foreach($footnotes[0] as $key => $value) {
+            foreach ($footnotes[0] as $key => $value) {
                 $footnoteId = $footnotes[1][$key];
-                if(isset($footnoteReplaced[$footnoteId])) continue;
+                if (isset($footnoteReplaced[$footnoteId])) continue;
 
                 $footnoteReplaced[$footnoteId] = true;
-                $index            = $key+1;
-                $footnoteHash     = sprintf('<span id="fn:%s">[%s] </span>', $footnoteId, $index);
-                $footnoteBack     = sprintf('<a class="reversefootnote" title="go back to content" href="#fnref:%s"><-</a><br>', $footnoteId);
+                $index = $key + 1;
+                $footnoteHash = sprintf('<span id="fn:%s">[%s] </span>', $footnoteId, $index);
+                $footnoteBack = sprintf('<a class="reversefootnote" title="go back to content" href="#fnref:%s"><-</a><br>', $footnoteId);
                 //match footnote by id
-                if(preg_match(sprintf('#(\n)\[\^%s\]: (.*?)(?=\n)#is', $footnoteId), $doc, $footnote)) {
+                if (preg_match(sprintf('#(\n)\[\^%s\]: (.*?)(?=\n)#is', $footnoteId), $doc, $footnote)) {
                     //footnote link
                     $doc = preg_replace(sprintf('#\[\^%s\]#is', $footnoteId), sprintf($footnoteTpl, $footnoteId, $footnoteId, $index), $doc, 1);
                     //footnote desc
-                    $doc = str_replace($footnote[0], '<-fs->' . $footnote[1]. $footnoteHash . $footnote[2] . $footnoteBack . '<-fe->', $doc);
+                    $doc = str_replace($footnote[0], '<-fs->' . $footnote[1] . $footnoteHash . $footnote[2] . $footnoteBack . '<-fe->', $doc);
                 }
             }
         }
         //put it into footnotes div
         $doc = preg_replace('#<-fs->(.+)<-fe->#is', '<div class="footnotes"><hr><small>\1</small></div>', $doc);
         //remove the unnecessary tags
-        $doc = str_replace(array('<-fs->','<-fe->'), '', $doc);
+        $doc = str_replace(array('<-fs->', '<-fe->'), '', $doc);
 
         //br
         $doc = preg_replace('#[ ]{4}(?=\n)#is', '<br>', $doc);
@@ -334,28 +336,28 @@ class markdown
         $doc = preg_replace('#(\n)([^<].*?)(?=\n)#i', '\1<p>\2</p>', $doc);
 
         //pre code replace
-        if(!empty($preCodes[0])) {
-            foreach($preCodes[0] as $key => $value) {
-                $preCode    = '<pre class="'.$preCodes[1][$key].'"><ol>%s</ol></pre>';
-                $lines      = preg_replace('#(\n)(.*?)(?=\n)#is', '\1<li><code>\2</code></li>', htmlspecialchars($preCodes[2][$key]));
-                $preCode    = sprintf($preCode, $lines);
+        if (!empty($preCodes[0])) {
+            foreach ($preCodes[0] as $key => $value) {
+                $preCode = '<pre class="' . $preCodes[1][$key] . '"><ol>%s</ol></pre>';
+                $lines = preg_replace('#(\n)(.*?)(?=\n)#is', '\1<li><code>\2</code></li>', htmlspecialchars($preCodes[2][$key]));
+                $preCode = sprintf($preCode, $lines);
                 $doc = str_replace(sprintf($preCodeTpl, $key), $preCode, $doc);
             }
         }
 
         //space code
-        if(!empty($spaceCodes[0])) {
-            foreach($spaceCodes[0] as $key => $value) {
-                $spaceCode    = sprintf('<pre><code>%s%s</code></pre>', htmlspecialchars($value), "\n");
-                $doc         = str_replace(sprintf($spaceCodeTpl, $key), $spaceCode, $doc);
+        if (!empty($spaceCodes[0])) {
+            foreach ($spaceCodes[0] as $key => $value) {
+                $spaceCode = sprintf('<pre><code>%s%s</code></pre>', htmlspecialchars($value), "\n");
+                $doc = str_replace(sprintf($spaceCodeTpl, $key), $spaceCode, $doc);
             }
         }
 
         //blockquote replace
-        if(!empty($blockquotes[0])) {
-            foreach($blockquotes[0] as $key => $value) {
+        if (!empty($blockquotes[0])) {
+            foreach ($blockquotes[0] as $key => $value) {
                 $blockquote = '<blockquote><ul>%s</ul></blockquote>';
-                $lis        = preg_replace('#(\n)> \* (.*?)(?=\n)#is', '\1<li>\2</li>', $value . "\n");
+                $lis = preg_replace('#(\n)> \* (.*?)(?=\n)#is', '\1<li>\2</li>', $value . "\n");
                 $blockquote = sprintf($blockquote, $lis);
                 $doc = str_replace(sprintf($blockquoteTpl, $key), $blockquote, $doc);
             }
@@ -364,7 +366,8 @@ class markdown
         return trim($doc, "\n");
     }
 
-    public function md2mip($doc) {
+    public function md2mip($doc)
+    {
         //tab to space
         $doc = str_replace("\t", str_repeat(' ', 4), $doc);
 
@@ -375,10 +378,10 @@ class markdown
         $doc = preg_replace('#\n+#i', "\n", $doc);
 
         //pre code preReplace, just replac to a tag to escape <p> tag replace
-        $preCodeTpl     = "\n<preCode %s>";    //< for p skip
+        $preCodeTpl = "\n<preCode %s>";    //< for p skip
         $preCodePattern = '#```([a-z]+)?(.*?)```#is';
-        if(preg_match_all($preCodePattern, $doc, $preCodes)) {
-            foreach($preCodes[0] as $key => $value) {
+        if (preg_match_all($preCodePattern, $doc, $preCodes)) {
+            foreach ($preCodes[0] as $key => $value) {
                 //every pre code into <preCode [index]> tag
                 $doc = preg_replace($preCodePattern, sprintf($preCodeTpl, $key), $doc, 1);
             }
@@ -394,10 +397,10 @@ class markdown
         //        }
 
         //blockquote preReplace
-        $blockquotePattern     = '#(?:\n> \*.*?(?=\n))+#is';
-        $blockquoteTpl        = "\n<blockquote %d>";
-        if(preg_match_all($blockquotePattern, $doc, $blockquotes)) {
-            foreach($blockquotes[0] as $key => $value) {
+        $blockquotePattern = '#(?:\n> \*.*?(?=\n))+#is';
+        $blockquoteTpl = "\n<blockquote %d>";
+        if (preg_match_all($blockquotePattern, $doc, $blockquotes)) {
+            foreach ($blockquotes[0] as $key => $value) {
                 $doc = preg_replace($blockquotePattern, sprintf($blockquoteTpl, $key), $doc, 1);
             }
         }
@@ -421,11 +424,11 @@ class markdown
 
         //ul li
         $liPattern = '#(?:\n\* [^\n]*?(?=\n))+#is';
-        if(preg_match_all($liPattern, $doc, $lis)) {
-            foreach($lis[0] as $key => $value) {
+        if (preg_match_all($liPattern, $doc, $lis)) {
+            foreach ($lis[0] as $key => $value) {
                 $ul = '<ul>%s</ul>';
-                $lis        = preg_replace('#(\n)\* ([^\n]*?)(?=\n)#is', '\1<li>\2</li>', "\n" . $value . "\n");
-                $ul         = sprintf($ul, $lis);
+                $lis = preg_replace('#(\n)\* ([^\n]*?)(?=\n)#is', '\1<li>\2</li>', "\n" . $value . "\n");
+                $ul = sprintf($ul, $lis);
                 $doc = preg_replace($liPattern, $ul, $doc, 1);
             }
         }
@@ -435,18 +438,18 @@ class markdown
         // $doc = preg_replace('#!\[\]\(([^\s]*?)\)#is', '<img src="\1" />', $doc);
 
         //a simple
-        if(preg_match_all('#\[([^\]]*?)\]\(([^\s]*?)(?:\s"([^"]*?)")?\)#is', $doc, $links)) {
-            $linkTpl             = '<a target="_blank"  data-type="mip" href="%s" title="%s">%s</a>';
-            foreach($links[0] as $key => $value) {
+        if (preg_match_all('#\[([^\]]*?)\]\(([^\s]*?)(?:\s"([^"]*?)")?\)#is', $doc, $links)) {
+            $linkTpl = '<a target="_blank"  data-type="mip" href="%s" title="%s">%s</a>';
+            foreach ($links[0] as $key => $value) {
                 $doc = str_replace($links[0][$key], sprintf($linkTpl, $links[2][$key], $links[3][$key], $links[1][$key]), $doc);
             }
         }
 
         //a normal
-        if(preg_match_all('#\[([^\]]*?)\]\[(\d+)\]#is', $doc, $links)) {
-            $linkTpl             = '<a target="_blank"  data-type="mip" href="%s">%s</a>';
-            foreach($links[0] as $key => $value) {
-                if(preg_match(sprintf('#\n\[%d\]: (.*?)(?=\n)#is', $links[2][$key]), $doc, $linkHref)) {
+        if (preg_match_all('#\[([^\]]*?)\]\[(\d+)\]#is', $doc, $links)) {
+            $linkTpl = '<a target="_blank"  data-type="mip" href="%s">%s</a>';
+            foreach ($links[0] as $key => $value) {
+                if (preg_match(sprintf('#\n\[%d\]: (.*?)(?=\n)#is', $links[2][$key]), $doc, $linkHref)) {
                     $doc = str_replace($links[0][$key], sprintf($linkTpl, $linkHref[1], $links[1][$key]), $doc);
                 }
             }
@@ -455,30 +458,30 @@ class markdown
         $doc = preg_replace('#\n\[\d+\]:.*?(?=\n)#is', '', $doc);
 
         //a footnote
-        if(preg_match_all('#\[\^(.*?)\]#is', $doc, $footnotes)) {
+        if (preg_match_all('#\[\^(.*?)\]#is', $doc, $footnotes)) {
             $footnoteTpl = '<a href="#fn:%s" id="fnref:%s"  data-type="mip" title="go to footnote" class="footnote">[%s]</a>';
             $footnoteReplaced = array();
-            foreach($footnotes[0] as $key => $value) {
+            foreach ($footnotes[0] as $key => $value) {
                 $footnoteId = $footnotes[1][$key];
-                if(isset($footnoteReplaced[$footnoteId])) continue;
+                if (isset($footnoteReplaced[$footnoteId])) continue;
 
                 $footnoteReplaced[$footnoteId] = true;
-                $index            = $key+1;
-                $footnoteHash     = sprintf('<span id="fn:%s">[%s] </span>', $footnoteId, $index);
-                $footnoteBack     = sprintf('<a class="reversefootnote"  data-type="mip" title="go back to content" href="#fnref:%s"><-</a><br>', $footnoteId);
+                $index = $key + 1;
+                $footnoteHash = sprintf('<span id="fn:%s">[%s] </span>', $footnoteId, $index);
+                $footnoteBack = sprintf('<a class="reversefootnote"  data-type="mip" title="go back to content" href="#fnref:%s"><-</a><br>', $footnoteId);
                 //match footnote by id
-                if(preg_match(sprintf('#(\n)\[\^%s\]: (.*?)(?=\n)#is', $footnoteId), $doc, $footnote)) {
+                if (preg_match(sprintf('#(\n)\[\^%s\]: (.*?)(?=\n)#is', $footnoteId), $doc, $footnote)) {
                     //footnote link
                     $doc = preg_replace(sprintf('#\[\^%s\]#is', $footnoteId), sprintf($footnoteTpl, $footnoteId, $footnoteId, $index), $doc, 1);
                     //footnote desc
-                    $doc = str_replace($footnote[0], '<-fs->' . $footnote[1]. $footnoteHash . $footnote[2] . $footnoteBack . '<-fe->', $doc);
+                    $doc = str_replace($footnote[0], '<-fs->' . $footnote[1] . $footnoteHash . $footnote[2] . $footnoteBack . '<-fe->', $doc);
                 }
             }
         }
         //put it into footnotes div
         $doc = preg_replace('#<-fs->(.+)<-fe->#is', '<div class="footnotes"><hr><small>\1</small></div>', $doc);
         //remove the unnecessary tags
-        $doc = str_replace(array('<-fs->','<-fe->'), '', $doc);
+        $doc = str_replace(array('<-fs->', '<-fe->'), '', $doc);
 
         //br
         $doc = preg_replace('#[ ]{4}(?=\n)#is', '<br>', $doc);
@@ -488,28 +491,28 @@ class markdown
         $doc = preg_replace('#(\n)([^<].*?)(?=\n)#i', '\1<p>\2</p>', $doc);
 
         //pre code replace
-        if(!empty($preCodes[0])) {
-            foreach($preCodes[0] as $key => $value) {
-                $preCode    = '<pre class="'.$preCodes[1][$key].'"><ol>%s</ol></pre>';
-                $lines      = preg_replace('#(\n)(.*?)(?=\n)#is', '\1<li><code>\2</code></li>', htmlspecialchars($preCodes[2][$key]));
-                $preCode    = sprintf($preCode, $lines);
+        if (!empty($preCodes[0])) {
+            foreach ($preCodes[0] as $key => $value) {
+                $preCode = '<pre class="' . $preCodes[1][$key] . '"><ol>%s</ol></pre>';
+                $lines = preg_replace('#(\n)(.*?)(?=\n)#is', '\1<li><code>\2</code></li>', htmlspecialchars($preCodes[2][$key]));
+                $preCode = sprintf($preCode, $lines);
                 $doc = str_replace(sprintf($preCodeTpl, $key), $preCode, $doc);
             }
         }
 
         //space code
-        if(!empty($spaceCodes[0])) {
-            foreach($spaceCodes[0] as $key => $value) {
-                $spaceCode    = sprintf('<pre><code>%s%s</code></pre>', htmlspecialchars($value), "\n");
-                $doc         = str_replace(sprintf($spaceCodeTpl, $key), $spaceCode, $doc);
+        if (!empty($spaceCodes[0])) {
+            foreach ($spaceCodes[0] as $key => $value) {
+                $spaceCode = sprintf('<pre><code>%s%s</code></pre>', htmlspecialchars($value), "\n");
+                $doc = str_replace(sprintf($spaceCodeTpl, $key), $spaceCode, $doc);
             }
         }
 
         //blockquote replace
-        if(!empty($blockquotes[0])) {
-            foreach($blockquotes[0] as $key => $value) {
+        if (!empty($blockquotes[0])) {
+            foreach ($blockquotes[0] as $key => $value) {
                 $blockquote = '<blockquote><ul>%s</ul></blockquote>';
-                $lis        = preg_replace('#(\n)> \* (.*?)(?=\n)#is', '\1<li>\2</li>', $value . "\n");
+                $lis = preg_replace('#(\n)> \* (.*?)(?=\n)#is', '\1<li>\2</li>', $value . "\n");
                 $blockquote = sprintf($blockquote, $lis);
                 $doc = str_replace(sprintf($blockquoteTpl, $key), $blockquote, $doc);
             }
@@ -518,22 +521,22 @@ class markdown
         return trim($doc, "\n");
     }
 
-    public function html2md($html) {
+    public function html2md($html)
+    {
         // \r to \n
         $html = "\n" . str_replace("\r", '', $html) . "\n";
         // $html = preg_replace('#\s\s+#', ' ', $html);
 
         // h1/h2/h3/h4/h5/h6
         $html = preg_replace_callback('#<h([1-6])[^>]*?>(.*?)</h[1-6]>#is',
-                                              function($m)
-                                              {
-                                                  $m[2] =  trim($m[2]);
-                                                  if($m[2]){
-                                                      return \str_pad ("\n",$m[1]+1,"#")." ".trim($m[2])."\n";
-                                                  }else {
-                                                      return '';
-                                                  }
-                                              }, $html);
+            function ($m) {
+                $m[2] = trim($m[2]);
+                if ($m[2]) {
+                    return \str_pad("\n", $m[1] + 1, "#") . " " . trim($m[2]) . "\n";
+                } else {
+                    return '';
+                }
+            }, $html);
 
         //hr
         $html = preg_replace('#<hr\s*/?>#is', "\n---\n\n", $html);
@@ -547,25 +550,23 @@ class markdown
 
         //pre code
         $html = preg_replace_callback('#<pre><code[^>]*?>(.*?)</code></pre>#is',
-                                              function($m)
-                                              {    // print_r($m);
-                                                   $m[1] =  trim($m[1]);
-                                                   if($m[1])
-                                                   {
-                                                       return "\n```\n".$m[1]."\n```\n";
-                                                   }else {
-                                                       return '';
-                                                   }
-                                              }, $html);
+            function ($m) {    // print_r($m);
+                $m[1] = trim($m[1]);
+                if ($m[1]) {
+                    return "\n```\n" . $m[1] . "\n```\n";
+                } else {
+                    return '';
+                }
+            }, $html);
 
         // pre ol code
-        $liPattern    = '#[ ]*<li>(.*?)</li>[ ]*#is';
+        $liPattern = '#[ ]*<li>(.*?)</li>[ ]*#is';
         $preOlPattern = '#<pre class="([^"]*?)"><ol>(.*?)</ol></pre>#is';
-        if(preg_match_all($preOlPattern, $html, $preOls)) {
-            foreach($preOls[0] as $key => $value) {
+        if (preg_match_all($preOlPattern, $html, $preOls)) {
+            foreach ($preOls[0] as $key => $value) {
                 //li
-                if(preg_match_all($liPattern, $preOls[2][$key], $lis)) {
-                    foreach($lis[0] as $k => $v) {
+                if (preg_match_all($liPattern, $preOls[2][$key], $lis)) {
+                    foreach ($lis[0] as $k => $v) {
                         $index = $k + 1;
                         $html = str_replace($v, strip_tags($lis[1][$k]), $html);
                     }
@@ -582,39 +583,39 @@ class markdown
         $html = preg_replace('#<b>(.*?)</b>#is', '**\1**', $html);
 
         //img
-        $html = preg_replace_callback('#<img.*?src="(.*?)".*?>#is', function($m)
-        {
+        $html = preg_replace_callback('#<img.*?src="(.*?)".*?>#is', function ($m) {
             $title = preg_replace('#<img.*?title="([^"]*?)".*?>#is', '\1', $m[0]);
-            $alt   = preg_replace('#<img.*?alt="([^"]*?)".*?>#is', '\1', $m[0]);
+            $alt = preg_replace('#<img.*?alt="([^"]*?)".*?>#is', '\1', $m[0]);
 
-            $title = $title == $m[0] ? '' :$title;
-            $alt   = $alt   == $m[0] ? '' :$alt;
-            $url   = trim($m[1]);
+            $title = $title == $m[0] ? '' : $title;
+            $alt = $alt == $m[0] ? '' : $alt;
+            $url = trim($m[1]);
 
-            if($url){
-                if($title && $alt){
+            if ($url) {
+                if ($title && $alt) {
                     return "![{$alt}]({$url} \"{$title}\")";
-                }elseif ($title || $alt){
+                } elseif ($title || $alt) {
                     $title = $title ? $title : $alt;
                     return "![{$title}]({$url})";
                 }
                 return "![]({$url})";
-            }else {
+            } else {
                 return '';
             }
         }, $html);
-        $html = preg_replace_callback('#!\[([^\]]*?)\]\(([^\)]*?)\)([^<]*?)</img>#is', function($m){$title=$m[3]?$m[3]:$m[1];return "![{$title}]({$m[2]})";}, $html);
+        $html = preg_replace_callback('#!\[([^\]]*?)\]\(([^\)]*?)\)([^<]*?)</img>#is', function ($m) {
+            $title = $m[3] ? $m[3] : $m[1];
+            return "![{$title}]({$m[2]})";
+        }, $html);
 
         //a
         $html = preg_replace_callback('#<a.*?href="(.*?)".*?>(.*?)</a>#is',
-            function($m)
-            {
+            function ($m) {
                 $m[1] = trim($m[1]);
                 $m[2] = trim($m[2]);
-                if($m[1])
-                {
+                if ($m[1]) {
                     return "[{$m[2]}]({$m[1]})";
-                }else {
+                } else {
                     return '';
                 }
                 // print_r($m);return '';
@@ -623,13 +624,11 @@ class markdown
 
         // blockquote
         $html = preg_replace_callback('#<blockquote[^>]*?>(.*?)</blockquote>#is',
-            function($m)
-            {
+            function ($m) {
                 $m[1] = trim($m[1]);
-                if($m[1])
-                {
-                    return "> ".str_replace("\n","> ",$m[1])."\n";
-                }else {
+                if ($m[1]) {
+                    return "> " . str_replace("\n", "> ", $m[1]) . "\n";
+                } else {
                     return '';
                 }
                 // print_r($m);return '';
@@ -637,19 +636,17 @@ class markdown
 
         //ul/li
         $html = preg_replace_callback('#<ul>(.*?)</ul>#is',
-            function($m)
-            {
-                $li =  trim($m[1]);
-                if($li)
-                {
+            function ($m) {
+                $li = trim($m[1]);
+                if ($li) {
                     $li2 = '';
-                    if(preg_match_all('/<li[^>]*>(.*?)<\/li>/is', $li, $blocks)) {
-                        foreach ($blocks[1] as $v){
+                    if (preg_match_all('/<li[^>]*>(.*?)<\/li>/is', $li, $blocks)) {
+                        foreach ($blocks[1] as $v) {
                             $li2 .= "- {$v}\n";
                         }
                     }
-                    return "\n".$li2."\n";
-                }else {
+                    return "\n" . $li2 . "\n";
+                } else {
                     return '';
                 }
                 // print_r($m);return '';
@@ -658,22 +655,20 @@ class markdown
 
         //ol/li
         $html = preg_replace_callback('#<ol>(.*?)</ol>#is',
-            function($m)
-            {
-                $li =  trim($m[1]);
-                if($li)
-                {
+            function ($m) {
+                $li = trim($m[1]);
+                if ($li) {
                     $li2 = '';
-                    if(preg_match_all('/<li[^>]*>(.*?)<\/li>/is', $li, $blocks)) {
+                    if (preg_match_all('/<li[^>]*>(.*?)<\/li>/is', $li, $blocks)) {
                         $idx = 0;
-                        foreach ($blocks[1] as $v){
+                        foreach ($blocks[1] as $v) {
                             $idx++;
                             $li2 .= "{$idx}. {$v}\n";
                         }
                         // print_r($blocks);
                     }
-                    return "\n".$li2."\n";
-                }else {
+                    return "\n" . $li2 . "\n";
+                } else {
                     return '';
                 }
                 // print_r($m);return '';
@@ -682,31 +677,27 @@ class markdown
 
         //table
         $html = preg_replace_callback('/<table[^>]*>(.*?)<\/table>/is',
-            function($m)
-            {
-                $table =  trim($m[1]);
-                if($table)
-                {
+            function ($m) {
+                $table = trim($m[1]);
+                if ($table) {
                     $thead = '';
                     $tbody = '';
-                    if(preg_match_all('/<thead[^>]*>(.*)<\/thead>/is', $table, $blocks)) {
-                        $thead = "\n".str_replace(["\n","\r"],'',$blocks[1][0])."|------";
+                    if (preg_match_all('/<thead[^>]*>(.*)<\/thead>/is', $table, $blocks)) {
+                        $thead = "\n" . str_replace(["\n", "\r"], '', $blocks[1][0]) . "|------";
                         $thead = preg_replace('#<tr.*?>(.*?)</tr>#is', "$1\n", $thead);
                         $thead = preg_replace('#<th.*?>(.*?)</th>#is', "|$1", $thead);
                         // print_r($blocks);
                     }
-                    if($thead)
-                    {
-                        if(preg_match_all('/<tbody[^>]*>(.*)<\/tbody>/is', $table, $blocks)) {
-                            $tbody = "\n".str_replace(["\n","\r"],'',$blocks[1][0]);
+                    if ($thead) {
+                        if (preg_match_all('/<tbody[^>]*>(.*)<\/tbody>/is', $table, $blocks)) {
+                            $tbody = "\n" . str_replace(["\n", "\r"], '', $blocks[1][0]);
                             $tbody = preg_replace('#<tr.*?>(.*?)</tr>#is', "$1\n", $tbody);
                             $tbody = preg_replace('#<td.*?>(.*?)</td>#is', "|$1", $tbody);
                             // print_r($blocks);
                         }
-                    }else
-                    {
-                        if(preg_match_all('/<tbody[^>]*>(.*)<\/tbody>/is', $table, $blocks)) {
-                            $tbody = "\n".str_replace(["\n","\r"],'',$blocks[1][0]);
+                    } else {
+                        if (preg_match_all('/<tbody[^>]*>(.*)<\/tbody>/is', $table, $blocks)) {
+                            $tbody = "\n" . str_replace(["\n", "\r"], '', $blocks[1][0]);
                             $tbody = preg_replace('#<tr.*?>(.*?)</tr>#is', "$1\n\n", $tbody);
                             $tbody = preg_replace('#<td.*?>(.*?)</td>#is', "$1", $tbody);
                             // print_r($blocks);
@@ -722,8 +713,8 @@ class markdown
 //                  print_r(['$thead'=>$thead,'$tbody'=>$tbody,'$m[1]'=>$table]);
 
                     // return $table."\n";
-                    return $thead.$tbody;
-                }else {
+                    return $thead . $tbody;
+                } else {
                     return '';
                 }
                 // print_r($m);return '';
@@ -733,7 +724,7 @@ class markdown
         $html = preg_replace('/<br[^>]*>/is', str_repeat(' ', 4), $html);
 
         // p not before pre
-        $html = preg_replace('/<p[^>]*>(.*?)<\/p>/is',"\n$1\n", $html);
+        $html = preg_replace('/<p[^>]*>(.*?)<\/p>/is', "\n$1\n", $html);
 
         // span
         $html = preg_replace('/<span[^>]*?>(.*?)<\/span>/is', "$1", $html);
@@ -745,7 +736,7 @@ class markdown
         $html = preg_replace('/<div[^>]*?>(.*?)<\/div>/is', "\n$1\n", $html);
 
 
-        $html = preg_replace(['/<div[^>]*?>/is','/<\/div>/is','/<span[^>]*?>/is','/<\/span>/is'], '', $html);
+        $html = preg_replace(['/<div[^>]*?>/is', '/<\/div>/is', '/<span[^>]*?>/is', '/<\/span>/is'], '', $html);
 
         return $html;
     }

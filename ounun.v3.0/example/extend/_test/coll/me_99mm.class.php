@@ -1,13 +1,10 @@
 <?php
 namespace extend\task\coll;
 
-use ounun\cmd\task\coll_base\_coll;
-use ounun\cmd\task\manage;
-
-class me_99mm extends _coll
+class me_99mm extends \ounun\cmd\task\coll_base\_coll
 {
 
-    public function __construct(manage $task_manage,string $tag='',string $tag_sub ='')
+    public function __construct(\task\manage $task_manage,string $tag='',string $tag_sub ='')
     {
         parent::__construct($task_manage,$tag,$tag_sub);
 
@@ -66,7 +63,7 @@ class me_99mm extends _coll
                             $url        =      explode('"',explode('<dt><a href="',$v1)[1])[0];
                             $pic_id     = (int)explode('.',explode('/',$url)[2])[0];
                             $rs         = $this->_check($pic_id);
-                            if(($this->_mode && ( $this->_mode == manage::mode_dateup || $this->_mode == manage::mode_check ))  || !$rs)
+                            if(($this->_mode && ( $this->_mode == \task\manage::mode_dateup || $this->_mode == \task\manage::mode_check ))  || !$rs)
                             {
                                 $name   = explode('</a>',explode(' target="_blank">',$v1)[2])[0];
                                 $img    = explode('"'   ,explode('data-img="',$v1)[1])[0];
@@ -87,7 +84,7 @@ class me_99mm extends _coll
                             }
                         }
                     }
-                    if( $this->_mode == manage::mode_dateup && $page > 2)
+                    if( $this->_mode == \task\manage::mode_dateup && $page > 2)
                     {
                         $t = false;
                     }else
@@ -144,14 +141,17 @@ class me_99mm extends _coll
     protected function _wget_pics(int $pic_id, array $pic_ext)
     {
         $data3       = [];
-        foreach ($pic_ext['data'] as $url) {
+        foreach ($pic_ext['data'] as $url)
+        {
             $file    = explode('/',$url)[5];
             $data3[] = ['file'=>$file,'url'=>$url];
 
         }
-        if($pic_ext['cover']) {
+        if($pic_ext['cover'])
+        {
             $data2   = ['cover'=>$pic_ext['cover'],'data'=>$data3];
-        }else {
+        }else
+        {
             $data2   = ['data'=>$data3];
         }
 

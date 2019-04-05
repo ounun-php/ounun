@@ -25,7 +25,7 @@ class api_interface extends adm
         $table       = ' `adm_site_info` ';
         $site_info   = null;
         if($_GET['site_tag']) {
-            $site_info = $this->_db_v->table($table)
+            $site_info = static::$db_v->table($table)
                 ->field('*')
                 ->where('`site_tag` = :site_tag',['site_tag'=>$_GET['site_tag']])
                 ->column_one();
@@ -50,11 +50,11 @@ class api_interface extends adm
                             $bind   = [
                                 'db'  => is_array($data)  ?json_encode($data  ,JSON_UNESCAPED_UNICODE):$data,
                             ];
-                            $rs = $this->_db_v->table($table)
+                            $rs = static::$db_v->table($table)
                                 ->where(' `site_tag` = :site_tag ',['site_tag'=>$_GET['site_tag']])
                                 ->update($bind);
                             if($rs){
-                                config_cache::instance($this->_db_v)->site_clean();
+                                config_cache::instance(static::$db_v)->site_clean();
                             }
                             $url_back = "/site/site_add.html?site_tag={$_GET['site_tag']}";
                             go_url($url_back);

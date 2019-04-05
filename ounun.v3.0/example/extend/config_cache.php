@@ -1,7 +1,6 @@
 <?php
 namespace extend;
 
-
 use ounun\pdo;
 
 class config_cache extends \ounun\cache\config

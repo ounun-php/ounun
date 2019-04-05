@@ -1,20 +1,34 @@
 <?php
+
 namespace ounun\cmd\task;
+
+use ounun\cmd\console;
 
 abstract class task_base
 {
-    /** @var struct 任务数据结构  */
+    /** @var struct 任务数据结构 */
     protected $_task_struct;
 
     /** @var int 模式  0:采集全部  1:检查 2:更新   见 \task\manage::mode_XXX */
-    protected $_mode          =  manage::Mode_Check;
+    protected $_mode = manage::Mode_Check;
     /** @var string 分类 */
-    protected $_tag           = '';
+    protected $_tag = '';
     /** @var string 子分类 */
-    protected $_tag_sub       = '';
+    protected $_tag_sub = '';
 
     /** @var bool 是否运行过 */
-    protected $_is_run        = false;
+    protected $_is_run = false;
+
+    /** @var float 执行时间 */
+    protected $_run_time = 0;
+    /** @var int 执行次数 */
+    protected $_run_count = 0;
+    /** @var int 执行次数（失败） */
+    protected $_run_count_fail = 0;
+    /** @var int 执行次数（成功） */
+    protected $_run_count_succeed = 0;
+    /** @var int 执行状态 */
+    protected $_run_status = manage::Status_Await;
 
     /**
      * task_base constructor.
@@ -22,47 +36,56 @@ abstract class task_base
      * @param string $tag
      * @param string $tag_sub
      */
-    public function __construct(struct $task_struct,string $tag = '',string $tag_sub = '')
+    public function __construct(struct $task_struct, string $tag = '', string $tag_sub = '')
     {
-        $this->_task_struct   = $task_struct;
-        $this->tag_set($tag,$tag_sub);
+        $this->_task_struct = $task_struct;
+        $this->tag_set($tag, $tag_sub);
     }
 
     /**
      * @param string $tag
      * @param string $tag_sub
      */
-    public function tag_set(string $tag = '',string $tag_sub = '')
+    public function tag_set(string $tag = '', string $tag_sub = '')
     {
-        $this->_tag           = $tag;
-        $this->_tag_sub       = $tag_sub;
+        $this->_tag = $tag;
+        $this->_tag_sub = $tag_sub;
     }
 
-    /**
-     * @return struct
-     */
-    public function struct()
+    /** @return float 执行时间 */
+    public function run_time_get()
+    {
+        return $this->_run_time;
+    }
+
+    /** @return float 执行次数 */
+    public function run_count_get()
+    {
+        return $this->_run_count;
+    }
+
+    /** @return float 执行次数（失败） */
+    public function run_count_fail_get()
+    {
+        return $this->_run_count_fail;
+    }
+
+    /** @return float 执行次数（成功） */
+    public function run_count_succeed_get()
+    {
+        return $this->_run_count_succeed;
+    }
+
+    /** @return float 执行状态 */
+    public function un_status_get()
+    {
+        return $this->_run_status;
+    }
+
+    /** @return struct */
+    public function struct_get()
     {
         return $this->_task_struct;
-    }
-
-    /**
-     * 检查 执行
-     * @param bool $is_pass_check
-     * @return array|bool
-     */
-    public function check(bool $is_pass_check = false)
-    {
-        if($this->_task_struct && is_subclass_of($this->_task_struct, "ounun\\cmd\\task\\struct")  ){
-            $time_curr = time();
-            $rs = $this->_task_struct->check($time_curr,$is_pass_check);
-            if(error_is($rs)){
-                return $rs;
-            }
-            $this->_task_struct->update($time_curr);
-            return true;
-        }
-        return error('task_struct数据有误。');
     }
 
     /**
@@ -71,17 +94,48 @@ abstract class task_base
      * @param int $mode
      * @param bool $is_pass_check
      */
-    public function execute(array $input = [], int $mode = manage::Mode_Dateup,bool $is_pass_check = false)
+    public function execute_do(array $input = [], int $mode = manage::Mode_Dateup, bool $is_pass_check = false)
     {
-        if( !$this->check($is_pass_check) ) {
-            return ;
+        $this->_run_time = 0 - microtime(true);
+        if (!$this->check($is_pass_check)) {
+            return;
         }
+        manage::logs_init($this->_task_struct->task_id, $this->_tag, $this->_tag_sub, 0);
+        // execute
+        $this->execute($input, $mode, $is_pass_check);
+        console::echo("Successful update:{$this->_task_struct->task_id}/{$this->_task_struct->task_name}", console::Color_Purple, "\n\n");
+        // _run_time
+        $this->_run_time += microtime(true);
+    }
 
-        $this->logs_init();
-        sleep(rand(4,10));
+    /**
+     * 执行任务
+     * @param array $input
+     * @param int $mode
+     * @param bool $is_pass_check
+     */
+    abstract public function execute(array $input = [], int $mode = manage::Mode_Dateup, bool $is_pass_check = false);
 
-        manage::$logs_state = manage::Logs_Fail;
-        $this->logs_msg("Fail 没有任务",manage::Logs_Fail);
+    /** 返回运行状态 */
+    abstract public function status();
+
+    /**
+     * 检查 执行
+     * @param bool $is_pass_check
+     * @return array|bool
+     */
+    public function check(bool $is_pass_check = false)
+    {
+        if ($this->_task_struct && is_subclass_of($this->_task_struct, "ounun\\cmd\\task\\struct")) {
+            $time_curr = time();
+            $rs = $this->_task_struct->check($time_curr, $is_pass_check);
+            if (error_is($rs)) {
+                return $rs;
+            }
+            $this->_task_struct->update($time_curr);
+            return true;
+        }
+        return error('task_struct数据有误');
     }
 
     /**
@@ -90,43 +144,16 @@ abstract class task_base
      */
     public function done(float $run_time)
     {
-        if( $this->_is_run )
-        {
+        if ($this->_is_run) {
             $bind = [
-                'task_id'     => $this->_task_struct->task_id,
+                'task_id' => $this->_task_struct->task_id,
                 'time_ignore' => $this->_task_struct->time_ignore,
-                'time_last'   => $this->_task_struct->time_last,
+                'time_last' => $this->_task_struct->time_last,
             ];
-            $this->_is_run  = false;
-            manage::logs()->extend_set(['count'=>$this->_task_struct->count]);
-            manage::logs()->write(manage::$logs_state,$run_time,true);
-            manage::db()->query( " UPDATE `".manage::$table_task."` SET `time_ignore` = :time_ignore ,`time_last` = :time_last ,`count` = `count` + 1 WHERE `task_id` = :task_id; ",$bind)->affected();
+            $this->_is_run = false;
+            manage::instance_logs()->extend_set(['count' => $this->_task_struct->count]);
+            manage::instance_logs()->write(manage::$logs_state, $run_time, true);
+            manage::db_biz()->query(" UPDATE `" . manage::$table_task . "` SET `time_ignore` = :time_ignore ,`time_last` = :time_last ,`count` = `count` + 1 WHERE `task_id` = :task_id; ", $bind)->affected();
         }
-    }
-
-    /**
-     * @param string $tag
-     * @param string $tag_sub
-     * @param string $table
-     * @param \ounun\pdo|null $db
-     * @param int $time
-     */
-    public function logs_init( string $tag = '', string $tag_sub = '',string $table = '',\ounun\pdo $db = null, int $time = 0)
-    {
-        $tag     = $tag ? $tag : $this->_tag;
-        $tag_sub = $tag_sub ? $tag_sub : $this->_tag_sub;
-        $table   = $table ? $table : manage::$table_logs;
-        $db      = $db ? $db : manage::db();
-        manage::logs_init($this->_task_struct->task_id,$tag,$tag_sub,$time,$table,$db);
-    }
-
-    /**
-     * @param string $msg
-     * @param int $state
-     * @param int $time
-     */
-    public function logs_msg(string $msg, int $state= manage::Logs_Normal,int $time = 0)
-    {
-        manage::logs_msg($state,$time,$msg);
     }
 }

@@ -17,7 +17,7 @@ class config
     const def_method   = 'index';
 
     /** @var array 公共配制数据  */
-    static public $global        = [];
+    static public $global           = [];
     /** @var \v */
     static public $view;
     /** @var array DB配制数据  */
@@ -25,16 +25,16 @@ class config
     /** @var string 默认 数据库  */
     static public $database_default = '';
     /** @var array 自动加载路径paths  */
-    static public $maps_paths    = [];
+    static public $maps_paths       = [];
     /** @var array 自动加载路径maps  */
-    static public $maps_class    = [];
+    static public $maps_class       = [];
 
     /** @var string 根目录 */
-    static public $dir_root      = '';
+    static public $dir_root         = '';
     /** @var string Ounun目录   */
-    static public $dir_ounun     =  __DIR__.'/';
+    static public $dir_ounun        =  __DIR__.'/';
     /** @var string 根目录(App) */
-    static public $dir_app       = '';
+    static public $dir_app          = '';
 
     /** @var string Www URL */
     static public $url_www       = '';
@@ -73,6 +73,11 @@ class config
     /** @var array 模板替换数据组 */
     static public $tpl_replace_str = [];
 
+    /** @var string 网站地址地图 */
+    static public $table_sitemap       = ' `zqun_sitemap` ';
+    /** @var string 网站地址地图 Push记录 */
+    static public $table_sitemap_push  = ' `zqun_sitemap_push` ';
+
     /** @var \ounun\mvc\model\i18n 语言包 */
     static public $i18n;
     /** @var string 当前语言 */
@@ -86,7 +91,6 @@ class config
         "zh_cn"=>"简体中文",
         // "ja"=>"日本語",
     ];
-
 
     /**
      * 设定对应cms类名 及通信keys
@@ -266,7 +270,7 @@ class config
         if($tpl_style) {
             self::$tpl_style = $tpl_style;
         }else {
-            if(self::$i18n && empty(self::$tpl_style)){
+            if(self::$i18n && empty(self::$tpl_style)) {
                 self::$tpl_style = self::get_i18n()::tpl_style;
             }
         }
@@ -282,16 +286,6 @@ class config
 
     /**
      * 设定模板替换
-     * @param string $key
-     * @param string $value
-     */
-    static public function set_replace_str(string $key, string $value)
-    {
-        self::$tpl_replace_str[$key] = $value;
-    }
-
-    /**
-     * 设定模板替换
      * @param array $data
      */
     static public function set_tpl_array(array $data)
@@ -301,6 +295,75 @@ class config
                 self::$tpl_replace_str[$key] = $value;
             }
         }
+    }
+
+    /**
+     * 设定模板替换
+     * @param string $key
+     * @param string $value
+     */
+    static public function set_tpl_replace_str(string $key, string $value)
+    {
+        self::$tpl_replace_str[$key] = $value;
+    }
+
+    /**
+     * @param string $seo_title
+     * @param string $seo_keywords
+     * @param string $seo_description
+     * @param string $seo_h1
+     * @param string $etag
+     */
+    public function set_tpl_page_tkd(string $seo_title = '', string $seo_keywords = '', string $seo_description = '', string $seo_h1 = '', string $etag = '')
+    {
+        if($seo_title) {
+            static::set_tpl_replace_str('{$seo_title}',$seo_title);
+        }
+        if($seo_keywords) {
+            static::set_tpl_replace_str('{$seo_keywords}',$seo_keywords);
+        }
+        if($seo_description) {
+            static::set_tpl_replace_str('{$seo_description}',$seo_description);
+        }
+        if($seo_h1) {
+            static::set_tpl_replace_str('{$seo_h1}',$seo_h1);
+        }
+        if($etag) {
+            static::set_tpl_replace_str('{$etag}',$etag);
+        }
+    }
+
+    /**
+     * 赋值(默认) $seo + $url
+     * @return array
+     */
+    static public function get_tpl_replace_str()
+    {
+        $url_base = substr(self::$view->page_url, 1);
+        return array_merge([
+            '{$page_url}' => self::$view->page_url,
+            '{$page_file}' => self::$view->page_file,
+
+            '{$url_www}' => self::$url_www,
+            '{$url_wap}' => self::$url_wap,
+            '{$url_mip}' => self::$url_mip,
+            '{$url_api}' => self::$url_api,
+            '{$url_app}' => self::url_page(),
+
+            '{$canonical_pc}' => self::$url_www . $url_base,
+            '{$canonical_mip}' => self::$url_mip . $url_base,
+            '{$canonical_wap}' => self::$url_wap . $url_base,
+
+            '{$app}' => self::$app_name,
+            '{$domain}' => self::$app_domain,
+
+            '{$res}' => self::$url_res,
+            '{$static}' => self::$url_static,
+            '{$upload}' => self::$url_upload,
+            '{$static_g}' => self::$url_static_g,
+            '/public/static/' => self::$url_static,
+            '/public/upload/' => self::$url_upload,
+        ],self::$tpl_replace_str);
     }
 
     /** @return \ounun\mvc\model\i18n 语言包 */
@@ -363,8 +426,6 @@ class config
      */
     static public function add_paths(string $path,string $namespace_prefix = '',bool $cut_path = false)
     {
-//        self::$__load_class_file_exists = false;
-//        echo "\$path:{$path}  \$namespace_prefix:{$namespace_prefix}\n";
         if($path) {
             if($namespace_prefix) {
                 $first  = explode('\\', $namespace_prefix)[0];
@@ -412,7 +473,6 @@ class config
         }
     }
 
-//    static protected $__load_class_file_exists = false;
     /**
      * 加载的类文件是否存在
      * @param $class
@@ -420,7 +480,6 @@ class config
      */
     static protected function load_class_file_exists($class)
     {
-//        echo '-------------------> $class:'."{$class}\n";
         // 类库映射
         if (!empty(self::$maps_class[$class])) {
             $file = self::$maps_class[$class];
@@ -607,10 +666,10 @@ function start(array $mod,string $host)
         $filename 			=  config::load_controller("controller/index.php");
     }
     // 包括模块文件
-    if($filename){
+    if($filename) {
         require $filename;
         $module  			= '\\app\\'.config::$app_name.'\\controller\\'.$module ;
-        if(class_exists($module,false)){
+        if(class_exists($module,false)) {
             new $module($mod);
             exit();
         } else {

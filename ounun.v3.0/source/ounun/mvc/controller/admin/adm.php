@@ -10,6 +10,7 @@ namespace ounun\mvc\controller\admin;
 use \ounun\mvc\model\admin\oauth;
 use ounun\mvc\model\admin\purview;
 use \ounun\config;
+use ounun\pdo;
 
 /********************************************************************
  * 后台基类
@@ -20,6 +21,8 @@ abstract class adm extends \v
     public static $purview;
     /** @var oauth */
     public static $auth;
+    /** @var adm */
+    public static $instance;
 
     /** @var \ounun\pdo */
     public static $db_adm;
@@ -31,9 +34,44 @@ abstract class adm extends \v
     /** @var \ounun\pdo */
     public static $db_site;
 
+    /**
+     * @param string $db_tag
+     * @param array $db_config
+     * @return pdo
+     */
+    public static function db(string $db_tag = 'adm', array $db_config = [])
+    {
+        if('adm' == $db_tag) {
+            if(empty(static::$db_adm)){
+                static::$db_adm = pdo::instance($db_tag,$db_config);
+            }
+            return static::$db_adm;
+        } elseif ('biz' == $db_tag ) {
+            if(empty(static::$db_biz)){
+                static::$db_biz = pdo::instance($db_tag,$db_config);
+            }
+            return static::$db_biz;
+        } elseif ('caiji' == $db_tag ) {
+            if(empty(static::$db_caiji)){
+                static::$db_caiji = pdo::instance($db_tag,$db_config);
+            }
+            return static::$db_caiji;
+        } elseif ('site' == $db_tag ) {
+            if(empty(static::$db_site)){
+                static::$db_site = pdo::instance($db_tag,$db_config);
+            }
+            return static::$db_site;
+        }
+        // 默认
+        if(empty(static::$db_v)){
+            static::$db_v  = pdo::instance(config::get_database_default());
+        }
+        return static::$db_v;
+    }
+
     /** @var string 站点类型 */
     protected $_site_type      = 'admin';
-
+    /** @var array  */
     protected $_site_type_only = [];
 
     /**
@@ -105,5 +143,13 @@ abstract class adm extends \v
 
         config::set_tpl_array($data);
         config::set_tpl_array(self::$purview->config);
+    }
+
+    /**
+     * @return string
+     */
+    public function site_type()
+    {
+        return $this->_site_type;
     }
 }

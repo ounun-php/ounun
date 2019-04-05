@@ -1,24 +1,17 @@
 <?php
-
 namespace ounun\cmd\task\site_base;
 
-use ounun\cmd\console;
 use ounun\cmd\task\libs\com_baidu;
 use ounun\cmd\task\manage;
 use ounun\cmd\task\struct;
 
 abstract class sitemap extends _site
 {
-    /**
-     * sitemap constructor.
-     * @param struct $task_struct
-     * @param string $tag
-     * @param string $tag_sub
-     */
+
     public function __construct(struct $task_struct, string $tag = '', string $tag_sub = '')
     {
-        $this->_tag = 'sitemap';
-        $this->_tag_sub = '';
+        $this->_tag       = 'sitemap';
+        $this->_tag_sub   = '';
 
         parent::__construct($task_struct, $tag, $tag_sub);
     }
@@ -29,7 +22,7 @@ abstract class sitemap extends _site
      * @param int $mode
      * @param bool $is_pass_check
      */
-    public function execute(array $input = [], int $mode = manage::Mode_Dateup, bool $is_pass_check = false)
+    public function execute(array $input = [], int $mode = manage::Mode_Dateup,bool $is_pass_check = false)
     {
         // sleep(rand(1,10));
         try {
@@ -48,13 +41,13 @@ abstract class sitemap extends _site
 
     /**
      * @param string $url
-     * @param int $xzh
+     * @param int    $xzh
      * @param string $mod
-     * @param string $changefreq "always", "hourly", "daily", "weekly", "monthly", "yearly"
-     * @param float $weight
+     * @param string $changefreq  "always", "hourly", "daily", "weekly", "monthly", "yearly"
+     * @param float  $weight
      * @return array
      */
-    abstract public function data(string $url, string $mod = 'page', string $changefreq = 'daily', int $xzh = 1, float $weight = 0.95);
+    abstract public function data(string $url,string $mod = 'page',string $changefreq = 'daily',int $xzh = 1,float $weight = 0.95);
 
     /**
      * @param array $bind

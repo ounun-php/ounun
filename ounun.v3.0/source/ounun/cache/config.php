@@ -1,4 +1,5 @@
 <?php
+
 namespace ounun\cache;
 
 
@@ -14,18 +15,18 @@ class config
      * @param string $config_key
      * @return $this
      */
-    static public function instance(string $tag='tag',\ounun\pdo $db = null, array $config = [], $config_key = 'cache_file')
+    static public function instance(string $tag = 'tag', \ounun\pdo $db = null, array $config = [], $config_key = 'cache_file')
     {
-        if(empty(static::$_inst[$tag])) {
-            if(empty($config)) {
+        if (empty(static::$_inst[$tag])) {
+            if (empty($config)) {
                 $config = \ounun\config::$global[$config_key];
             }
-            static::$_inst[$tag] = new static($tag,$db,$config);
+            static::$_inst[$tag] = new static($tag, $db, $config);
         }
         return static::$_inst[$tag];
     }
 
-    /** @var array  */
+    /** @var array */
     protected $_cache_data = [];
 
     /** @var core */
@@ -33,7 +34,7 @@ class config
 
     /** @var \ounun\pdo */
     protected $_db;
-    
+
     /** @var int 最后更新时间，大于这个时间数据都过期 */
     protected $_last_time;
 
@@ -45,9 +46,9 @@ class config
      */
     public function __construct(string $tag, \ounun\pdo $db, array $cache_config)
     {
-        $this->_db      = $db;
-        $this->_cache   = new core();
-        $this->_cache->config($cache_config,"cfg_{$tag}");
+        $this->_db = $db;
+        $this->_cache = new core();
+        $this->_cache->config($cache_config, "cfg_{$tag}");
     }
 
     /**
@@ -74,32 +75,28 @@ class config
      * @param null $args
      * @return mixed
      */
-    protected function _data($tag_key,$mysql_method,$args=null)
+    protected function _data($tag_key, $mysql_method, $args = null)
     {
 
-        if (!$this->_cache_data[$tag_key])
-        {
+        if (!$this->_cache_data[$tag_key]) {
             $this->_cache->key($tag_key);
-            $c  = $this->_cache->read();
+            $c = $this->_cache->read();
             //$this->_cd[$tag_key]->mtime = time();
             //debug_header('$last_modify',$last_modify,true);
             //debug_header('$this_mtime',$this->_cd[$tag_key]->mtime,true);
-            if ($c == null)
-            {
+            if ($c == null) {
                 //debug_header('$this_mtime2',222,true);
                 $this->_cache_data[$tag_key] = $this->$mysql_method($args);
                 $this->_cache->key($tag_key);
-                $this->_cache->val(['t'=>time(),'v'=>$this->_cache_data[$tag_key]]);
+                $this->_cache->val(['t' => time(), 'v' => $this->_cache_data[$tag_key]]);
                 $this->_cache->write();
-            }elseif (!is_array($c) || (int)$c['t'] < $this->_last_time)
-            {
+            } elseif (!is_array($c) || (int)$c['t'] < $this->_last_time) {
                 // debug_header('$this_mtime3',3333,true);
                 $this->_cache_data[$tag_key] = $this->$mysql_method($args);
                 $this->_cache->key($tag_key);
-                $this->_cache->val(['t'=>time(),'v'=>$this->_cache_data[$tag_key]]);
+                $this->_cache->val(['t' => time(), 'v' => $this->_cache_data[$tag_key]]);
                 $this->_cache->write();
-            }else
-            {
+            } else {
                 $this->_cache_data[$tag_key] = $c['v'];
             }
         }

@@ -31,10 +31,10 @@ class data_export extends \v
             $data = config::$global['caiji'][$caiji_tag];
             if($data && $data['db'])
             {
-                $this->_db_v   = pdo::instance($data['db']);
+                static::$db_v   = pdo::instance($data['db']);
             }
         }
-        if(null == $this->_db_v)
+        if(null == static::$db_v )
         {
             $rs   = [ 'ret'  => false, 'error'=> '数据库连接失败...' ];
             $this->_secure->outs($rs);

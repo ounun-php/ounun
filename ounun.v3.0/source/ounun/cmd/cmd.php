@@ -1,4 +1,5 @@
 <?php
+
 namespace ounun\cmd;
 
 
@@ -20,7 +21,7 @@ abstract class cmd
 
     /** @var string 运行 "php ./ounun list" 时的简短描述 */
     public $description;
-    
+
     /**
      * cmd constructor.
      * @param console $console
@@ -45,10 +46,10 @@ abstract class cmd
      */
     public function help(array $argv)
     {
-        console::echo("命令:",console::Color_Purple,'');
+        console::echo("命令:", console::Color_Purple, '');
         console::echo("({$this->description})");
-        console::echo('./ounun '.$this->name.' [参数...]',console::Color_Blue);
-        console::echo($this->help,console::Color_Purple);
+        console::echo('./ounun ' . $this->name . ' [参数...]', console::Color_Blue);
+        console::echo($this->help, console::Color_Purple);
     }
 
     /**
@@ -58,7 +59,7 @@ abstract class cmd
 
     /**
      * 执行指令
-     * @param array  $input
+     * @param array $input
      * @return null|int
      * @throws \LogicException
      */

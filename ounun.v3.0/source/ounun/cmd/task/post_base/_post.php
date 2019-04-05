@@ -1,9 +1,9 @@
 <?php
 namespace ounun\cmd\task\post_base;
 
-use ounun\cmd\task\site_base\_site;
+use ounun\cmd\task\task_base;
 
-class _post extends _site
+abstract class _post extends task_base
 {
 
 }

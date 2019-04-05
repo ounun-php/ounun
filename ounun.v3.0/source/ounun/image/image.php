@@ -3,12 +3,13 @@
  * [KuaiWei System] Copyright (c) 2019 KuaiWei.CC
  * Kuaiwei is NOT a free software, it under the license terms, visited http://www.kuaiwei.cc/ for more details.
  */
+
 namespace ounun\image;
 
 class image
 {
     private $src;
-    private $actions =  [];
+    private $actions = [];
     private $resize_width = 0;
     private $resize_height = 0;
 
@@ -20,16 +21,19 @@ class image
 
     private $ext = '';
 
-    public function __construct($src) {
+    public function __construct($src)
+    {
         $this->src = $src;
         $this->ext = pathinfo($src, PATHINFO_EXTENSION);
     }
 
-    public static function create($src) {
+    public static function create($src)
+    {
         return new self($src);
     }
 
-    public function resize($width = 0, $height = 0) {
+    public function resize($width = 0, $height = 0)
+    {
         if ($width > 0 || $height > 0) {
             $this->actions[] = 'resize';
         }
@@ -45,7 +49,8 @@ class image
         return $this;
     }
 
-    public function crop($width = 400, $height = 300, $position = 1) {
+    public function crop($width = 400, $height = 300, $position = 1)
+    {
         if ($width > 0 || $height > 0) {
             $this->actions[] = 'crop';
         }
@@ -62,24 +67,29 @@ class image
         return $this;
     }
 
-    public function getExt() {
+    public function getExt()
+    {
         return in_array($this->ext, array('jpg', 'jpeg', 'png', 'gif')) ? $this->ext : 'jpeg';
     }
 
-    public function isPng() {
+    public function isPng()
+    {
         return file_is_image($this->src) && $this->getExt() == 'png';
     }
 
-    public function isJPEG() {
+    public function isJPEG()
+    {
         return file_is_image($this->src) && in_array($this->getExt(), array('jpg', 'jpeg'));
     }
 
-    public function isGif() {
+    public function isGif()
+    {
         return file_is_image($this->src) && $this->getExt() == 'gif';
     }
 
 
-    public function saveTo($path, $quality = null) {
+    public function saveTo($path, $quality = null)
+    {
         $path = safe_gpc_path($path);
         if (empty($path)) {
             return false;
@@ -110,7 +120,8 @@ class image
         return $saved ? $path : $saved;
     }
 
-    private function realQuality($quality = null) {
+    private function realQuality($quality = null)
+    {
         if (is_null($quality)) {
             return null;
         }
@@ -125,7 +136,8 @@ class image
         return null;
     }
 
-    protected function handle() {
+    protected function handle()
+    {
         if (!function_exists('gd_info')) {
             return false;
         }
@@ -146,7 +158,8 @@ class image
     }
 
 
-    protected function doCrop($src_image) {
+    protected function doCrop($src_image)
+    {
         list($dst_x, $dst_y) = $this->getCropDestPoint();
         if (version_compare(PHP_VERSION, '5.5.0') >= 0) {
             $new_image = imagecrop($src_image, array('x' => $dst_x, 'y' => $dst_y, 'width' => $this->crop_width, 'height' => $this->crop_height));
@@ -162,7 +175,8 @@ class image
     }
 
 
-    protected function doResize($src_image) {
+    protected function doResize($src_image)
+    {
         $newimage = $this->modify($src_image, $this->resize_width, $this->resize_height,
             $this->imageinfo[0], $this->imageinfo[1]);
         $this->imageinfo[0] = $this->resize_width;
@@ -173,7 +187,8 @@ class image
 
 
     protected function modify($src_image, $width, $height, $src_width,
-                              $src_height, $dst_x = 0, $dst_y = 0, $src_x = 0, $src_y = 0) {
+                              $src_height, $dst_x = 0, $dst_y = 0, $src_x = 0, $src_y = 0)
+    {
         $image = imagecreatetruecolor($width, $height);
         imagealphablending($image, false);
         imagesavealpha($image, true);
@@ -184,17 +199,20 @@ class image
         return $image;
     }
 
-    private function image() {
+    private function image()
+    {
         return $this->image;
     }
 
-    private function destroy() {
+    private function destroy()
+    {
         if ($this->image) {
             imagedestroy($this->image);
         }
     }
 
-    private function createResource() {
+    private function createResource()
+    {
         if (file_exists($this->src) && !is_readable($this->src)) {
             return null;
         }
@@ -212,7 +230,8 @@ class image
     }
 
 
-    public function toBase64($prefix = 'data:image/%s;base64,') {
+    public function toBase64($prefix = 'data:image/%s;base64,')
+    {
         $filename = tempnam('tmp', 'base64');
         $prefix = sprintf($prefix, $this->getExt());
         $result = $this->saveTo($filename);
@@ -227,7 +246,8 @@ class image
     }
 
 
-    private function getCropDestPoint() {
+    private function getCropDestPoint()
+    {
         $s_width = $this->imageinfo[0];
         $s_height = $this->imageinfo[1];
         $dst_x = $dst_y = 0;

@@ -1,4 +1,5 @@
 <?php
+
 namespace plugins\qqyun;
 
 if (!extension_loaded('openssl')) {
@@ -20,7 +21,8 @@ class tls_sig_api
      * 设置Appid
      * @param int $appid
      */
-    public function setAppid($appid) {
+    public function setAppid($appid)
+    {
         $this->appid = $appid;
     }
 
@@ -30,7 +32,8 @@ class tls_sig_api
      * @return bool 是否成功
      * @throws Exception
      */
-    public function setPrivateKey($private_key) {
+    public function setPrivateKey($private_key)
+    {
         $this->private_key = openssl_pkey_get_private($private_key);
         if ($this->private_key === false) {
             throw new Exception(openssl_error_string());
@@ -44,7 +47,8 @@ class tls_sig_api
      * @return bool 是否成功
      * @throws Exception
      */
-    public function setPublicKey($public_key) {
+    public function setPublicKey($public_key)
+    {
         $this->public_key = openssl_pkey_get_public($public_key);
         if ($this->public_key === false) {
             throw new Exception(openssl_error_string());
@@ -59,7 +63,8 @@ class tls_sig_api
      * @return string 编码后的base64串，失败返回false
      * @throws Exception
      */
-    private function base64Encode($string) {
+    private function base64Encode($string)
+    {
         static $replace = Array('+' => '*', '/' => '-', '=' => '_');
         $base64 = base64_encode($string);
         if ($base64 === false) {
@@ -75,7 +80,8 @@ class tls_sig_api
      * @return string 解码后的数据，失败返回false
      * @throws Exception
      */
-    private function base64Decode($base64) {
+    private function base64Decode($base64)
+    {
         static $replace = Array('+' => '*', '/' => '-', '=' => '_');
         $string = str_replace(array_values($replace), array_keys($replace), $base64);
         $result = base64_decode($string);
@@ -91,7 +97,8 @@ class tls_sig_api
      * @return string 按标准格式生成的用于签名的字符串 失败时返回false
      * @throws Exception
      */
-    private function genSignContent(array $json) {
+    private function genSignContent(array $json)
+    {
         static $members = Array(
             'TLS.appid_at_3rd',
             'TLS.account_type',
@@ -116,7 +123,8 @@ class tls_sig_api
      * @return string 返回签名 失败时返回false
      * @throws Exception
      */
-    private function sign($data) {
+    private function sign($data)
+    {
         $signature = '';
         if (!openssl_sign($data, $signature, $this->private_key, 'sha256')) {
             throw new Exception(openssl_error_string());
@@ -131,7 +139,8 @@ class tls_sig_api
      * @return int 1验证成功 0验证失败
      * @throws Exception
      */
-    private function verify($data, $sig) {
+    private function verify($data, $sig)
+    {
         $ret = openssl_verify($data, $sig, $this->public_key, 'sha256');
         if ($ret == -1) {
             throw new Exception(openssl_error_string());
@@ -146,15 +155,16 @@ class tls_sig_api
      * @return string 生成的UserSig 失败时为false
      * @throws Exception
      */
-    public function genSig($identifier, $expire = 180 * 24 * 3600) {
+    public function genSig($identifier, $expire = 180 * 24 * 3600)
+    {
         $json = Array(
             'TLS.account_type' => '0',
-            'TLS.identifier' => (string) $identifier,
+            'TLS.identifier' => (string)$identifier,
             'TLS.appid_at_3rd' => '0',
-            'TLS.sdk_appid' => (string) $this->appid,
-            'TLS.expire_after' => (string) $expire,
+            'TLS.sdk_appid' => (string)$this->appid,
+            'TLS.expire_after' => (string)$expire,
             'TLS.version' => '201512300000',
-            'TLS.time' => (string) time()
+            'TLS.time' => (string)time()
         );
         $err = '';
         $content = $this->genSignContent($json, $err);
@@ -184,7 +194,7 @@ class tls_sig_api
      * @return boolean 验证是否成功
      * @throws Exception
      */
-    public function verifySig(string $sig,string $identifier,int &$init_time,int &$expire_time,string &$error_msg) 
+    public function verifySig(string $sig, string $identifier, int &$init_time, int &$expire_time, string &$error_msg)
     {
         try {
             $error_msg = '';
@@ -197,7 +207,7 @@ class tls_sig_api
             if ($json == false) {
                 throw new Exception('json_decode error');
             }
-            $json = (array) $json;
+            $json = (array)$json;
             if ($json['TLS.identifier'] !== $identifier) {
                 throw new Exception("identifier error sigid:{$json['TLS.identifier']} id:{$identifier}");
             }
