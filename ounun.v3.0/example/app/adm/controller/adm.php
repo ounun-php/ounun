@@ -12,16 +12,18 @@ class adm extends \ounun\mvc\controller\admin\adm
 {
     public function __construct($mod)
     {
+        //
+        static::$instance = $this;
         // 初始化
-        self::$db_adm = pdo::instance('adm');
-        self::$db_biz = pdo::instance('biz');
+        static::$db_adm = pdo::instance('adm');
+        static::$db_biz = pdo::instance('biz');
         /** @var purview purview */
-        self::$purview = new purview();
+        static::$purview = new purview();
         /** @var oauth auth */
-        self::$auth = \ounun\mvc\model\admin\oauth::instance('mk8');
+        static::$auth = \ounun\mvc\model\admin\oauth::instance('mk8');
 
-        $adm_site = self::$auth->cookie_get(purview::adm_site_tag);
-        $adm_zqun = self::$auth->cookie_get(purview::adm_zqun_tag);
+        $adm_site = static::$auth->cookie_get(purview::adm_site_tag);
+        $adm_zqun = static::$auth->cookie_get(purview::adm_zqun_tag);
         if ($adm_site && $adm_zqun) {
             $sites = config_cache::instance(\c::Cache_Tag_Site, self::$db_biz)->site();
             $sites2 = $sites[$adm_zqun];
@@ -42,30 +44,30 @@ class adm extends \ounun\mvc\controller\admin\adm
                     if ($sites3['db']) {
                         $db_cfg = json_decode($sites3['db'], true);
                         if ($db_cfg && $db_cfg['host']) {
-                            self::$db_site = pdo::instance('site', $db_cfg);
+                            static::$db_site = pdo::instance('site', $db_cfg);
                         } else {
-                            self::$db_site = self::$db_biz;
+                            static::$db_site = static::$db_biz;
                         }
                     } else {
-                        self::$db_site = self::$db_biz;
+                        static::$db_site = static::$db_biz;
                     }
                 } elseif ($sites3 && purview::app_type_admin == $sites3['type']) {
-                    self::$db_site = self::$db_biz;
+                    static::$db_site = static::$db_biz;
                 } else {
-                    self::$db_site = self::$db_biz;
+                    static::$db_site = static::$db_biz;
                 }
             }
             // print_r(['$sites2'=>$sites2,'$sites'=>$sites]);
         }
 
         // adm_purv -----------------
-        $adm_libs = self::$auth->cookie_get(purview::adm_caiji_tag);
+        $adm_libs = static::$auth->cookie_get(purview::adm_caiji_tag);
         if ($adm_libs) {
             $libs = config::$global['libs'][$adm_libs];
             if ($libs && $libs['db']) {
-                self::$db_caiji = pdo::instance('caiji', $libs['db']);
+                static::$db_caiji = pdo::instance('caiji', $libs['db']);
             } else {
-                self::$db_caiji = self::$db_biz;
+                static::$db_caiji = static::$db_biz;
             }
         }
 
@@ -92,15 +94,15 @@ class adm extends \ounun\mvc\controller\admin\adm
         // REQUEST_URI
         $uri = url_original($_SERVER['REQUEST_URI']);
         if (purview::nav_libs == $nav) {
-            $libs_key = self::$auth->cookie_get(purview::adm_caiji_tag);
+            $libs_key = static::$auth->cookie_get(purview::adm_caiji_tag);
             $title_sub = '请选择"资料库"';
             // print_r(['$libs_key'=>$libs_key]);
             if (!$libs_key) {
                 go_url("/select_tip.html?nav={$nav}&uri={$uri}&title_sub=" . urlencode($title_sub));
             }
         } elseif (purview::nav_site == $nav) {
-            $zqun_key = self::$auth->cookie_get(purview::adm_zqun_tag);
-            $site_key = self::$auth->cookie_get(purview::adm_site_tag);
+            $zqun_key = static::$auth->cookie_get(purview::adm_zqun_tag);
+            $site_key = static::$auth->cookie_get(purview::adm_site_tag);
             $title_sub = '请选择"站群"与"站点"';
             // print_r(['$zqun_key'=>$zqun_key,'$site_key'=>$site_key]);
             if (!$zqun_key || !$site_key) {
@@ -114,7 +116,7 @@ class adm extends \ounun\mvc\controller\admin\adm
      */
     public function tables_caiji()
     {
-        $adm_libs = self::$auth ? self::$auth->cookie_get(purview::adm_caiji_tag) : $_COOKIE[purview::adm_caiji_tag];
+        $adm_libs = static::$auth ? static::$auth->cookie_get(purview::adm_caiji_tag) : $_COOKIE[purview::adm_caiji_tag];
         $pics = [];
         if ($adm_libs) {
             $tables = config::$global['caiji'][$adm_libs];

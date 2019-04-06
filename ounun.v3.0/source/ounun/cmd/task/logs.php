@@ -77,13 +77,13 @@ class logs
      * 日志数据logs_data
      * @param int $state 状态  0:正常(灰) 1:失败(红色) 6:突出(橙黄)  99:成功(绿色)
      * @param int $time 时间
-     * @param string $logs 内容
+     * @param string $msg 内容
      */
-    public function data(int $state, int $time, string $logs)
+    public function data(int $state, int $time, string $msg)
     {
         $time = $time == 0 ? time() : $time;
         /**  状态  时间 内容  */
-        $this->_data[] = ['s' => $state, 't' => $time, 'l' => $logs];
+        $this->_data[] = ['s' => $state, 't' => $time, 'l' => $msg];
     }
 
     /**
