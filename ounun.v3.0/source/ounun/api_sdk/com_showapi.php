@@ -19,7 +19,7 @@ class com_showapi
             'num' => "10"       // 添加其他参数
         ];
 
-        $url = 'http://route.showapi.com/941-1?' . self::create_params($paramArr, $showapi_secret);
+        $url = 'http://route.showapi.com/941-1?' . self::_params_create($paramArr, $showapi_secret);
         $c = file_get_contents($url);
         $c2 = json_decode($c, true);
         if ($c2 && $c2['showapi_res_body'] && $c2['showapi_res_body']['list']) {
@@ -58,7 +58,7 @@ class com_showapi
      * @param $showapi_secret
      * @return string
      */
-    protected static function create_params($paras, $showapi_secret)
+    protected static function _params_create($paras, $showapi_secret)
     {
         $paraStr = "";
         $signStr = "";

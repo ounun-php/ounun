@@ -20,9 +20,9 @@ class auth_code
      * @param int $secretLength
      * @return string
      */
-    public function create_secret($secretLength = 16)
+    public function secret_create($secretLength = 16)
     {
-        $validChars = $this->_get_base32_lookup_table();
+        $validChars = $this->_base32_lookup_table_get();
         unset($validChars[32]);
 
         $secret = '';
@@ -39,7 +39,7 @@ class auth_code
      * @param int|null $timeSlice
      * @return string
      */
-    public function get_code($secret, $timeSlice = null)
+    public function code_get($secret, $timeSlice = null)
     {
         if ($timeSlice === null) {
             $timeSlice = floor(time() / 30);
@@ -74,7 +74,7 @@ class auth_code
      * @param string $title
      * @return string
      */
-    public function get_qrcode_google_url($name, $secret, $title = null)
+    public function qrcode_google_url_get($name, $secret, $title = null)
     {
         $urlencoded = urlencode('otpauth://totp/' . urlencode($name) . '?secret=' . $secret . '');
         if (isset($title)) {
@@ -99,7 +99,7 @@ class auth_code
         }
 
         for ($i = -$discrepancy; $i <= $discrepancy; $i++) {
-            $calculatedCode = $this->get_code($secret, $currentTimeSlice + $i);
+            $calculatedCode = $this->code_get($secret, $currentTimeSlice + $i);
             if ($calculatedCode == $code) {
                 return true;
             }
@@ -114,7 +114,7 @@ class auth_code
      * @param int $length
      * @return auth_code GoogleAuthenticator
      */
-    public function set_code_length($length)
+    public function code_length_set($length)
     {
         $this->_code_length = $length;
         return $this;
@@ -130,7 +130,7 @@ class auth_code
     {
         if (empty($secret)) return '';
 
-        $base32chars = $this->_get_base32_lookup_table();
+        $base32chars = $this->_base32_lookup_table_get();
         $base32charsFlipped = array_flip($base32chars);
 
         $paddingCharCount = substr_count($secret, $base32chars[32]);
@@ -168,7 +168,7 @@ class auth_code
     {
         if (empty($secret)) return '';
 
-        $base32chars = $this->_get_base32_lookup_table();
+        $base32chars = $this->_base32_lookup_table_get();
 
         $secret = str_split($secret);
         $binaryString = "";
@@ -196,7 +196,7 @@ class auth_code
      *
      * @return array
      */
-    protected function _get_base32_lookup_table()
+    protected function _base32_lookup_table_get()
     {
         return array(
             'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', //  7

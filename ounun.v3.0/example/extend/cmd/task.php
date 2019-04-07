@@ -12,7 +12,7 @@ use ounun\cmd\console;
 use ounun\cmd\task\manage;
 use ounun\pdo;
 
-class coll extends \ounun\cmd\cmd
+class task extends \ounun\cmd\cmd
 {
     public function configure()
     {
@@ -21,14 +21,18 @@ class coll extends \ounun\cmd\cmd
             $h[] = "{$k}:{$v}";
         }
         // 命令的名字（"think" 后面的部分）
-        $this->name = 'adm.coll';
+        $this->name = 'adm.task';
         // 运行 "php think list" 时的简短描述
-        $this->description = '采集任务进程任务';
+        $this->description = '任务进程任务';
         // 运行命令时使用 "--help" 选项时的完整命令描述
-        $this->help = "采集任务\n" .
-            "./ounun adm.coll [" . implode(',', $h) . "] [任务ID] [间隔(秒,默认5秒)] [寿命(秒,默认300秒)]\n";
+        $this->help = "任务\n" .
+            "./ounun {$this->name} [" . implode(',', $h) . "] [任务ID] [间隔(秒,默认5秒)] [寿命(秒,默认300秒)] [网站tag]\n";
     }
 
+    /**
+     * @param array $input
+     * @return mixed
+     */
     public function execute(array $input)
     {
         //设置运存

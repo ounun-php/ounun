@@ -27,7 +27,7 @@ define('Const_Baidu_Xzh_SiteId', '');
 define('Const_Baidu_Xzh_Token', '');
 
 /** 设定对应cms类名 */
-\ounun\config::set_cms_classname('\\extend\\cms_www', Const_Key_Conn_Private);
+\ounun\config::cms_classname_set('\\extend\\cms_www', Const_Key_Conn_Private);
 
 /** 设定自动加载目录 */
 \ounun\config::add_paths(Dir_Ounun, 'ounun');
@@ -37,7 +37,7 @@ define('Const_Baidu_Xzh_Token', '');
 \ounun\config::add_class('c', Dir_Extend . 'c.php');
 
 /** 配制cache_file */
-\ounun\config::set_global([
+\ounun\config::global_set([
     'cache_file' =>
         [
             'type' => \ounun\cache\core::Type_File,
@@ -49,7 +49,7 @@ define('Const_Baidu_Xzh_Token', '');
 ]);
 
 /** 配制database */
-\ounun\config::set_database([
+\ounun\config::database_set([
     'account' =>
         [
             'host' => 'shihundb001pub.mysql.rds.aliyuncs.com:3306',
@@ -77,7 +77,7 @@ define('Const_Baidu_Xzh_Token', '');
 ]);
 
 /** 支持的语言 */
-\ounun\config::set_lang_support([
+\ounun\config::lang_support_set([
     "en" => "English",
     // "zh"=>"繁體中文",
     "cn" => "简体中文",
@@ -85,7 +85,7 @@ define('Const_Baidu_Xzh_Token', '');
 ]);
 
 /** 设定路由数据 */
-\ounun\config::set_routes(
+\ounun\config::routes_set(
     [
         // Const_App
         'm.' . Const_Domain => ['app' => 'www', 'url' => '/', 'tpl_style' => '_wap', 'tpl_default' => '_default'],
@@ -104,7 +104,7 @@ define('Const_Baidu_Xzh_Token', '');
 );
 
 /** 设定路由数据 */
-\ounun\config::set_urls(
+\ounun\config::urls_domain_set(
     'https://www' . Const_Domain . '/',
     'https://m.' . Const_Domain . '/',
     'https://mip.' . Const_Domain . '/',

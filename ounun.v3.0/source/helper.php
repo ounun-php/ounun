@@ -244,16 +244,15 @@ function go_msg(string $msg, string $url = ''): void
  * 返回一个错误
  * @param string $message
  * @param int $error_code
- * @param array $data
+ * @param mixed $data
  * @return array
  */
-function error(string $message = '', int $error_code = 1, array $data = [])
+function error(string $message = '', int $error_code = 1, $data = '')
 {
-    return [
-        'message' => $message,
-        'error_code' => $error_code,
-        'data' => $data
-    ];
+    if(empty($data)){
+        return [ 'message' => $message, 'error_code' => $error_code ];
+    }
+    return [ 'message' => $message, 'error_code' => $error_code, 'data' => $data ];
 }
 
 /**
@@ -297,11 +296,7 @@ function error_code($data): int
  */
 function succeed($data, string $message = '')
 {
-    return [
-        'message' => $message,
-        'error_code' => 0,
-        'data' => $data
-    ];
+    return [ 'message' => $message, 'error_code' => 0, 'data' => $data ];
 }
 
 /**

@@ -271,7 +271,7 @@ class config
      * @param string $tpl_style 模板
      * @param string $tpl_default 模板(默认)
      */
-    static public function set_template(string $tpl_dir, string $tpl_style = '', string $tpl_default = '')
+    static public function template_set(string $tpl_dir, string $tpl_style = '', string $tpl_default = '')
     {
         // 模板根目录
         if (!in_array($tpl_dir, static::$tpl_dirs)) {
@@ -299,7 +299,7 @@ class config
      * 设定模板替换
      * @param array $data
      */
-    static public function set_tpl_array(array $data)
+    static public function template_array_set(array $data)
     {
         if ($data && is_array($data)) {
             foreach ($data as $key => $value) {
@@ -613,16 +613,16 @@ function start(array $mod, string $host)
     } else {
         $val_0 = config::$routes_default;
     }
-    // set_apps
+    // apps_domain_set
     config::app_name_path_set(Dir_Ounun, Dir_Root, (string)$val_0['app'], (string)$val_0['url']);
     // add_paths
     config::add_paths(Dir_App, 'app', true);
     // load_config 1 scfg::$dir_app
     config::load_config(config::$dir_app);
-    // set_lang
+    // lang_set
     config::lang_set($lang);
-    //  模板 set_template
-    config::set_template(Dir_Template . config::$app_name . '/', (string)$val_0['tpl_style'], (string)$val_0['tpl_default']);
+    //  模板 template_set
+    config::template_set(Dir_Template . config::$app_name . '/', (string)$val_0['tpl_style'], (string)$val_0['tpl_default']);
 
     // 开始 重定义头
     header('X-Powered-By: Ounun.org');

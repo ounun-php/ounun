@@ -20,7 +20,7 @@ abstract class _post extends task_base
     /** @var string  网站数据 - 数据 - 表名 */
     public static $table_site_data = '';
     /** @var string  网站数据 - 附件 - 表名 */
-    public static $_able_site_attachment = '';
+    public static $table_site_attachment = '';
 
     /**
      * @return array
@@ -39,6 +39,12 @@ abstract class _post extends task_base
      */
     public function execute(array $input = [], int $mode = manage::Mode_Dateup, bool $is_pass_check = false)
     {
+        $site_tag = ($input && is_array($input)) ? ((int)array_shift($input)) : '';
+
+        print_r([
+            '$site_tag' => $site_tag
+        ]);
+
         console::echo(__METHOD__, console::Color_Red);
         try {
             $this->_logs_status = manage::Logs_Succeed;

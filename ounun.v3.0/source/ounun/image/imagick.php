@@ -142,7 +142,7 @@ class imagick
                     $image->thumbnailImage($width, $height, true);
                     $draw = new \ImagickDraw();
                     $draw->composite($image->getImageCompose(), $x, $y, $dst_width, $dst_height, $image);
-                    $canvas->newImage($width, $height, $color, $this->get_type());
+                    $canvas->newImage($width, $height, $color, $this->type_get());
                     $canvas->drawImage($draw);
                     $canvas->setImagePage($width, $height, 0, 0);
                 }
@@ -286,27 +286,27 @@ class imagick
         echo $this->image->getImagesBlob();
     }
 
-    public function get_width()
+    public function width_get()
     {
         $size = $this->image->getImagePage();
         return $size['width'];
     }
 
-    public function get_height()
+    public function height_get()
     {
         $size = $this->image->getImagePage();
         return $size['height'];
     }
 
     // 设置图像类型， 默认与源类型一致
-    public function set_type($type = 'png')
+    public function type_set($type = 'png')
     {
         $this->type = $type;
         $this->image->setimageformat($type);
     }
 
     // 获取源图像类型
-    public function get_type()
+    public function type_get()
     {
         return $this->type;
     }

@@ -38,7 +38,7 @@ function cms()
  */
 function i18n()
 {
-    return \ounun\config::get_i18n();
+    return \ounun\config::i18n_get();
 }
 
 /**

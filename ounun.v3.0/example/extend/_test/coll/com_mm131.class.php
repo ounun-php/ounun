@@ -100,7 +100,7 @@ class com_mm131 extends \ounun\cmd\task\coll_base\_coll
     }
 
 
-    protected function _get_data($url)
+    protected function _data_get($url)
     {
         $pic_id = (int)explode('.',explode('/',$url)[4])[0];
         $dir    =      explode('/',$url)[3];

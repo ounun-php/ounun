@@ -70,7 +70,7 @@ class base
         $this->_sql_count = $sql_count;
 
         if ($config) {
-            $this->set_config($config);
+            $this->config_set($config);
         }
 
         if ($rows) {
@@ -83,7 +83,7 @@ class base
      * @param string|array $key
      * @param string $value
      */
-    public function set_config(array $config)
+    public function config_set(array $config)
     {
         // 提示串
         if ($config['note']) {
@@ -131,26 +131,26 @@ class base
         $rs_page = [];
 
         $data = $this->data($page, $default_end);
-        $rs_note = $this->_set_note($this->_total, $this->_total_page, $this->_page);
+        $rs_note = $this->_note_set($this->_total, $this->_total_page, $this->_page);
 
         $url_prev = '';
         $url_next = '';
         foreach ($data as $v) {
             if ($v['begin']) {
-                $rs_page[] = $page_default[0] . '<a href="' . $this->_set_url($v['begin']) . '" title="' . $title . '第' . $v['begin'] . '页">' . $cfg_tag[0] . '</a>' . $page_default[1];
+                $rs_page[] = $page_default[0] . '<a href="' . $this->_url_set($v['begin']) . '" title="' . $title . '第' . $v['begin'] . '页">' . $cfg_tag[0] . '</a>' . $page_default[1];
             } elseif ($v['previous']) {
-                $url_prev = $this->_set_url($v['previous']);
+                $url_prev = $this->_url_set($v['previous']);
                 $rs_page[] = $page_default[0] . '<a href="' . $url_prev . '" title="' . $title . '第' . $v['previous'] . '页">' . $cfg_tag[1] . '</a>' . $page_default[1];
             } elseif ($v['next']) {
-                $url_next = $this->_set_url($v['next']);
+                $url_next = $this->_url_set($v['next']);
                 $rs_page[] = $page_default[0] . '<a href="' . $url_next . '" title="' . $title . '第' . $v['next'] . '页">' . $cfg_tag[2] . '</a>' . $page_default[1];
             } elseif ($v['end']) {
-                $rs_page[] = $page_default[0] . '<a href="' . $this->_set_url($v['end']) . '" title="' . $title . '第' . $v['end'] . '页">' . $cfg_tag[3] . '</a>' . $page_default[1];
+                $rs_page[] = $page_default[0] . '<a href="' . $this->_url_set($v['end']) . '" title="' . $title . '第' . $v['end'] . '页">' . $cfg_tag[3] . '</a>' . $page_default[1];
             } elseif ($v['def']) {
                 if ($this->_page == $v['def']) {
-                    $rs_page[] = $page_now[0] . '<a href="' . $this->_set_url($v['def']) . '" title="' . $title . '第' . $v['def'] . '页" ' . $page_now[2] . ' onclick="return false">' . $v['def'] . '</a>' . $page_now[1];
+                    $rs_page[] = $page_now[0] . '<a href="' . $this->_url_set($v['def']) . '" title="' . $title . '第' . $v['def'] . '页" ' . $page_now[2] . ' onclick="return false">' . $v['def'] . '</a>' . $page_now[1];
                 } else {
-                    $rs_page[] = $page_default[0] . '<a href="' . $this->_set_url($v['def']) . '" title="' . $title . '第' . $v['def'] . '页">' . $v['def'] . '</a>' . $page_now[1];
+                    $rs_page[] = $page_default[0] . '<a href="' . $this->_url_set($v['def']) . '" title="' . $title . '第' . $v['def'] . '页">' . $v['def'] . '</a>' . $page_now[1];
                 }
             }
         }
@@ -223,7 +223,7 @@ class base
         if ($this->_total) {
             return $this->_total;
         }
-        $this->_total = $this->_get_total();
+        $this->_total = $this->_total_get();
         return $this->_total;
     }
 
@@ -280,7 +280,7 @@ class base
      * @param array $arr
      * @return string
      */
-    private function _set_note(int $total, int $total_page, int $page): string
+    private function _note_set(int $total, int $total_page, int $page): string
     {
         return str_replace(['{total}', '{total_page}', '{page}'], [$total, $total_page, $page], $this->_config_note);
     }
@@ -290,7 +290,7 @@ class base
      * @param int $page
      * @return string
      */
-    protected function _set_url(int $page): string
+    protected function _url_set(int $page): string
     {
         $url = str_replace('{page}', $page, $this->_url);
         if ($this->_cfg_index) {
@@ -317,7 +317,7 @@ class base
      * 从数据库中得到数据总行数
      * @return int
      */
-    protected function _get_total(): int
+    protected function _total_get(): int
     {
         $rs = $this->_db->table($this->_table)
             ->field(' ' . $this->_sql_count . ' as `cc` ')

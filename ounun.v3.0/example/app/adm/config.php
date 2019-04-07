@@ -3,7 +3,7 @@ session_start();
 
 
 /** 配制cache_file */
-//\ounun\scfg::set_global([
+//\ounun\scfg::global_set([
 //    'libs' =>
 //        [
 //            'libs_v1'    => ['db'=>'libs_v1','name'=>'库v1',    'table'=>[
@@ -22,7 +22,7 @@ session_start();
 //]);
 
 /** 配制database */
-//\ounun\scfg::set_database([
+//\ounun\scfg::database_set([
 //    'adm' =>
 //        [
 //            'host'       => 'shihundb001pub.mysql.rds.aliyuncs.com:3306',

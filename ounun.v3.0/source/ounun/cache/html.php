@@ -118,7 +118,7 @@ class html
     {
         // \debug::header('xypm',$this->_cache->filename(),$this->_is_debug,__FUNCTION__,__LINE__);
         $this->stop = false;
-        $this->_cache->cache_set_time_tmp();
+        $this->_cache->cache_time_tmp_set();
         // 生成
         ob_start();
         register_shutdown_function(array($this, 'callback'), $output);

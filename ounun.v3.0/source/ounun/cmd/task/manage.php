@@ -25,7 +25,7 @@ class manage
     const Mode_Check = 99; // 1:检查
     /** @var array 模式 0:采集全部   1:检查   2:更新 */
     const Mode = [
-        self::Mode_All => '采集全部',
+        self::Mode_All => '采集全部(默认)',
         self::Mode_Check => '检查',
         self::Mode_Dateup => '更新',
     ];
@@ -40,7 +40,7 @@ class manage
     const Status = [
         self::Status_Await => '空置(等待)',
         self::Status_Runing => '运行中...',
-        self::Status_Full => '满载(过载)',
+        self::Status_Full => '满载(过载)', 
     ];
 
     /** @var int 正常(灰) */
@@ -411,7 +411,7 @@ class manage
             // print_r(['static::$_db_task->stmt()->queryString'=>static::$_db_task->stmt()->queryString,'$rs'=>$rs]);
             foreach ($rs as $v) {
                 if ($v && $v['task_id'] && $v['task_class']) {
-                    $cls = '\\extend\\task\\' . $v['task_class'];
+                    $cls = '\\' . $v['task_class'];
                     if (class_exists($cls)) {
                         $struct = new struct($v);
                         /** @var task_base $task */

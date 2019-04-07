@@ -34,12 +34,12 @@ class observer implements \SplObserver
         }
 
         foreach ($this->config[$event] as $file) {
-            if (!isset(self::$plugin[$file])) {
+            if (!isset(static::$plugin[$file])) {
                 require_once($this->dir . $file . '.php');
                 $class = 'plugin_' . $file;
-                self::$plugin[$file] = new $class($subject);
+                static::$plugin[$file] = new $class($subject);
             }
-            self::$plugin[$file]->$event();
+            static::$plugin[$file]->$event();
         }
     }
 }

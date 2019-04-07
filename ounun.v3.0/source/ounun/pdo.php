@@ -303,7 +303,7 @@ class pdo
     {
         if (null == $this->_stmt || $force_prepare) {
             $fields = ($this->_fields && is_array($this->_fields)) ? implode(',', $this->_fields) : '*';
-            $this->_prepare('SELECT ' . $fields . ' FROM ' . $this->_table . ' ' . $this->_join . ' ' . $this->_where . ' ' . $this->_get_group() . ' ;')
+            $this->_prepare('SELECT ' . $fields . ' FROM ' . $this->_table . ' ' . $this->_join . ' ' . $this->_where . ' ' . $this->_group_get() . ' ;')
                 ->_execute($this->_bind_param);
         }
         return $this->_stmt->columnCount();
@@ -317,7 +317,7 @@ class pdo
     {
         if (null == $this->_stmt || $force_prepare) {
             $fields = ($this->_fields && is_array($this->_fields)) ? implode(',', $this->_fields) : '*';
-            $this->_prepare('SELECT ' . $fields . ' FROM ' . $this->_table . ' ' . $this->_join . ' ' . $this->_where . ' ' . $this->_get_group() . ' ' . $this->_get_order() . ' ' . $this->_limit . ';')
+            $this->_prepare('SELECT ' . $fields . ' FROM ' . $this->_table . ' ' . $this->_join . ' ' . $this->_where . ' ' . $this->_group_get() . ' ' . $this->_order_get() . ' ' . $this->_limit . ';')
                 ->_execute($this->_bind_param);
         }
         return $this->_stmt->fetch(\PDO::FETCH_ASSOC);
@@ -332,7 +332,7 @@ class pdo
     {
         if (null == $this->_stmt || $force_prepare) {
             $fields = ($this->_fields && is_array($this->_fields)) ? implode(',', $this->_fields) : '*';
-            $this->_prepare('SELECT ' . $fields . ' FROM ' . $this->_table . ' ' . $this->_join . ' ' . $this->_where . ' ' . $this->_get_group() . ' ' . $this->_get_order() . ' ' . $this->_limit . ';')
+            $this->_prepare('SELECT ' . $fields . ' FROM ' . $this->_table . ' ' . $this->_join . ' ' . $this->_where . ' ' . $this->_group_get() . ' ' . $this->_order_get() . ' ' . $this->_limit . ';')
                 ->_execute($this->_bind_param);
         }
         if ($this->_assoc) {
@@ -755,24 +755,6 @@ class pdo
         return $this->_pdo ? true : false;
     }
 
-    /**
-     * 为 SQL 查询里的字符串添加引号(特殊情况时才用)
-     * @param $data
-     * @param int $type
-     * @return string
-     */
-    public function quote($data, int $type = \PDO::PARAM_STR)
-    {
-        $rs = [];
-        if (is_array($data)) {
-            foreach ($data as $value) {
-                $rs[] = $this->_pdo->quote($value, $type);
-            }
-        } else {
-            $rs[] = $this->_pdo->quote($data, $type);
-        }
-        return implode(',', $rs);
-    }
 
     /**
      * 捡查指定字段数据是否存在
@@ -793,8 +775,27 @@ class pdo
         return false;
     }
 
+    /**
+     * 为 SQL 查询里的字符串添加引号(特殊情况时才用)
+     * @param $data
+     * @param int $type
+     * @return string
+     */
+    public function quote($data, int $type = \PDO::PARAM_STR)
+    {
+        $rs = [];
+        if (is_array($data)) {
+            foreach ($data as $value) {
+                $rs[] = $this->_pdo->quote($value, $type);
+            }
+        } else {
+            $rs[] = $this->_pdo->quote($data, $type);
+        }
+        return implode(',', $rs);
+    }
+
     /** order */
-    protected function _get_order()
+    protected function _order_get()
     {
         $rs = '';
         if ($this->_order && is_array($this->_order)) {
@@ -808,7 +809,7 @@ class pdo
     }
 
     /** group */
-    protected function _get_group()
+    protected function _group_get()
     {
         $rs = '';
         if ($this->_group && is_array($this->_group)) {

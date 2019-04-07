@@ -95,7 +95,7 @@
                             $adm_account = oauth()->session_get(\app\adm\model\purview::session_account);
                             ?>
                             <img height="388"
-                                 src="<?php echo (new \plugins\google\auth_code())->get_qrcode_google_url("{$site_name}#{$adm_account}#{$project_no}#" . date("Y-m-d") . "#{$adm_account_id}", $cs, $adm_account . "《{$site_name}》") ?>"><br/>
+                                 src="<?php echo (new \plugins\google\auth_code())->qrcode_google_url_get("{$site_name}#{$adm_account}#{$project_no}#" . date("Y-m-d") . "#{$adm_account_id}", $cs, $adm_account . "《{$site_name}》") ?>"><br/>
                             <br/>
                             <br/>
                             <br/>

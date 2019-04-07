@@ -54,7 +54,7 @@ class config
     /**
      * @param int $last_time
      */
-    public function set_last_modify(int $last_time)
+    public function last_modify_set(int $last_time)
     {
         $this->_last_time = $last_time;
     }

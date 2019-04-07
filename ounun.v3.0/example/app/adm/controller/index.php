@@ -14,7 +14,7 @@ class index extends adm
         // print_r(['$_SESSION'=>$_SESSION]);
         if (self::$auth->login_check()) {
             $this->init_page('/', false, true, '', 0, false);
-            $this->_nav_set_data();
+            $this->_nav_data_set();
 
             $scfg_cache = config_cache::instance(\c::Cache_Tag_Site, self::$db_biz);
             $site0 = $scfg_cache->site();
@@ -65,7 +65,7 @@ class index extends adm
         } else {
             // 还没登录
             $this->init_page('/login.html', false, true, '', 0, false);
-            $this->_nav_set_data();
+            $this->_nav_data_set();
             require \v::tpl_fixed('login.html.php');
         }
     }
@@ -92,7 +92,7 @@ class index extends adm
     public function no_access($mod)
     {
         $this->init_page('/no_access.html', false, true, '', 0, false);
-        $this->_nav_set_data();
+        $this->_nav_data_set();
 
         //  echo $this->require_file('sys/no_access.html.php' );
         require \v::tpl_fixed('sys_adm/no_access.html.php');
@@ -104,7 +104,7 @@ class index extends adm
     {
         $this->init_page('/error_site_type.html', false, true, '', 0, false);
 
-        $this->_nav_set_data('站点类型有误', '系统', (int)$_GET['nav']);
+        $this->_nav_data_set('站点类型有误', '系统', (int)$_GET['nav']);
 
         require \v::tpl_fixed('sys_adm/error_site_type.html.php');
     }
@@ -117,7 +117,7 @@ class index extends adm
         $nav = (int)$_GET['nav'];
         $title = $_GET['title'] ? $_GET['title'] : '系统';
         $title_sub = $_GET['title_sub'] ? $_GET['title_sub'] : '请选择正确的参数';
-        $this->_nav_set_data($title_sub, $title, $nav);
+        $this->_nav_data_set($title_sub, $title, $nav);
         require \v::tpl_fixed('sys_adm/select_tip.html.php');
     }
 

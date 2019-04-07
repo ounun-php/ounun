@@ -34,7 +34,7 @@ class erlang
      */
     public function __construct(string $key, int $sid_hub_id, string $host, int $port)
     {
-        $this->set_config($sid_hub_id, $host, $port, $key);
+        $this->config_set($sid_hub_id, $host, $port, $key);
     }
 
     /**
@@ -42,7 +42,7 @@ class erlang
      * @param string $host
      * @param int $port
      */
-    public function set_config(int $sid_hub_id = 0, string $host = '', int $port = 0, string $key = '')
+    public function config_set(int $sid_hub_id = 0, string $host = '', int $port = 0, string $key = '')
     {
         if ($key) {
             $this->_key = $key;

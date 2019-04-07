@@ -63,7 +63,7 @@ class oauth
      */
     public function login(string $account, string $password, int $cid, string $code): array
     {
-        $check = $this->_check_ip($cid, $account);
+        $check = $this->_ip_check($cid, $account);
         $account_id = 0;
         // 封帐号或IP
         if (error_is($check)) {
@@ -81,9 +81,9 @@ class oauth
             ->column_one();
         // $rs 	 = $this->_db->row("select * from {$this->purview->db_adm} where `account` =:account and `cid` = :cid limit 1;",$bind);
         if ($rs) {
-            $ext = $this->user_get_exts($rs, $rs['adm_id']);
+            $ext = $this->user_extend_get($rs, $rs['adm_id']);
             $rs['exts2'] = $ext;
-            $is_google = $this->_check_google($ext, $code);
+            $is_google = $this->_google_check($ext, $code);
 //            echo $this->_db->sql();
             // print_r($rs);
             // exit();
@@ -294,7 +294,7 @@ class oauth
      * @param string $google_code
      * @return array
      */
-    public function user_modify_passwd(string $old_pwd, string $new_pwd, string $google_code): array
+    public function user_passwd_modify(string $old_pwd, string $new_pwd, string $google_code): array
     {
         if (!$old_pwd) {
             return error('提示：请输入旧密码');
@@ -309,13 +309,13 @@ class oauth
             ->where('`adm_id` = :adm_id ', ['adm_id' => $account_id])
             ->column_one();
         // $rs		    = $this->_db->row("SELECT `adm_id`,`password`,`exts` FROM {$this->purview->db_adm} where `adm_id` = ? ;",$account_id);
-        $exts = $this->user_get_exts($rs, $rs['adm_id']);
+        $exts = $this->user_extend_get($rs, $rs['adm_id']);
         $old_pwd_md5 = md5(md5($old_pwd));
         $new_pwd_md5 = md5(md5($new_pwd));
 
         if ($old_pwd_md5 != $rs['password']) {
             return error('提示：旧密码错误,请重新输入');
-        } else if (!$this->_check_google($exts, $google_code)) {
+        } else if (!$this->_google_check($exts, $google_code)) {
             return error('提示：请输入正确6位数谷歌(洋葱)验证');
         } else {
             //  跳回原来的页面
@@ -335,7 +335,7 @@ class oauth
      * @param int $account_id
      * @return mixed
      */
-    public function user_get_exts(array $rs = [], int $account_id = 0)
+    public function user_extend_get(array $rs = [], int $account_id = 0)
     {
         if (0 == $account_id) {
             $account_id = $this->session_get(purview::session_id);
@@ -351,7 +351,7 @@ class oauth
             // $secret = $ext['google']['secret'];
         } else {
             $ga = new \plugins\google\auth_code();
-            $secret = $ga->create_secret();
+            $secret = $ga->secret_create();
 
             $google = ['is' => false, 'secret' => $secret];
             $ext['google'] = $google;
@@ -370,24 +370,24 @@ class oauth
      * @param string $google_code
      * @return array
      */
-    public function user_set_exts_google(bool $google_yn = true, array $ext = null, string $old_pwd = '', string $google_code = ''): array
+    public function user_extend_google_set(bool $google_yn = true, array $ext = null, string $old_pwd = '', string $google_code = ''): array
     {
         $account_id = $this->session_get(purview::session_id);
         if (!$ext && $old_pwd != '' && $google_code != '') {
             $rs = adm::$db_adm->table(adm::$purview->table_admin_user)->field('`adm_id`,`password`,`exts`')->where(' `adm_id`= :adm_id ', ['adm_id' => $account_id])->column_one();
             // $rs		= $this->_db->row("SELECT `adm_id`,`password`,`exts` FROM {$this->purview->db_adm} where `adm_id` = ? ;",$account_id);
-            $ext = $this->user_get_exts($rs, $rs['adm_id']);
+            $ext = $this->user_extend_get($rs, $rs['adm_id']);
             $oldpwd = md5(md5($old_pwd));
             if ($oldpwd != $rs['password']) {
                 return error('失败：登录密码有误!');
             }
             $ext['google']['is'] = true;
-            if (!$this->_check_google($ext, $google_code)) {
+            if (!$this->_google_check($ext, $google_code)) {
                 return error('失败：谷歌验证有误!');
             }
         }
         if (!$ext) {
-            $ext = $this->user_get_exts();
+            $ext = $this->user_extend_get();
         }
         //
         if ($google_yn) {
@@ -491,7 +491,7 @@ class oauth
      * @param string $account
      * @return array
      */
-    protected function _check_ip($cid = 0, $account = ''): array
+    protected function _ip_check($cid = 0, $account = ''): array
     {
         $ip = ip();
         $wry = new \plugins\qqwry\ip('utf-8');
@@ -529,7 +529,7 @@ class oauth
      * @param string $code
      * @return bool
      */
-    protected function _check_google($ext, string $code): bool
+    protected function _google_check($ext, string $code): bool
     {
         if ($ext && $ext['google']) {
             if ($ext['google']['secret']) {

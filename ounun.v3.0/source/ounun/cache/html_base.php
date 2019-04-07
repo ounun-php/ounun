@@ -100,7 +100,7 @@ class html_base extends core
     /**
      * 标记(临时)
      */
-    public function cache_set_time_tmp()
+    public function cache_time_tmp_set()
     {
         $this->_cache_time_t = time();
         if (self::Type_File == $this->_type) {

@@ -39,17 +39,17 @@ class sys_adm extends adm
         if ($_POST) {
             if ('set' == $_POST['act']) {
                 //  设定 Google身份验证
-                $rs = self::$auth->user_set_exts_google(true, null, $_POST['password'], $_POST['google']);
+                $rs = self::$auth->user_extend_google_set(true, null, $_POST['password'], $_POST['google']);
             } elseif ('del' == $_POST['act']) {
                 //  删除 Google身份验证
-                $rs = self::$auth->user_set_exts_google(false, null, $_POST['password'], $_POST['google']);
+                $rs = self::$auth->user_extend_google_set(false, null, $_POST['password'], $_POST['google']);
             }
             // 跳回原来的页面
             echo msg($rs['message']);
             // 跳回原来的页面
             go_back();
         } else {
-            $ext = self::$auth->user_get_exts();
+            $ext = self::$auth->user_extend_get();
             // 赋值
             // $this->assign('ext',			$ext);
             require \v::tpl_fixed('sys_adm/sys_google.html.php');
@@ -157,7 +157,7 @@ class sys_adm extends adm
         // 哈哈
         $user_list = [];
         foreach ($user_rs as $v) {
-            $exts = self::$auth->user_get_exts($v, $v['adm_id']);
+            $exts = self::$auth->user_extend_get($v, $v['adm_id']);
             // print_r($exts);
             $user_list[] = [
                 'adm_id' => $v['adm_id'],
