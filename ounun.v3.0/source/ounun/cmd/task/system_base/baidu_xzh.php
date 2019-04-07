@@ -1,13 +1,19 @@
 <?php
 
-namespace ounun\cmd\task\site_base;
+namespace ounun\cmd\task\system_base;
 
 use ounun\cmd\task\libs\com_baidu;
 use ounun\cmd\task\manage;
 use ounun\cmd\task\struct;
 
-abstract class baidu_xzh extends _site
+abstract class baidu_xzh extends _system
 {
+
+    public static $name = '提交熊掌号 [baidu_xzh]';
+    /** @var string 定时 */
+    public static $crontab = '{1-59} 11 * * *';
+    /** @var int 最短间隔 */
+    public static $interval = 86400;
 
     /**
      * baidu_xzh constructor.

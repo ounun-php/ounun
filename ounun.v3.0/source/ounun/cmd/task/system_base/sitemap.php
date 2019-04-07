@@ -1,14 +1,17 @@
 <?php
 
-namespace ounun\cmd\task\site_base;
+namespace ounun\cmd\task\system_base;
 
-use ounun\cmd\console;
-use ounun\cmd\task\libs\com_baidu;
 use ounun\cmd\task\manage;
 use ounun\cmd\task\struct;
 
-abstract class sitemap extends _site
+abstract class sitemap extends _system
 {
+    public static $name = '网站地图重新生成 [sitemap]';
+    /** @var string 定时 */
+    public static $crontab = '{1-59} 9 * * *';
+    /** @var int 最短间隔 */
+    public static $interval = 86400;
     /**
      * sitemap constructor.
      * @param struct $task_struct
@@ -33,7 +36,7 @@ abstract class sitemap extends _site
     {
         // sleep(rand(1,10));
         try {
-            $this->_logs_state = manage::Logs_Succeed;
+            $this->_ = manage::Logs_Succeed;
             $this->url_refresh();
             $this->msg("Successful sitemap");
         } catch (\Exception $e) {

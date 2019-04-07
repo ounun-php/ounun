@@ -1,16 +1,27 @@
 <?php
 
-namespace ounun\cmd\task\coll_base;
+namespace ounun\cmd\task\caiji_base;
 
 use ounun\api_sdk\com_showapi;
 use ounun\cmd\console;
 use ounun\cmd\task\manage;
 use ounun\cmd\task\task_base;
 use ounun\config;
+use ounun\mvc\model\admin\purview;
 use ounun\pdo;
 
-abstract class _coll extends task_base
+abstract class _caiji extends task_base
 {
+    public static $name = '采集任务';
+    /** @var string 定时 */
+    public static $crontab = '{1-59} 3 * * *';
+    /** @var int 最短间隔 */
+    public static $interval = 86400;
+    /** @var string 类型 */
+    public static $site_type = purview::app_type_admin;
+    /** @var string 采集库标识 */
+    public static $caiji_libs = 'caiji_no1';
+
     /** @var string  根目录 */
     protected $_dir_root = '';
     /** @var string  目录名 */
@@ -56,7 +67,7 @@ abstract class _coll extends task_base
      * @param string $dir_root
      * @param string $libs_key
      */
-    public function coll_set(string $url_root, string $table, string $dir_name, string $dir_root, string $libs_key = '')
+    public function caiji_set(string $url_root, string $table, string $dir_name, string $dir_root, string $libs_key = '')
     {
         if ($libs_key) {
             $libs = config::$global['caiji'][$libs_key];
@@ -73,9 +84,13 @@ abstract class _coll extends task_base
         $this->_dir_name = $dir_name;
     }
 
+    /**
+     * @return array
+     */
     public function status()
     {
-        console::echo("error:" . __METHOD__, console::Color_Red);
+        $this->_logs_status = manage::Logs_Fail;
+        manage::logs_msg("error:" . __METHOD__, $this->_logs_status);
         return [];
     }
 
@@ -88,21 +103,13 @@ abstract class _coll extends task_base
     {
         console::echo(__METHOD__, console::Color_Red);
         try {
-            manage::$logs_state = manage::Logs_Succeed;
-            // $this->url_refresh();
-            // print_r(['$paras'=>$paras,'_args'=>$this->_args]);
-            // list($libs_key,$in_table,$out_table) = explode(',',$this->_args['exts']);
-            // $mode  = $this->_args['mode'];
-            // $site_tag = \scfg::$app;
-            $this->list_01();
-            // print_r(['$paras'=>$paras,'_args'=>$this->_args,'$libs_key'=>$libs_key,'$in_table'=>$in_table,'$out_table'=>$out_table,'\scfg::$app'=>\scfg::$app]);
-            // print_r(['$libs_key'=>$libs_key,'$in_table'=>$in_table,'$out_table'=>$out_table]);
-            // $this->data($libs_key, $in_table, $out_table, \scfg::$app);
-            console::echo("Successful update:{$this->_task_struct->task_id}/{$this->_task_struct->task_name}");
+            $this->_logs_status = manage::Logs_Succeed;
+
+            manage::logs_msg("Successful update:{$this->_task_struct->task_id}/{$this->_task_struct->task_name}", manage::Logs_Succeed);
         } catch (\Exception $e) {
-            manage::$logs_state = manage::Logs_Fail;
-            console::echo($e->getMessage());
-            console::echo("Fail Coll tag:{$this->_tag} tag_sub:{$this->_tag_sub}");
+            $this->_logs_status = manage::Logs_Fail;
+            manage::logs_msg($e->getMessage(),manage::Logs_Fail);
+            manage::logs_msg("Fail Coll tag:{$this->_tag} tag_sub:{$this->_tag_sub}",manage::Logs_Fail);
         }
     }
 

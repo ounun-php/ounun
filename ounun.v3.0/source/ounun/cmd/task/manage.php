@@ -63,12 +63,7 @@ class manage
     public static $table_task = '';
     /** @var string 运行中的任务表名 */
     public static $table_process = '';
-    /** @var string 日志的任务表名 */
-    public static $table_logs = '';
-    /** @var int 状态  0:正常(灰) 1:失败(红色) 6:突出(橙黄)  99:成功(绿色) */
-    public static $logs_state = 0;
-    /** @var logs */
-    protected static $_instance_logs;
+
     /** @var self 单例 */
     protected static $_instance_manage;
     /** @var \ounun\pdo */
@@ -142,23 +137,12 @@ class manage
     }
 
     /**
-     * @return logs
-     */
-    public static function instance_logs()
-    {
-        if (empty(static::$_instance_logs)) {
-            static::$_instance_logs = new logs(static::db_biz());
-        }
-        return static::$_instance_logs;
-    }
-
-    /**
      * 设定任务表与运行中的任务表
      * @param string $table_task 任务表
      * @param string $table_process 运行中的任务表
      * @param string $table_logs 日志的任务表
      */
-    public static function table_set(string $table_task = '`sys_task`', string $table_process = '`sys_task_process`', string $table_logs = '`sys_logs_task`')
+    public static function table_set(string $table_task = '`sys_task`', string $table_process = '`sys_task_process`', string $logs_table_task = '`sys_logs_task`', string $logs_table_task_details = '`sys_logs_task_details`')
     {
         if ($table_task) {
             self::$table_task = $table_task;
@@ -166,10 +150,41 @@ class manage
         if ($table_process) {
             self::$table_process = $table_process;
         }
-        if ($table_logs) {
-            self::$table_logs = $table_logs;
-        }
+        static::logs_table_set($logs_table_task,$logs_table_task_details);
     }
+
+    /**
+     * @return int 返回模式
+     */
+    public function mode_get()
+    {
+        return $this->_mode;
+    }
+
+    /**
+     * 当前执行中的任务
+     * @return task_base
+     */
+    public function task_curr_get()
+    {
+        return $this->_task_curr;
+    }
+
+    /** @var string 表名 */
+    static protected $_logs_table_task = '';
+    /** @var string 表名 */
+    static protected $_logs_table_task_details = '';
+
+    /** @var array 日志数据logs_data */
+    static protected $_logs_data = [];
+    /** @var array 日志数据(重要) */
+    static protected $_logs_data_important = [];
+    /** @var int 添加时间 */
+    static protected $_logs_time_add = 0;
+    /** @var array 任务参数paras */
+    static protected $_logs_extend = [];
+    /** @var int 状态  0:正常(灰) 1:失败(红色) 6:突出(橙黄)  99:成功(绿色) */
+    static protected $_logs_status = self::Logs_Normal;
 
     /**
      * 任务日志
@@ -180,29 +195,121 @@ class manage
      * @param string $table
      * @param pdo|null $db
      */
-    static public function logs_init(int $task_id, string $tag = '', string $tag_sub = '', int $time = 0, string $table = '', \ounun\pdo $db = null)
+    static public function logs_init(int $time_add  = 0)
     {
-        $table = $table ? $table : self::$table_logs;
-        $db = $db ? $db : self::db_biz();
-        self::instance_logs()->task($task_id, $tag, $tag_sub, $time, $table, $db);
+        static::$_logs_data = [];
+        static::$_logs_data_important = [];
+        static::$_logs_time_add = $time_add == 0 ? time() : $time_add;
+        static::$_logs_extend = [];
+        static::$_logs_status = manage::Logs_Normal;
+    }
+
+    /**
+     * 任务参数paras/扩展json
+     * @param array $extend
+     */
+    static public function logs_extend_set(array $extend = [])
+    {
+        static::$_logs_extend = $extend;
+    }
+
+    /**
+     * @param string $table_logs_task
+     * @param string $table_logs_task_details
+     */
+    static public function logs_table_set(string $logs_table_task = '', string $logs_table_task_details = '')
+    {
+        if ($logs_table_task) {
+            static::$_logs_table_task = $logs_table_task;
+        }
+        if ($logs_table_task_details) {
+            static::$_logs_table_task_details = $logs_table_task_details;
+        }
     }
 
     /**
      * 日志数据logs_data
      * @param string $msg 内容
-     * @param int $state 状态  0:正常(灰) 1:失败(红色) 6:突出(橙黄)  99:成功(绿色)
+     * @param int $status 状态  0:正常(灰) 1:失败(红色) 6:突出(橙黄)  99:成功(绿色)
      * @param int $time 时间
      */
-    static public function logs_msg(string $msg, int $state = self::Logs_Normal, int $time = 0)
+    static public function logs_msg(string $msg, int $status = self::Logs_Normal, int $time = 0)
     {
-        static::$_instance_logs->data($state, $time, $msg);
+        $time = $time == 0 ? time() : $time;
+        /**  状态  时间 内容  */
+        $data = ['s' => $status, 't' => $time, 'l' => $msg];
+        if(static::Logs_Fail == $status || static::Logs_Warning == $status || static::Logs_Succeed == $status ){
+            static::$_logs_data[] = $data;
+        }
+        static::$_logs_data_important[] = $data;
     }
+
+    /**
+     * 写入日志
+     * @param int $status
+     * @param float $run_time
+     * @param bool $over_clean 写完是否清理logs数据
+     */
+    static public function logs_write(int $status, float $run_time, bool $over_clean = true)
+    {
+        $m       = static::instance();
+        if($m && $m->task_curr_get() && $m->task_curr_get()->struct_get() ){
+            $task_id   = $m->task_curr_get()->struct_get()->task_id;
+            $task_curr = $m->task_curr_get();
+            if ( $task_id && static::$_logs_data ) {
+                // $this->_state  = $state;
+                $bind = [
+                    'task_id' => $task_id,
+                    'tag' => $task_curr->tag_get(),
+                    'tag_sub' => $task_curr->tag_sub_get(),
+                    'state' => $status,
+                    'data' => json_encode(static::$_logs_data_important, JSON_UNESCAPED_UNICODE),
+                    'time_add' => static::$_logs_time_add,
+                    'time_end' => time(),
+                    'time_run' => $run_time,
+                    'extend' => json_encode(static::$_logs_extend, JSON_UNESCAPED_UNICODE),
+                ];
+                $id = 0;
+                $db = manage::db_biz();
+                if($db){
+                    $id = $db->table(static::$_logs_table_task)->insert($bind);
+                    if($id){
+                        $bind_details = [];
+                        $db->table(static::$_logs_table_task_details)->insert($bind_details);
+                    }
+                }
+                // $id
+                if ($id && $over_clean) {
+                    static::logs_init(0);
+                }
+                // echo $this->_db->sql()."\n";
+            }
+        }
+    }
+
+    /**
+     * DROP TABLE IF EXISTS `z_task_logs`;
+     * CREATE TABLE IF NOT EXISTS `z_task_logs` (
+     * `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '自增长ID',
+     * `task_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '任务ID',
+     * `tag` varchar(128) NOT NULL DEFAULT '' COMMENT '分类/标识',
+     * `tag_sub` varchar(128) NOT NULL DEFAULT '' COMMENT '子分类',
+     * `state` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '状态',
+     * `data` text NOT NULL COMMENT '数据json [{...},{...}]',
+     * `time_add` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '添加时间',
+     * `time_end` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '完成时间',
+     * `exts` text NOT NULL COMMENT '任务参数paras/扩展json',
+     * PRIMARY KEY (`id`),
+     * KEY `state` (`state`),
+     * KEY `cls` (`tag`,`tag_sub`)
+     * ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='任务列表' ROW_FORMAT=COMPACT;
+     */
 
     /** @var array<task_id,task> 所有触发的任务Map */
     protected $_tasks = [];
     /** @var array<task_id>      正在运行中的任务task_ids */
     protected $_process = [];
-    /** @var task_base 当前动行中的 */
+    /** @var task_base 当前执行中的任务 */
     protected $_task_curr;
 
     /** @var int 任务ID */
@@ -263,7 +370,6 @@ class manage
         $this->_run_count = 0;
 
         $this->init();
-
         do {
             $tasks = $this->tasks();
             console::echo("Start          \$tasks_count:" . str_pad(count($tasks), 5) .
@@ -318,7 +424,6 @@ class manage
                     } else {
                         console::echo("error --> class_exists:{$cls}", console::Color_Red);
                     }
-
                 }
             }
         }
@@ -343,11 +448,5 @@ class manage
         return $this->_process;
     }
 
-    /**
-     * @return int 返回模式
-     */
-    public function mode_get()
-    {
-        return $this->_mode;
-    }
+
 }

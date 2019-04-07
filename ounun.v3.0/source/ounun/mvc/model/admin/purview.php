@@ -42,7 +42,11 @@ class purview
     const app_type_admin = 'admin';
     /** @var string 站点    - 应用类型 */
     const app_type_site = 'site';
-
+    /** @var array 应用类型 */
+    const app_type = [
+        self::app_type_admin => '后台',
+        self::app_type_site  => '站点',
+    ];
 
     /** @var int 导航头 什么都不用显示 */
     const nav_null = 0;

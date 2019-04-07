@@ -3,11 +3,25 @@
 namespace ounun\cmd\task;
 
 use ounun\cmd\console;
+use ounun\mvc\model\admin\purview;
 
 abstract class task_base
 {
+    /** @var string 任务名称 */
+    public static $name = '';
+    /** @var string 定时 */
+    public static $crontab = '';
+    /** @var int 最短间隔 */
+    public static $interval = 59;
+    /** @var string 类型 */
+    public static $site_type = purview::app_type_admin;
+
+
+
     /** @var struct 任务数据结构 */
     protected $_task_struct;
+    /** @var int 状态  0:正常(灰) 1:失败(红色) 6:突出(橙黄)  99:成功(绿色) */
+    protected $_logs_status = manage::Logs_Normal;
 
     /** @var int 模式  0:采集全部  1:检查 2:更新   见 \task\manage::mode_XXX */
     protected $_mode = manage::Mode_Check;
@@ -88,6 +102,18 @@ abstract class task_base
         return $this->_task_struct;
     }
 
+    /** @return string */
+    public function tag_get()
+    {
+        return $this->_tag;
+    }
+
+    /** @return string */
+    public function tag_sub_get()
+    {
+        return $this->_tag_sub;
+    }
+
     /**
      * 执行任务
      * @param array $input
@@ -100,12 +126,12 @@ abstract class task_base
         if (!$this->check($is_pass_check)) {
             return;
         }
-        manage::logs_init($this->_task_struct->task_id, $this->_tag, $this->_tag_sub, 0);
+        manage::logs_init();
         // execute
         $this->execute($input, $mode, $is_pass_check);
-        console::echo("Successful update:{$this->_task_struct->task_id}/{$this->_task_struct->task_name}", console::Color_Purple, "\n\n");
         // _run_time
         $this->_run_time += microtime(true);
+        $this->done();
     }
 
     /**
@@ -140,9 +166,8 @@ abstract class task_base
 
     /**
      * 执行完成
-     * @param float $run_time
      */
-    public function done(float $run_time)
+    public function done()
     {
         if ($this->_is_run) {
             $bind = [
@@ -151,9 +176,9 @@ abstract class task_base
                 'time_last' => $this->_task_struct->time_last,
             ];
             $this->_is_run = false;
-            manage::instance_logs()->extend_set(['count' => $this->_task_struct->count]);
-            manage::instance_logs()->write(manage::$logs_state, $run_time, true);
+            manage::logs_extend_set(['count' => $this->_task_struct->count]);
             manage::db_biz()->query(" UPDATE `" . manage::$table_task . "` SET `time_ignore` = :time_ignore ,`time_last` = :time_last ,`count` = `count` + 1 WHERE `task_id` = :task_id; ", $bind)->affected();
         }
+        manage::logs_write($this->_logs_status,$this->run_time_get());
     }
 }

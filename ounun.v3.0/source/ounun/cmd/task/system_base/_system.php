@@ -1,28 +1,39 @@
 <?php
 
-namespace ounun\cmd\task\site_base;
+namespace ounun\cmd\task\system_base;
 
 use ounun\cmd\console;
 use ounun\cmd\task\libs\com_baidu;
 use ounun\cmd\task\manage;
 use ounun\cmd\task\task_base;
 use ounun\config;
+use ounun\mvc\model\admin\purview;
 use ounun\pdo;
 
-abstract class _site extends task_base
+abstract class _system extends task_base
 {
+    public static $name = '网站地图/提交';
+    /** @var string 定时 */
+    public static $crontab = '{1-59} 11 * * *';
+    /** @var int 最短间隔 */
+    public static $interval = 86400;
+    /** @var string 类型 */
+    public static $site_type = purview::app_type_site;
+
     /**
      * @return array
      */
     public function status()
     {
-        console::echo("error:" . __METHOD__, console::Color_Red);
+        $this->_logs_status = manage::Logs_Fail;
+        manage::logs_msg("error:" . __METHOD__, $this->_logs_status);
         return [];
     }
 
     public function execute(array $input = [], int $mode = manage::Mode_Dateup, bool $is_pass_check = false)
     {
         // TODO: Implement execute() method.
+        console::echo("error:" . __METHOD__, console::Color_Red);
     }
 
 
@@ -247,20 +258,6 @@ abstract class _site extends task_base
             default:
                 return $this->_url_root_pc;
                 break;
-        }
-    }
-
-    /**
-     * 日志记录
-     * @param string $msg
-     * @param int $state
-     * @param int $time
-     */
-    protected function msg(string $msg, int $state = 0, int $time = -1)
-    {
-        if ($msg) {
-            $time = $time == -1 ? time() : $time;
-            manage::instance_logs()->data($state, $time, $msg);
         }
     }
 
