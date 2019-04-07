@@ -19,70 +19,42 @@ abstract class _caiji extends task_base
     public static $interval = 86400;
     /** @var string 类型 */
     public static $site_type = purview::app_type_admin;
-    /** @var string 采集库标识 */
+    /** @var string 采集  库标识（采集数据录入的数据库） */
     public static $caiji_libs = 'caiji_no1';
+    /** @var string  列表01 - 表名 */
+    public static $caiji_libs_table_list01 = 'libs_pics_list01';
+    /** @var string  列表02 - 表名 */
+    public static $caiji_libs_able_list02 = 'libs_pics_list02';
+    /** @var string  列表03 - 表名 */
+    public static $caiji_libs_table_list03 = 'libs_pics_list03';
+    /** @var string  封面 - 表名 */
+    public static $caiji_libs_table_cover = 'libs_pics_cover';
+    /** @var string  数据01 - 表名 */
+    public static $caiji_libs_table_data01 = 'libs_pics_data01';
+    /** @var string  数据02 - 表名 */
+    public static $caiji_libs_table_data02 = 'libs_pics_data02';
+    /** @var string  数据03 - 表名 */
+    public static $caiji_libs_table_data03 = 'libs_pics_data03';
+    /** @var string  附件 - 表名 */
+    public static $caiji_libs_table_attachment = 'libs_pics_attachment';
 
+    /** @var string 采集  导出数据标识 */
+    public static $caiji_out_table = 'outs_pics';
     /** @var string  根目录 */
-    protected $_dir_root = '';
-    /** @var string  目录名 */
-    protected $_dir_name = '';
-    /** @var string  目标网址根 */
-    protected $_url_root = '';
+    public static $caiji_res_dir_root = '/data/ossfs_io3/';
+    /** @var string 采集  保存目录 */
+    public static $caiji_res_dir_name = '6mm';
+    /** @var string 采集  附件数据保存网站 */
+    public static $caiji_res_url_root= 'https://www.383434.com/';
+    /** @var string 采集  数据来源网站 */
+    public static $caiji_src_site = '6mm.cc';
+    /** @var string 采集  数据来源网站URL */
+    public static $caiji_src_url = 'http://www.6mm.cc/';
 
     /** @var int 图片wget max */
-    protected $_wget_loop_max = 3;
+    public static $wget_loop_max = 3;
     /** @var int 文件最小文件大小 */
-    protected $_wget_file_mini_size = 1024;
-
-    /** @var pdo 采集数据录入的数据库 */
-    protected $_db_caiji;
-    /** @var string  列表01 - 表名 */
-    protected $_table_list01 = '';
-    /** @var string  列表02 - 表名 */
-    protected $_table_list02 = '';
-    /** @var string  列表03 - 表名 */
-    protected $_table_list03 = '';
-    /** @var string  数据01 - 表名 */
-    protected $_table_data01 = '';
-    /** @var string  封面 - 表名 */
-    protected $_table_cover = '';
-    /** @var string  数据02 - 表名 */
-    protected $_table_data02 = '';
-    /** @var string  数据03 - 表名 */
-    protected $_table_data03 = '';
-    /** @var string  附件 - 表名 */
-    protected $_table_attachment = '';
-
-    /** @var pdo 网站数据 */
-    protected $_db_site;
-    /** @var string  网站数据 - 数据 - 表名 */
-    protected $_table_site_data = '';
-    /** @var string  网站数据 - 附件 - 表名 */
-    protected $_table_site_attachment = '';
-
-    /**
-     * @param string $url_root
-     * @param string $table
-     * @param string $dir_name
-     * @param string $dir_root
-     * @param string $libs_key
-     */
-    public function caiji_set(string $url_root, string $table, string $dir_name, string $dir_root, string $libs_key = '')
-    {
-        if ($libs_key) {
-            $libs = config::$global['caiji'][$libs_key];
-            if ($libs && $libs['db']) {
-                $this->_db = pdo::instance($libs_key, $libs['db']);
-            }
-        }
-        // -------------------------------------------------
-        // $this->_db_libs  = null;
-        $this->_table_list = $table;
-        $this->_url_root = $url_root;
-
-        $this->_dir_root = $dir_root;
-        $this->_dir_name = $dir_name;
-    }
+    public static $wget_file_mini_size = 1024;
 
     /**
      * @return array
@@ -108,8 +80,8 @@ abstract class _caiji extends task_base
             manage::logs_msg("Successful update:{$this->_task_struct->task_id}/{$this->_task_struct->task_name}", manage::Logs_Succeed);
         } catch (\Exception $e) {
             $this->_logs_status = manage::Logs_Fail;
-            manage::logs_msg($e->getMessage(),manage::Logs_Fail);
-            manage::logs_msg("Fail Coll tag:{$this->_tag} tag_sub:{$this->_tag_sub}",manage::Logs_Fail);
+            manage::logs_msg($e->getMessage(), manage::Logs_Fail);
+            manage::logs_msg("Fail Coll tag:{$this->_tag} tag_sub:{$this->_tag_sub}", manage::Logs_Fail);
         }
     }
 
@@ -200,11 +172,11 @@ abstract class _caiji extends task_base
      */
     protected function _wget_put(string $url, string $file_save)//,int $mini_size = 1024)
     {
-        $do = $this->_wget_loop_max;
+        $do = static::$wget_loop_max;
         do {
             $do--;
-            $c = \plugins\curl\http::file_get_contents($url, $this->_url_root);
-            if ($c && strlen($c) > $this->_wget_file_mini_size) {
+            $c = \plugins\curl\http::file_get_contents($url, static::$caiji_src_url);
+            if ($c && strlen($c) > static::$wget_file_mini_size) {
                 $do = 0;
                 file_put_contents($file_save, $c);
             }
@@ -220,7 +192,7 @@ abstract class _caiji extends task_base
     {
         $_is_save_db = false;
         //
-        $dir_root = "{$this->_dir_root}{$this->_dir_name}";
+        $dir_root = static::$caiji_src_url.static::$caiji_res_dir_name;
         $dir_pic = "{$dir_root}/{$pic_id}/";
         if (!file_exists($dir_pic)) {
             mkdir($dir_pic, 0777, true);

@@ -2,6 +2,8 @@
 
 namespace ounun\cache;
 
+use ounun\template;
+
 class html
 {
     /** Cache最小文件大小           */
@@ -31,7 +33,9 @@ class html
     protected $_is_debug = false;
 
     /**
-     * 创建缓存对像 cache_html constructor.
+     * html constructor.
+     * 创建缓存对像
+     *
      * @param $cache_config
      * @param string $key
      * @param int $expire
@@ -62,7 +66,7 @@ class html
 
     /**
      * [1/1] 判断->执行缓存->输出
-     * @param bool $outpt ( 是否输出 )
+     * @param bool $output ( 是否输出 )
      */
     public function run(bool $output = true)
     {
@@ -122,7 +126,6 @@ class html
 
     /**
      * [3/3] 输出缓存
-     * @param bool $temp ( 是否读取临时文件. 默认读取正式文件 )
      */
     public function run_output()
     {
@@ -167,13 +170,7 @@ class html
         if ($filesize > self::Cache_Mini_Size) {
             // \debug::header('xypm_ok',$this->_cache->filename(),$this->_is_debug,__FUNCTION__,__LINE__);
 
-            $buffer = strtr($buffer, \ounun\config::get_tpl_replace_str());
-
-            if ($this->_is_trim) {
-                $buffer = preg_replace(['/<!--.*?-->/', '/[^:\-\"]\/\/[^\S].*?\n/', '/\/\*.*?\*\//', '/[\n\r\t]*?/', '/\s{2,}/', '/>\s?</', '/<!--.*?-->/', '/\"\s?>/'],
-                    ['', '', '', '', ' ', '><', '', '">'],
-                    $buffer);
-            }
+            $buffer = template::trim($buffer,$this->_is_trim);
             $buffer = gzencode($buffer, 9);
             $this->_cache->cache_html($buffer);
             $this->_cache_time = $this->_cache->cache_time();

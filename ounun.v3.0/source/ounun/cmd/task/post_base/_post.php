@@ -16,6 +16,12 @@ abstract class _post extends task_base
     /** @var string 类型 */
     public static $site_type = purview::app_type_site;
 
+
+    /** @var string  网站数据 - 数据 - 表名 */
+    public static $table_site_data = '';
+    /** @var string  网站数据 - 附件 - 表名 */
+    public static $_able_site_attachment = '';
+
     /**
      * @return array
      */
@@ -36,7 +42,6 @@ abstract class _post extends task_base
         console::echo(__METHOD__, console::Color_Red);
         try {
             $this->_logs_status = manage::Logs_Succeed;
-
             manage::logs_msg("Successful update:{$this->_task_struct->task_id}/{$this->_task_struct->task_name}", $this->_logs_status);
         } catch (\Exception $e) {
             $this->_logs_status = manage::Logs_Fail;

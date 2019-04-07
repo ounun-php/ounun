@@ -15,6 +15,9 @@ use \ounun\config;
     <link type="text/css" rel="stylesheet" href="{$static_g}adm/admincp.css"/>
     <script type="text/javascript" src="{$static_g}adm/common.js"></script>
     <script type="text/javascript">
+
+
+
         var nav_hash = window.location.hash ? decodeURIComponent(window.location.hash.substr(1)) : '';
         nav_hash = nav_hash.split(",");
         var nav_key = nav_hash[1];
@@ -235,6 +238,14 @@ use \ounun\config;
         // }
     </script>
     <style type="text/css">
+
+        /*注释内容*/
+
+
+        /*注释
+
+        内容*/
+
         .logo_bg {
             background: url("{$static}{$site_logo_dir}logo.png") no-repeat 15px 13px;
         }

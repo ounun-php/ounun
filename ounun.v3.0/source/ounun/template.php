@@ -30,9 +30,11 @@ class template
         $style_name && $this->_style_name = $style_name;
         $style_name_default && $this->_style_name_default = $style_name_default;
 
+
         $this->_dir_current = '';
         $this->_style_current = '';
         $this->_is_trim = $is_trim;
+
         $this->replace();
     }
 
@@ -124,15 +126,36 @@ class template
         ob_clean();
         ob_implicit_flush(1);
 
+        exit(static::trim($buffer,$this->_is_trim));
+    }
+
+    /**
+     * @param string $buffer
+     * @param bool $is_trim
+     * @return string
+     */
+    static public function trim(string $buffer,bool $is_trim)
+    {
         // 写文件
-        if ($this->_is_trim) {
-            $pattern = ['/<!--.*?-->/', '/[^:\-\"]\/\/[^\S].*?\n/', '/\/\*.*?\*\//', '/[\n\r\t]*?/', '/\s{2,}/', '/>\s?</', '/<!--.*?-->/', '/\"\s?>/'];
-            $replacement = ['', '', '', '', ' ', '><', '', '">'];
+        if ($is_trim) {
+            /*            $pattern = ['/<!--.*?-->/', '/[^:\-\"]\/\/[^\S].*?\n/', '/\/\*.*?\*\//', '/[\n\r\t]*?/', '/\s{2,}/', '/>\s?</', '/<!--.*?-->/', '/\"\s?>/'];*/
+//            $replacement = ['', '', '', '', ' ', '><', '', '">'];
+//            $buffer = preg_replace($pattern, $replacement, $buffer);
+            $buffer = preg_replace_callback('/\<script(.*?)\>([\s\S]*?)<\/script\>/m', function ($matches) {
+                $matches_2 = preg_replace(['/<!--[\s\S]*?-->/m', '/\/\*[\s\S]*?\*\//m', '/[^\S]\/\/.*/', '/\s{2,}/m',], ['', '', '', ' ',], $matches[2]);
+                return "<script{$matches[1]}>{$matches_2}</script>";
+            }, $buffer);
+            $buffer = preg_replace_callback('/\<style(.*?)\>([\s\S]*?)<\/style\>/m', function ($matches) {
+                $matches_2 = preg_replace(['/\/\*[\s\S]*?\*\//m', '/\s{2,}/m',], ['', '',], $matches[2]);
+                return "<style{$matches[1]}>{$matches_2}</style>";
+            }, $buffer);
+
+            $pattern = ['/\s{2,}/', '/>\s?</', '/\"\s?' . '>/'];
+            $replacement = [' ', '><', '">'];
             $buffer = preg_replace($pattern, $replacement, $buffer);
         }
 
         // 替换
-        $buffer = strtr($buffer, config::get_tpl_replace_str());
-        exit($buffer);
+        return strtr($buffer, config::template_replace_str_get());
     }
 }

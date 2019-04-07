@@ -98,11 +98,11 @@ class config
      * @param string $cms_class_name
      * @param string $key_communication
      */
-    static public function set_cms_classname(string $cms_class_name = '\\extend\\cms\\www', string $key_communication = '')
+    static public function cms_classname_set(string $cms_class_name = '\\extend\\cms\\www', string $key_communication = '')
     {
-        self::$app_cms_classname = $cms_class_name;
+        static::$app_cms_classname = $cms_class_name;
         if ($key_communication) {
-            self::$app_key_communication = $key_communication;
+            static::$app_key_communication = $key_communication;
         }
     }
 
@@ -111,24 +111,26 @@ class config
      * @param string $lang
      * @param string $lang_default
      */
-    static public function set_lang(string $lang, string $lang_default = '')
+    static public function lang_set(string $lang, string $lang_default = '')
     {
-        $lang && self::$lang = $lang;
+        if ($lang) {
+            static::$lang = $lang;
+        }
         $lang_default && self::$lang_default = $lang_default;
         $i18ns = [
-            'app\\' . config::$app_name . '\\model\\i18n',
+            'app\\' . static::$app_name . '\\model\\i18n',
             'extend\\i18n',
             'ounun\\mvc\\model\\i18n'
         ];
-        if ($lang != self::$lang_default) {
-            array_unshift($i18ns, 'app\\' . config::$app_name . '\\model\\i18n\\' . $lang);
+        if ($lang != static::$lang_default) {
+            array_unshift($i18ns, 'app\\' . static::$app_name . '\\model\\i18n\\' . $lang);
         }
         foreach ($i18ns as $i18n) {
-            $file = self::load_class_file_exists($i18n);
+            $file = static::load_class_file_exists($i18n);
             // echo ' \$i18n -->1:'.$i18n." \$file:".$file."\n";
             if ($file) {
                 // echo ' \$i18n -->2:'.$i18n."\n";
-                self::$i18n = $i18n;
+                static::$i18n = $i18n;
                 require $file;
                 break;
             }
@@ -139,42 +141,42 @@ class config
      * 设定支持的语言
      * @param array $lang_list
      */
-    static public function set_lang_support(array $lang_list = [])
+    static public function lang_support_set(array $lang_list = [])
     {
         if ($lang_list) {
             foreach ($lang_list as $lang => $lang_name) {
-                self::$langs[$lang] = $lang_name;
+                static::$langs[$lang] = $lang_name;
             }
         }
     }
 
     /**
      * 设定公共配制数据
-     * @param array $cfgs
+     * @param array $config
      */
-    static public function set_global(array $cfgs = [])
+    static public function global_set(array $config = [])
     {
-        if ($cfgs) {
-            foreach ($cfgs as $cfg => $data) {
-                self::$global[$cfg] = $data;
+        if ($config) {
+            foreach ($config as $key => $value) {
+                static::$global[$key] = $value;
             }
         }
     }
 
     /**
      * 设定DB配制数据
-     * @param array $database_cfg
+     * @param array $database_config
      * @param string $database_default
      */
-    static public function set_database(array $database_cfg = [], string $database_default = '')
+    static public function database_set(array $database_config = [], string $database_default = '')
     {
-        if ($database_cfg) {
-            foreach ($database_cfg as $db_key => $db_cfg) {
-                self::$database[$db_key] = $db_cfg;
+        if ($database_config) {
+            foreach ($database_config as $db_key => $db_cfg) {
+                static::$database[$db_key] = $db_cfg;
             }
         }
         if ($database_default) {
-            self::$database_default = $database_default;
+            static::$database_default = $database_default;
         }
     }
 
@@ -183,15 +185,15 @@ class config
      * @param array $routes
      * @param array $routes_default
      */
-    static public function set_routes(array $routes, array $routes_default = [])
+    static public function routes_set(array $routes, array $routes_default = [])
     {
         if ($routes) {
             foreach ($routes as $k => $v) {
-                self::$routes[$k] = $v;
+                static::$routes[$k] = $v;
             }
         }
         if ($routes_default) {
-            self::$routes_default = $routes_default;
+            static::$routes_default = $routes_default;
         }
     }
 
@@ -207,26 +209,26 @@ class config
      * @param string $url_static_g
      * @param string $app_domain
      */
-    static public function set_urls(string $url_www, string $url_wap, string $url_mip, string $url_api, string $url_res, string $url_static, string $url_upload, string $url_static_g, string $app_domain)
+    static public function urls_domain_set(string $url_www, string $url_wap, string $url_mip, string $url_api, string $url_res, string $url_static, string $url_upload, string $url_static_g, string $app_domain)
     {
         /** Www URL */
-        self::$url_www = $url_www;
+        static::$url_www = $url_www;
         /** Mobile URL */
-        self::$url_wap = $url_wap;
+        static::$url_wap = $url_wap;
         /** Mobile URL */
-        self::$url_mip = $url_mip;
+        static::$url_mip = $url_mip;
         /** Api URL */
-        self::$url_api = $url_api;
+        static::$url_api = $url_api;
         /** Res URL */
-        self::$url_res = $url_res;
+        static::$url_res = $url_res;
         /** Static URL */
-        self::$url_static = $url_static;
+        static::$url_static = $url_static;
         /** Upload URL */
-        self::$url_upload = $url_upload;
+        static::$url_upload = $url_upload;
         /** StaticG URL */
-        self::$url_static_g = $url_static_g;
+        static::$url_static_g = $url_static_g;
         /** 项目主域名 */
-        self::$app_domain = $app_domain;
+        static::$app_domain = $app_domain;
     }
 
     /**
@@ -237,21 +239,29 @@ class config
      * @param string $app_path
      * @param string $dir_app
      */
-    static public function set_apps(string $dir_ounun, string $dir_root, string $app_name, string $app_path, string $dir_app = '')
+    static public function app_name_path_set(string $dir_ounun, string $dir_root, string $app_name, string $app_path, string $dir_app = '')
     {
         // 当前APP
-        $app_name && self::$app_name = $app_name;
+        if ($app_name) {
+            static::$app_name = $app_name;
+        }
         // 当前APP Path
-        $app_path && self::$app_path = $app_path;
+        if ($app_path) {
+            static::$app_path = $app_path;
+        }
         // Ounun目录
-        $dir_ounun && self::$dir_ounun = $dir_ounun;
+        if ($dir_ounun) {
+            static::$dir_ounun = $dir_ounun;
+        }
         // 根目录
-        $dir_root && self::$dir_root = $dir_root;
+        if ($dir_root) {
+            static::$dir_root = $dir_root;
+        }
         // APP目录
         if ($dir_app) {
-            self::$dir_app = $dir_app;
-        } elseif (!self::$dir_app) {
-            self::$dir_app = Dir_App . self::$app_name . '/';
+            static::$dir_app = $dir_app;
+        } elseif (!static::$dir_app) {
+            static::$dir_app = Dir_App . static::$app_name . '/';
         }
     }
 
@@ -264,23 +274,23 @@ class config
     static public function set_template(string $tpl_dir, string $tpl_style = '', string $tpl_default = '')
     {
         // 模板根目录
-        if (!in_array($tpl_dir, self::$tpl_dirs)) {
-            self::$tpl_dirs[] = $tpl_dir;
+        if (!in_array($tpl_dir, static::$tpl_dirs)) {
+            static::$tpl_dirs[] = $tpl_dir;
         }
         // 模板
         if ($tpl_style) {
-            self::$tpl_style = $tpl_style;
+            static::$tpl_style = $tpl_style;
         } else {
-            if (self::$i18n && empty(self::$tpl_style)) {
-                self::$tpl_style = self::get_i18n()::tpl_style;
+            if (static::$i18n && empty(static::$tpl_style)) {
+                static::$tpl_style = static::i18n_get()::tpl_style;
             }
         }
         // 模板(默认)
         if ($tpl_default) {
-            self::$tpl_default = $tpl_default;
+            static::$tpl_default = $tpl_default;
         } else {
-            if (self::$i18n && empty(self::$tpl_style)) {
-                self::$tpl_default = self::get_i18n()::tpl_default;
+            if (static::$i18n && empty(static::$tpl_style)) {
+                static::$tpl_default = static::i18n_get()::tpl_default;
             }
         }
     }
@@ -293,19 +303,9 @@ class config
     {
         if ($data && is_array($data)) {
             foreach ($data as $key => $value) {
-                self::$tpl_replace_str[$key] = $value;
+                static::$tpl_replace_str[$key] = $value;
             }
         }
-    }
-
-    /**
-     * 设定模板替换
-     * @param string $key
-     * @param string $value
-     */
-    static public function set_tpl_replace_str(string $key, string $value)
-    {
-        self::$tpl_replace_str[$key] = $value;
     }
 
     /**
@@ -315,71 +315,82 @@ class config
      * @param string $seo_h1
      * @param string $etag
      */
-    public function set_tpl_page_tkd(string $seo_title = '', string $seo_keywords = '', string $seo_description = '', string $seo_h1 = '', string $etag = '')
+    static public function template_page_tkd_set(string $seo_title = '', string $seo_keywords = '', string $seo_description = '', string $seo_h1 = '', string $etag = '')
     {
         if ($seo_title) {
-            static::set_tpl_replace_str('{$seo_title}', $seo_title);
+            static::template_replace_str_set('{$seo_title}', $seo_title);
         }
         if ($seo_keywords) {
-            static::set_tpl_replace_str('{$seo_keywords}', $seo_keywords);
+            static::template_replace_str_set('{$seo_keywords}', $seo_keywords);
         }
         if ($seo_description) {
-            static::set_tpl_replace_str('{$seo_description}', $seo_description);
+            static::template_replace_str_set('{$seo_description}', $seo_description);
         }
         if ($seo_h1) {
-            static::set_tpl_replace_str('{$seo_h1}', $seo_h1);
+            static::template_replace_str_set('{$seo_h1}', $seo_h1);
         }
         if ($etag) {
-            static::set_tpl_replace_str('{$etag}', $etag);
+            static::template_replace_str_set('{$etag}', $etag);
         }
+    }
+
+
+    /**
+     * 设定模板替换
+     * @param string $key
+     * @param string $value
+     */
+    static public function template_replace_str_set(string $key, string $value)
+    {
+        static::$tpl_replace_str[$key] = $value;
     }
 
     /**
      * 赋值(默认) $seo + $url
      * @return array
      */
-    static public function get_tpl_replace_str()
+    static public function template_replace_str_get()
     {
-        $url_base = substr(self::$view->page_url, 1);
+        $url_base = substr(static::$view->page_url, 1);
         return array_merge([
-            '{$page_url}' => self::$view->page_url,
-            '{$page_file}' => self::$view->page_file,
+            '{$page_url}' => static::$view->page_url,
+            '{$page_file}' => static::$view->page_file,
 
-            '{$url_www}' => self::$url_www,
-            '{$url_wap}' => self::$url_wap,
-            '{$url_mip}' => self::$url_mip,
-            '{$url_api}' => self::$url_api,
-            '{$url_app}' => self::url_page(),
+            '{$url_www}' => static::$url_www,
+            '{$url_wap}' => static::$url_wap,
+            '{$url_mip}' => static::$url_mip,
+            '{$url_api}' => static::$url_api,
+            '{$url_app}' => static::url_page(),
 
-            '{$canonical_pc}' => self::$url_www . $url_base,
-            '{$canonical_mip}' => self::$url_mip . $url_base,
-            '{$canonical_wap}' => self::$url_wap . $url_base,
+            '{$canonical_pc}' => static::$url_www . $url_base,
+            '{$canonical_mip}' => static::$url_mip . $url_base,
+            '{$canonical_wap}' => static::$url_wap . $url_base,
 
-            '{$app}' => self::$app_name,
-            '{$domain}' => self::$app_domain,
+            '{$app}' => static::$app_name,
+            '{$domain}' => static::$app_domain,
 
-            '{$res}' => self::$url_res,
-            '{$static}' => self::$url_static,
-            '{$upload}' => self::$url_upload,
-            '{$static_g}' => self::$url_static_g,
-            '/public/static/' => self::$url_static,
-            '/public/upload/' => self::$url_upload,
-        ], self::$tpl_replace_str);
+            '{$res}' => static::$url_res,
+            '{$static}' => static::$url_static,
+            '{$upload}' => static::$url_upload,
+            '{$static_g}' => static::$url_static_g,
+            '/public/static/' => static::$url_static,
+            '/public/upload/' => static::$url_upload,
+        ], static::$tpl_replace_str);
     }
 
     /** @return \ounun\mvc\model\i18n 语言包 */
-    static public function get_i18n()
+    static public function i18n_get()
     {
-        return self::$i18n;
+        return static::$i18n;
     }
 
     /** @return string 默认 数据库 */
-    static public function get_database_default()
+    static public function database_default_get()
     {
-        if (empty(self::$database_default)) {
-            self::$database_default = self::$app_name;
+        if (empty(static::$database_default)) {
+            static::$database_default = static::$app_name;
         }
-        return self::$database_default;
+        return static::$database_default;
     }
 
     /**
@@ -390,18 +401,18 @@ class config
     static public function url_page(string $url = '', $lang = '')
     {
         if (!$lang) {
-            $lang = self::$lang;
+            $lang = static::$lang;
         }
         if ($url !== '' && $url[0] == '/') {
-            if ($lang == self::$lang_default) {
-                return self::$app_path . substr($url, 1);
+            if ($lang == static::$lang_default) {
+                return static::$app_path . substr($url, 1);
             }
-            return '/' . $lang . self::$app_path . substr($url, 1);
+            return '/' . $lang . static::$app_path . substr($url, 1);
         } else {
-            if ($lang == self::$lang_default) {
-                return self::$app_path . $url;
+            if ($lang == static::$lang_default) {
+                return static::$app_path . $url;
             }
-            return '/' . $lang . self::$app_path . $url;
+            return '/' . $lang . static::$app_path . $url;
         }
     }
 
@@ -435,8 +446,8 @@ class config
                 $first = '';
                 $len = 0;
             }
-            if (!self::$maps_paths || !self::$maps_paths[$first] || !in_array($path, self::$maps_paths[$first])) {
-                self::$maps_paths[$first][] = [
+            if (!static::$maps_paths || !static::$maps_paths[$first] || !in_array($path, static::$maps_paths[$first])) {
+                static::$maps_paths[$first][] = [
                     'path' => $path,
                     'len' => $len,
                     'cut' => $cut_path,
@@ -457,7 +468,7 @@ class config
         if ($is_require && is_file($filename)) {
             require $filename;
         } else {
-            self::$maps_class[$class] = $filename;
+            static::$maps_class[$class] = $filename;
         }
     }
 
@@ -468,7 +479,7 @@ class config
     static public function load_class($class)
     {
         // echo __FILE__.':'.__LINE__.' $class:'."{$class}\n";
-        $file = self::load_class_file_exists($class);
+        $file = static::load_class_file_exists($class);
         if ($file) {
             require $file;
         }
@@ -482,7 +493,7 @@ class config
     static protected function load_class_file_exists($class)
     {
         // 类库映射
-        if (!empty(self::$maps_class[$class])) {
+        if (!empty(static::$maps_class[$class])) {
             $file = self::$maps_class[$class];
             if ($file && is_file($file)) {
                 return $file;
@@ -498,8 +509,8 @@ class config
         $filename = strtr($class, '\\', '/') . '.php';
         $firsts = [explode('\\', $class)[0], ''];
         foreach ($firsts as $first) {
-            if (isset(self::$maps_paths[$first])) {
-                foreach (self::$maps_paths[$first] as $v) {
+            if (isset(static::$maps_paths[$first])) {
+                foreach (static::$maps_paths[$first] as $v) {
                     if ('' == $v['namespace']) {
                         $file = $v['path'] . $filename;
 //                        echo " load_class2  -> \$class1 :{$class}  \$first:{$first}   \$len:{$v['len']}\n".
@@ -532,10 +543,10 @@ class config
      */
     static public function load_controller($controller_file)
     {
-        $controller = self::$maps_paths['app'];
+        $controller = static::$maps_paths['app'];
         if ($controller && is_array($controller)) {
             foreach ($controller as $v) {
-                $filename = $v['path'] . config::$app_name . '/' . $controller_file;
+                $filename = $v['path'] . static::$app_name . '/' . $controller_file;
                 // echo "\$filename:{$filename}\n";
                 if (is_file($filename)) {
                     return $filename;
@@ -603,13 +614,13 @@ function start(array $mod, string $host)
         $val_0 = config::$routes_default;
     }
     // set_apps
-    config::set_apps(Dir_Ounun, Dir_Root, (string)$val_0['app'], (string)$val_0['url']);
+    config::app_name_path_set(Dir_Ounun, Dir_Root, (string)$val_0['app'], (string)$val_0['url']);
     // add_paths
     config::add_paths(Dir_App, 'app', true);
     // load_config 1 scfg::$dir_app
     config::load_config(config::$dir_app);
     // set_lang
-    config::set_lang($lang);
+    config::lang_set($lang);
     //  模板 set_template
     config::set_template(Dir_Template . config::$app_name . '/', (string)$val_0['tpl_style'], (string)$val_0['tpl_default']);
 

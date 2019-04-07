@@ -65,7 +65,7 @@ abstract class adm extends \v
         }
         // 默认
         if (empty(static::$db_v)) {
-            static::$db_v = pdo::instance(config::get_database_default());
+            static::$db_v = pdo::instance(config::database_default_get());
         }
         return static::$db_v;
     }

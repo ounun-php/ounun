@@ -730,8 +730,8 @@ abstract class v
             $cfg = \ounun\config::$global['cache_html'];
             $cfg['mod'] = 'html_' . \ounun\config::$app_name . \ounun\config::$tpl_style;
             $key2 = \ounun\config::$app_name . '_' . \ounun\config::$tpl_style . '_' . $key;
-            self::$cache_html = new \ounun\cache\html($cfg, $key2, static::$cache_html_time, static::$cache_html_trim, '' != Environment);
-            self::$cache_html->run(true);
+            static::$cache_html = new \ounun\cache\html($cfg, $key2, static::$cache_html_time, static::$cache_html_trim, '' != Environment);
+            static::$cache_html->run(true);
         }
     }
 
@@ -741,9 +741,9 @@ abstract class v
      */
     public function cache_html_stop(bool $output)
     {
-        if (self::$cache_html) {
-            self::$cache_html->stop($output);
-            self::$tpl->replace();
+        if (static::$cache_html) {
+            static::$cache_html->stop($output);
+            static::$tpl->replace();
         }
     }
 
@@ -829,27 +829,28 @@ abstract class v
         // url_check
         $this->page_file = $page_file;
         $this->page_url = \ounun\config::url_page($this->page_file);
+
         url_check($this->page_url, $ext_req, $domain);
 
         // cache_html
-        $this->cache_html_trim = '' == Environment ? $cache_html_trim : false;
+        static::$cache_html_trim = '' == Environment ? $cache_html_trim : false;
         if ($is_cache_html) {
-            $this->cache_html_time = $cache_html_time > 300 ? $cache_html_time : static::$cache_html_time;
+            static::$cache_html_time = $cache_html_time > 300 ? $cache_html_time : static::$cache_html_time;
             $this->cache_html($this->page_url);
         }
 
         // cms
         $cls = \ounun\config::$app_cms_classname;
-
-
         // template
-        self::$tpl || self::$tpl = new \ounun\template(\ounun\config::$tpl_style, \ounun\config::$tpl_default, static::$cache_html_trim);
+        if (empty(static::$tpl)) {
+            static::$tpl = new \ounun\template(\ounun\config::$tpl_style, \ounun\config::$tpl_default, static::$cache_html_trim);
+        }
 
         // db
         if (empty(static::$db_v)) {
-            static::$db_v = \ounun\pdo::instance(\ounun\config::$database_default);
+            static::$db_v = \ounun\pdo::instance(\ounun\config::database_default_get());
         }
-        self::$cms = new $cls(static::$db_v);
+        static::$cms = new $cls(static::$db_v);
     }
 
     /**
