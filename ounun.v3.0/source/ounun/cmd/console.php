@@ -52,6 +52,12 @@ class console
         "ounun\\cmd\\def\\test",
     ];
 
+    /**
+     * console constructor.
+     * @param array $cmds
+     * @param string $name
+     * @param string $version
+     */
     public function __construct(array $cmds, string $name = 'Ounun CMD', string $version = '0.1')
     {
         // echo "\\ounun\\cmd\\def\\help::class:".\ounun\cmd\def\help::class;

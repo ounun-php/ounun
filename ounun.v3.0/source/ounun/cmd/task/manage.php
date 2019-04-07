@@ -447,6 +447,4 @@ class manage
         }
         return $this->_process;
     }
-
-
 }

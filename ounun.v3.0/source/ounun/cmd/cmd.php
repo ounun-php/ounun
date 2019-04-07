@@ -42,7 +42,7 @@ abstract class cmd
     }
 
     /**
-     *
+     * @param array $argv
      */
     public function help(array $argv)
     {

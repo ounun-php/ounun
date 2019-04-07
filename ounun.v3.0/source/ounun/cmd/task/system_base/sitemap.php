@@ -36,13 +36,13 @@ abstract class sitemap extends _system
     {
         // sleep(rand(1,10));
         try {
-            $this->_ = manage::Logs_Succeed;
+            $this->_logs_status = manage::Logs_Succeed;
             $this->url_refresh();
-            $this->msg("Successful sitemap");
+            manage::logs_msg("Successful sitemap",$this->_logs_status);
         } catch (\Exception $e) {
-            $this->_logs_state = manage::Logs_Fail;
-            $this->msg($e->getMessage());
-            $this->msg("Fail sitemap");
+            $this->_logs_status = manage::Logs_Fail;
+            manage::logs_msg($e->getMessage(),$this->_logs_status);
+            manage::logs_msg("Fail sitemap",$this->_logs_status);
         }
     }
 

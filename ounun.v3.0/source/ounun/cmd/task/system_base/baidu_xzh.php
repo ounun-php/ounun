@@ -39,13 +39,13 @@ abstract class baidu_xzh extends _system
     {
 
         try {
-            $this->_logs_state = manage::Logs_Succeed;
+            $this->_logs_status = manage::Logs_Succeed;
             $this->url_push_baidu_xzh();
-            $this->msg("Successful push baidu_xzh");
+            manage::logs_msg("Successful push baidu_xzh",$this->_logs_status);
         } catch (\Exception $e) {
-            $this->_logs_state = manage::Logs_Fail;
-            $this->msg($e->getMessage());
-            $this->msg("Fail push baidu_xzh");
+            $this->_logs_status = manage::Logs_Fail;
+            manage::logs_msg($e->getMessage(),$this->_logs_status);
+            manage::logs_msg("Fail push baidu_xzh",$this->_logs_status);
         }
     }
 

@@ -30,10 +30,23 @@ abstract class _system extends task_base
         return [];
     }
 
+    /**
+     * @param array $input
+     * @param int $mode
+     * @param bool $is_pass_check
+     */
     public function execute(array $input = [], int $mode = manage::Mode_Dateup, bool $is_pass_check = false)
     {
-        // TODO: Implement execute() method.
-        console::echo("error:" . __METHOD__, console::Color_Red);
+        console::echo(__METHOD__, console::Color_Red);
+        try {
+            $this->_logs_status = manage::Logs_Succeed;
+
+            manage::logs_msg("Successful update:{$this->_task_struct->task_id}/{$this->_task_struct->task_name}", $this->_logs_status);
+        } catch (\Exception $e) {
+            $this->_logs_status = manage::Logs_Fail;
+            manage::logs_msg($e->getMessage(),$this->_logs_status);
+            manage::logs_msg("Fail Coll tag:{$this->_tag} tag_sub:{$this->_tag_sub}",manage::Logs_Fail);
+        }
     }
 
 
@@ -92,7 +105,7 @@ abstract class _system extends task_base
             $cc = $this->_db_site->query("SELECT COUNT(`url_id`) as `cc` FROM {$this->_table_sitemap_push} WHERE `Ymd` = :Ymd and `target_id` = :target_id ;", ['Ymd' => $Ymd, 'target_id' => $type])->column_one();
             $cc = (int)$cc['cc'];
             // echo $db->sql()."\n";
-            $this->msg("COUNT(`url_id`) as cc:{$cc} " . com_baidu::type[$type]);
+            manage::logs_msg("COUNT(`url_id`) as cc:{$cc} " . com_baidu::type[$type]);
             if ($cc < $max) {
                 $step_cc0 = $max - $cc;
                 $step_cc = $step_cc0 > $this->_push_step ? $this->_push_step : $step_cc0;
@@ -157,7 +170,7 @@ abstract class _system extends task_base
                             $max_push_step = com_baidu::max_push_step;
                         }
 
-                        $this->msg("cc:" . count($urls_domain) . " type:{$type} success:{$success} push_step:{$this->_push_step}");
+                        manage::logs_msg("cc:" . count($urls_domain) . " type:{$type} success:{$success} push_step:{$this->_push_step}");
                         $this->_push_step = $remain > $max_push_step ? $max_push_step : $remain;
                         if ($success == count($urls_domain)) {
                             $this->db_sitemap_push($urls, $type);

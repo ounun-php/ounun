@@ -35,13 +35,13 @@ abstract class baidu_wap extends _system
     public function execute(array $input = [], int $mode = manage::Mode_Dateup, bool $is_pass_check = false)
     {
         try {
-            $this->_logs_state = manage::Logs_Succeed;
+            $this->_logs_status = manage::Logs_Succeed;
             // $this->url_push_baidu_pc_mip();
-            $this->msg("Successful push baidu_wap");
+            manage::logs_msg("Successful push baidu_wap",$this->_logs_status);
         } catch (\Exception $e) {
-            $this->_logs_state = manage::Logs_Fail;
-            $this->msg($e->getMessage());
-            $this->msg("Fail push baidu_wap");
+            $this->_logs_status = manage::Logs_Fail;
+            manage::logs_msg($e->getMessage(),$this->_logs_status);
+            manage::logs_msg("Fail push baidu_wap",$this->_logs_status);
         }
     }
 
