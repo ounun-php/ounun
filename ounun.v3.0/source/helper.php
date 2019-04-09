@@ -7,12 +7,12 @@ defined('Dir_Vendor') || define('Dir_Vendor', Dir_Root . 'vendor/');
 defined('Dir_Extend') || define('Dir_Extend', Dir_Root . 'extend/');
 /** template目录 **/
 defined('Dir_Template') || define('Dir_Template', Dir_Root . 'template/');
-/** cache目录 **/
+/** data目录 **/
 defined('Dir_Data') || define('Dir_Data', Dir_Root . 'data/');
-/** app目录 **/
-defined('Dir_App') || define('Dir_App', Dir_Root . 'app/');
 /** cache目录 **/
 defined('Dir_Cache') || define('Dir_Cache', Dir_Data . 'cache/');
+/** app目录 **/
+defined('Dir_App') || define('Dir_App', Dir_Root . 'app/');
 /** Environment目录 **/
 defined('Environment') || define('Environment', environment());
 
@@ -687,8 +687,13 @@ function environment()
     if (isset($GLOBALS['_environment_'])) {
         return $GLOBALS['_environment_'];
     }
-    $env_file = Dir_Root . 'environment.txt';
-    $GLOBALS['_environment_'] = (file_exists($env_file) && filesize($env_file) >= 1) ? trim(file_get_contents($env_file)) : '';
+    $env_file =  isset( $GLOBALS['_environment_file_'] ) && $GLOBALS['_environment_file_'] ? $GLOBALS['_environment_file_'] : '/www/wwwroot/release.txt';
+    if(is_file($env_file)) {
+        $GLOBALS['_environment_'] = '';
+    }else {
+        $env_file = Dir_Root . 'environment.txt';
+        $GLOBALS['_environment_'] = (is_file($env_file) && filesize($env_file) >= 1) ? trim(file_get_contents($env_file)) : '';
+    }
     return $GLOBALS['_environment_'];
 }
 
@@ -888,7 +893,9 @@ abstract class v
     public function __call($method, $arguments)
     {
         header('HTTP/1.1 404 Not Found');
-        $this->debug = new \ounun\debug(\ounun\config::$dir_root . 'data/logs/error_404_' . date('Ymd') . '.txt', false, false, false, true);
+        if(empty(static::$debug)) {
+            static::$debug = new \ounun\debug(\ounun\config::$dir_data . 'logs/error_404_' . date('Ymd') . '.txt', false, false, false, true);
+        }
         error404("\$method:{$method} \$args:" . json_encode($arguments) . "");
     }
 }

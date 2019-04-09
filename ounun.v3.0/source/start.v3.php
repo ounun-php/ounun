@@ -32,6 +32,8 @@ class config
 
     /** @var string 根目录 */
     static public $dir_root = '';
+    /** @var string Data目录 */
+    static public $dir_data = '';
     /** @var string Ounun目录 */
     static public $dir_ounun = __DIR__ . '/';
     /** @var string 根目录(App) */
@@ -235,11 +237,12 @@ class config
      * 设定目录
      * @param string $dir_ounun
      * @param string $dir_root
+     * @param string $dir_data
      * @param string $app_name
      * @param string $app_path
      * @param string $dir_app
      */
-    static public function app_name_path_set(string $dir_ounun, string $dir_root, string $app_name, string $app_path, string $dir_app = '')
+    static public function app_name_path_set(string $dir_ounun, string $dir_root, string $dir_data, string $app_name, string $app_path, string $dir_app = '')
     {
         // 当前APP
         if ($app_name) {
@@ -256,6 +259,10 @@ class config
         // 根目录
         if ($dir_root) {
             static::$dir_root = $dir_root;
+        }
+        // 根目录
+        if ($dir_data) {
+            static::$dir_data = $dir_data;
         }
         // APP目录
         if ($dir_app) {
@@ -614,14 +621,14 @@ function start(array $mod, string $host)
         $val_0 = config::$routes_default;
     }
     // apps_domain_set
-    config::app_name_path_set(Dir_Ounun, Dir_Root, (string)$val_0['app'], (string)$val_0['url']);
+    config::app_name_path_set(Dir_Ounun, Dir_Root,Dir_Data, (string)$val_0['app'], (string)$val_0['url']);
     // add_paths
     config::add_paths(Dir_App, 'app', true);
     // load_config 1 scfg::$dir_app
     config::load_config(config::$dir_app);
     // lang_set
     config::lang_set($lang);
-    //  模板 template_set
+    // 模板 template_set
     config::template_set(Dir_Template . config::$app_name . '/', (string)$val_0['tpl_style'], (string)$val_0['tpl_default']);
 
     // 开始 重定义头

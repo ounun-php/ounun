@@ -46,6 +46,12 @@ class debug
     public function __construct($filename = 'debug.txt',
                                 $is_out_buffer = true, $is_out_get = true, $is_out_post = true, $is_out_url = true, $is_run_time = true, $is_bof = true)
     {
+        if($filename) {
+            $dirname = dirname($filename);
+            if(!file_exists($dirname)) {
+                mkdir($dirname,0777,true);
+            }
+        }
         ob_start();
         register_shutdown_function(array($this, 'callback'));
 
