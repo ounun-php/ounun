@@ -3,6 +3,7 @@
 namespace ounun\mvc\controller\api;
 
 use ounun\config;
+use ounun\mvc\c;
 
 class api extends \v
 {
@@ -12,17 +13,15 @@ class api extends \v
      */
     public function interface_mysql($mod)
     {
-        $this->init_page("/api/interface_mysql.html", false, false);
+        $this->init_page("/api/interface_mysql.html", false, true);
 
         $secure = new \ounun\mvc\model\admin\secure(config::$app_key_communication);
-        list($check, $error_msg) = $secure->check($_GET, time());
-        if ($check) {
-            $db = \ounun\config::$database[\ounun\config::$app_name];
-            $data = $secure->encode($db);
-            $rs = ['ret' => $check, 'data' => $data];
-        } else {
-            $rs = ['ret' => $check, 'error' => $error_msg];
+        $rs = $secure->check($_GET, time());
+        if(error_is($rs)){
+            exit(json_encode_unescaped($rs));
         }
-        exit(json_encode($rs, JSON_UNESCAPED_UNICODE));
+        $db_config = \ounun\config::$database[\ounun\config::database_default_get()];
+        $data = $secure->encode($db_config);
+        out(succeed($data),c::Format_Json);
     }
 }

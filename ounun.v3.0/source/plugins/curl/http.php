@@ -125,7 +125,6 @@ class http
         ];
         $context = stream_context_create($opts);
         return file_get_contents($url, false, $context);
-
     }
 
 

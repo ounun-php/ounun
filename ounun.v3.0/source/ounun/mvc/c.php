@@ -23,4 +23,17 @@ class c
     const Os_Mobile = 'mobile';
     /** @var string */
     const Os_Unknown = 'unknown';
+
+    /** @var string Json - 输出Ajax格式 */
+    const Format_Json  = 'json';
+    /** @var string XML - 输出Ajax格式 */
+    const Format_Xml   = 'xml';
+    /** @var string JsonP - 输出Ajax格式 */
+    const Format_Jsonp = 'jsonp';
+    /** @var string JsonP - 输出Ajax格式 */
+    const Format_Eval  = 'eval';
+    /** @var string JavaScript - 输出Ajax格式 */
+    const Format_JS    = 'javascript';
+    /** @var string Html - 输出Ajax格式 */
+    const Format_Html  = 'html';
 }

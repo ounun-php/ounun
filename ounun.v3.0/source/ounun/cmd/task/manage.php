@@ -75,17 +75,18 @@ class manage
 
     /**
      * 返回数据库连接对像
-     * @param pdo|null $db_task
-     * @param pdo|null $db_logs
+     * @param pdo|null $db_biz
+     * @param pdo|null $db_caiji
+     * @param pdo|null $db_site
      * @return manage
      */
-    public static function instance(\ounun\pdo $db_task = null, \ounun\pdo $db_caiji = null, \ounun\pdo $db_site = null): self
+    public static function instance(\ounun\pdo $db_biz = null, \ounun\pdo $db_caiji = null, \ounun\pdo $db_site = null): self
     {
         if (empty(static::$_instance_manage)) {
             static::$_instance_manage = new static();
         }
         if ($db_task) {
-            static::$_db_biz = $db_task;
+            static::$_db_biz = $db_biz;
         }
         if ($db_caiji) {
             static::$_db_caiji = $db_caiji;
@@ -117,10 +118,10 @@ class manage
      */
     public static function db_caiji(string $db_tag = 'caiji', array $db_config = [])
     {
-        if (empty(static::$_db_biz)) {
-            static::$_db_biz = pdo::instance($db_tag, $db_config);
+        if (empty(static::$_db_caiji)) {
+            static::$_db_caiji = pdo::instance($db_tag, $db_config);
         }
-        return static::$_db_biz;
+        return static::$_db_caiji;
     }
 
     /**
@@ -415,7 +416,7 @@ class manage
                     if (class_exists($cls)) {
                         $struct = new struct($v);
                         /** @var task_base $task */
-                        $task = new $cls($struct, $v['tag'], $v['tag_sub']);
+                        $task = new $cls($struct);
                         if (is_subclass_of($task, "ounun\\cmd\\task\\task_base")) {
                             $this->_tasks[$v['task_id']] = $task;
                         } else {

@@ -18,7 +18,7 @@ class sys_adm extends adm
 
         // 修改密码
         if ($_POST) {
-            $rs = self::$auth->user_modify_passwd($_POST['oldpwd'], $_POST['newpwd'], $_POST['google']);
+            $rs = self::$auth->user_passwd_modify($_POST['oldpwd'], $_POST['newpwd'], $_POST['google']);
             echo msg($rs['message']);
             go_back();
         } else {

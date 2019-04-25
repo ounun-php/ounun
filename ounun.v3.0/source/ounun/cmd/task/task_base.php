@@ -7,6 +7,11 @@ use ounun\mvc\model\admin\purview;
 
 abstract class task_base
 {
+    /** @var string 分类 */
+    public static $tag = '';
+    /** @var string 子分类 */
+    public static $tag_sub = '';
+
     /** @var string 任务名称 */
     public static $name = '';
     /** @var string 定时 */
@@ -22,17 +27,12 @@ abstract class task_base
     protected $_task_struct;
     /** @var int 状态  0:正常(灰) 1:失败(红色) 6:突出(橙黄)  99:成功(绿色) */
     protected $_logs_status = manage::Logs_Normal;
-
     /** @var int 模式  0:采集全部  1:检查 2:更新   见 \task\manage::mode_XXX */
     protected $_mode = manage::Mode_Check;
-    /** @var string 分类 */
-    protected $_tag = '';
-    /** @var string 子分类 */
-    protected $_tag_sub = '';
+
 
     /** @var bool 是否运行过 */
-    protected $_is_run = false;
-
+    protected $_run_is = false;
     /** @var float 执行时间 */
     protected $_run_time = 0;
     /** @var int 执行次数 */
@@ -47,23 +47,10 @@ abstract class task_base
     /**
      * task_base constructor.
      * @param struct $task_struct
-     * @param string $tag
-     * @param string $tag_sub
      */
-    public function __construct(struct $task_struct, string $tag = '', string $tag_sub = '')
+    public function __construct(struct $task_struct)
     {
         $this->_task_struct = $task_struct;
-        $this->tag_set($tag, $tag_sub);
-    }
-
-    /**
-     * @param string $tag
-     * @param string $tag_sub
-     */
-    public function tag_set(string $tag = '', string $tag_sub = '')
-    {
-        $this->_tag = $tag;
-        $this->_tag_sub = $tag_sub;
     }
 
     /** @return float 执行时间 */
@@ -91,7 +78,7 @@ abstract class task_base
     }
 
     /** @return float 执行状态 */
-    public function un_status_get()
+    public function run_status_get()
     {
         return $this->_run_status;
     }
@@ -105,13 +92,13 @@ abstract class task_base
     /** @return string */
     public function tag_get()
     {
-        return $this->_tag;
+        return static::$tag;
     }
 
     /** @return string */
     public function tag_sub_get()
     {
-        return $this->_tag_sub;
+        return static::$tag_sub;
     }
 
     /**
@@ -169,16 +156,16 @@ abstract class task_base
      */
     public function done()
     {
-        if ($this->_is_run) {
+        if ($this->_run_is) {
             $bind = [
                 'task_id' => $this->_task_struct->task_id,
                 'time_ignore' => $this->_task_struct->time_ignore,
                 'time_last' => $this->_task_struct->time_last,
             ];
-            $this->_is_run = false;
+            $this->_run_is = false;
             manage::logs_extend_set(['count' => $this->_task_struct->count]);
             manage::db_biz()->query(" UPDATE `" . manage::$table_task . "` SET `time_ignore` = :time_ignore ,`time_last` = :time_last ,`count` = `count` + 1 WHERE `task_id` = :task_id; ", $bind)->affected();
         }
-        manage::logs_write($this->_logs_status,$this->run_time_get());
+        manage::logs_write($this->_logs_status, $this->run_time_get());
     }
 }

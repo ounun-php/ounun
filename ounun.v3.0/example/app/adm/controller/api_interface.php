@@ -22,11 +22,10 @@ class api_interface extends adm
         // $this->_site_type_only = [purview::app_type_admin];
         $this->_nav_purview_check('api_interface/mysql.html', 'site@site_list', '接口', '系统', purview::nav_null);
 
-        // $db_libs         = self::db('libs');
-        $table = ' `adm_site_info` ';
+        $table = ' `sys_site_info` ';
         $site_info = null;
         if ($_GET['site_tag']) {
-            $site_info = static::$db_v->table($table)
+            $site_info = static::$db_biz->table($table)
                 ->field('*')
                 ->where('`site_tag` = :site_tag', ['site_tag' => $_GET['site_tag']])
                 ->column_one();
@@ -36,29 +35,36 @@ class api_interface extends adm
             $api_host = $site_info['api'];
             if ($api_host) {
                 $secure = new secure(config::$app_key_communication);
-                $url = $secure->url("https://{$api_host}/api/interface_mysql.html", ['release' => Environment ? 0 : 1]);
-                $c = @\plugins\curl\http::file_get_contents($url);
+                $url = $secure->url("{$api_host}/api/interface_mysql.html", ['release' => Environment ? 0 : 1]);
+                // echo "\$url:{$url}<br />\n";
+                $c = \plugins\curl\http::file_get_contents($url);
                 if ($c) {
                     $json = json_decode($c, true);
-                    if ($json && $json['ret'] && $json['data']) {
+                    if(error_is($json)){
+                        $error_msg = error_message($json);
+                    }elseif ($json && $json['data']) {
                         $data = $secure->decode($json['data']);
+//                        print_r([
+//                            '$data' => $data
+//                        ]);
                         if ($data) {
                             $bind = [
-                                'db' => is_array($data) ? json_encode($data, JSON_UNESCAPED_UNICODE) : $data,
+                                'config_db' => is_array($data) ? json_encode($data, JSON_UNESCAPED_UNICODE) : $data,
                             ];
-                            $rs = static::$db_v->table($table)
+                            $rs = static::$db_biz->table($table)
                                 ->where(' `site_tag` = :site_tag ', ['site_tag' => $_GET['site_tag']])
                                 ->update($bind);
+                            static::$db_biz->stmt()->debugDumpParams();
                             if ($rs) {
-                                config_cache::instance(static::$db_v)->site_clean();
+                                config_cache::instance(\c::Cache_Tag_Site,static::$db_biz)->site_clean();
                             }
                             $url_back = "/site/site_add.html?site_tag={$_GET['site_tag']}";
                             go_url($url_back);
                         } else {
-                            $error_msg = "出错:解码出错:({$json['data']})";
+                            $error_msg = "出错:解码出错({$json['data']})";
                         }
                     } else {
-                        $error_msg = "出错:数据出错:({$c})";
+                        $error_msg = "出错:数据出错({$c})";
                     }
                 } else {
                     $error_msg = "出错:服务器没反:({$api_host})";
@@ -74,6 +80,6 @@ class api_interface extends adm
         if ($_GET['site_tag']) {
             $url_back = "/site/site_add.html?site_tag={$_GET['site_tag']}";
         }
-        go_msg($error_msg, $url_back);
+        // go_msg($error_msg, $url_back);
     }
 }

@@ -8,6 +8,12 @@ use ounun\mvc\model\admin\purview;
 
 abstract class _post extends task_base
 {
+    /** @var string 分类 */
+    public static $tag = 'post';
+    /** @var string 子分类 */
+    public static $tag_sub = '';
+
+    /** @var string 任务名称 */
     public static $name = '更新内容 [post]';
     /** @var string 定时 */
     public static $crontab = '{1-59} 8 * * *';
@@ -52,7 +58,7 @@ abstract class _post extends task_base
         } catch (\Exception $e) {
             $this->_logs_status = manage::Logs_Fail;
             manage::logs_msg($e->getMessage(),$this->_logs_status);
-            manage::logs_msg("Fail Coll tag:{$this->_tag} tag_sub:{$this->_tag_sub}",manage::Logs_Fail);
+            manage::logs_msg('Fail Coll tag:'.static::$tag.' tag_sub:'.static::$tag_sub, manage::Logs_Fail);
         }
     }
 }

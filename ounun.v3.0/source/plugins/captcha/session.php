@@ -38,7 +38,7 @@ class session
         for ($e = 0; $e < $effects; $e++) {
             $this->drawLine($image, $width, $height);
         }
-        $this->phrase = $this->phrase();
+        $this->phrase = 0; //  $this->phrase();
         $color = $this->writePhrase($image, $this->phrase, $this->font(), $width, $height);
 
         $square = $width * $height;
@@ -61,10 +61,10 @@ class session
         imagedestroy($this->image);
     }
 
-    protected function phrase()
-    {
-        return random(4, true);
-    }
+//    protected function phrase()
+//    {
+//        return random(4, true);
+//    }
 
     protected function rand($min, $max)
     {

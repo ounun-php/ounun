@@ -166,6 +166,29 @@ var $cookie = function(name, value, options) {
     }
 };
 var $libs = {
+    browser:function(){
+        var u = window.navigator.userAgent.toLowerCase(),
+            app = window.navigator.appVersion,
+            language = (window.navigator.browserLanguage || window.navigator.language).toLowerCase();
+        return {         //移动终端浏览器版本信息
+            trident: u.indexOf('trident') > -1, //IE内核
+            presto: u.indexOf('presto') > -1, //opera内核
+            webkit: u.indexOf('applewebkit') > -1, //苹果、谷歌内核
+            gecko: u.indexOf('gecko') > -1 && u.indexOf('khtml') == -1, //火狐内核
+            mobile: !!u.match(/applewebkit.*mobile.*/), //是否为移动终端
+            ios: !!u.match(/\(i[^;]+;( u;)? cpu.+mac os x/), //ios终端
+            android: u.indexOf('android') > -1 || u.indexOf('Linux') > -1, //android终端或uc浏览器
+            iphone: u.indexOf('iphone') > -1 , //是否为iPhone或者QQHD浏览器
+            ipad: u.indexOf('ipad') > -1, //是否iPad
+            webapp: u.indexOf('safari') == -1, //是否web应该程序，没有头部与底部
+            juc: u.indexOf('ucweb') > -1 ||  u.indexOf('juc') > -1 || u.indexOf('rv:1.2.3.4') > -1 || u.indexOf('firefox/1.') > -1,
+            language:language,
+            is_ios_android:!!(u.match(/(iPhone|iPod|Android|ios|iPad)/i)),
+            is_qq:!!u.match(/qq/i) == 'qq',
+            is_alipay:!!u.match(/alipay/i) == 'alipay',
+            is_wechat:!!u.match(/micromessenger/i)=='micromessenger'
+        };
+    }(),
     uaredirect:function (murl){
         try {
             if(document.getElementById("bdmark") != null){
@@ -173,7 +196,7 @@ var $libs = {
             }
             var urlhash = window.location.hash;
             if (!urlhash.match("fromapp")){
-                if ((navigator.userAgent.match(/(iPhone|iPod|Android|ios|iPad)/i))) {
+                if (this.browser.is_ios_android) {
                     location.replace(murl);
                 }
             }
@@ -200,10 +223,10 @@ var $libs = {
         config.width     = config.width || 120;
         config.height    = config.height || 120;
         config.maxScreen = config.maxScreen || 980;
-        config.message   = config.message || "扫码手机访问";
+        config.message   = config.message || "扫码手机访问wap站点";
         config.id        = config.id || "#qrcode";
         try {
-            var mobile_url2 = $url.encode({"f":"qr"},$sc.url_wap);
+            var mobile_url2 = $url.encode({"f":"qr"},$sc.canonical_wap);
         }catch (e) {
             var mobile_url2 = document.location.href;
         }
@@ -259,8 +282,8 @@ var $libs = {
     },
     // go_mobile
     eve_gomobile:function (){
-        if(typeof $sc != "undefined"  && $sc['url_wap']){
-            this.uaredirect($sc.url_wap);
+        if(typeof $sc != "undefined"  && $sc['canonical_wap']){
+            this.uaredirect($sc.canonical_wap);
         }
     },
     // 百度提交
@@ -269,8 +292,7 @@ var $libs = {
         var curProtocol = window.location.protocol.split(':')[0];
         if (curProtocol === 'https') {
             bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
-        }
-        else {
+        } else {
             bp.src = 'http://push.zhanzhang.baidu.com/push.js';
         }
         var s = document.getElementsByTagName("script")[0];
@@ -279,19 +301,20 @@ var $libs = {
     // 统计
     eve_stat:function () {
         // 百度统计
-        if(typeof $sc != "undefined"  && $sc['stat_baidu']){
+        if(typeof $sc != "undefined" && $sc['stat']  && $sc['stat']['baidu']){
             var _hmt = _hmt || [];
             (function (){
                 var hm = document.createElement("script");
-                hm.src = "https://hm.baidu.com/hm.js?"+$sc['stat_baidu'];
+                hm.src = "https://hm.baidu.com/hm.js?"+$sc['stat']['baidu'];
                 var s = document.getElementsByTagName("script")[0];
                 s.parentNode.insertBefore(hm, s);
             })();
         }
         // cnzz
-        if(typeof $sc != "undefined"  && $sc['stat_cnzz']){
+        if(typeof $sc != "undefined" && $sc['stat'] && $sc['stat']['cnzz']){
             var cnzz_protocol = (("https:" == document.location.protocol) ? " https://" : " http://");
-            document.write(unescape("%3Cspan id='cnzz_stat_icon_"+$sc['stat_cnzz']+"'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "s11.cnzz.com/stat.php%3Fid%3D"+$sc['stat_cnzz']+"' type='text/javascript'%3E%3C/script%3E"));
+            document.write(unescape("%3Cspan id='cnzz_stat_icon_"+$sc['stat']['cnzz']+"'%3E%3C/span%3E%3Cscript src='" +
+                cnzz_protocol + "s11.cnzz.com/stat.php%3Fid%3D"+$sc['stat']['cnzz']+"' type='text/javascript'%3E%3C/script%3E"));
         }
     },
     // 显示二维码

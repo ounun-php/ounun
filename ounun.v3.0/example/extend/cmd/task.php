@@ -10,6 +10,7 @@ namespace extend\cmd;
 
 use ounun\cmd\console;
 use ounun\cmd\task\manage;
+use ounun\config;
 use ounun\pdo;
 
 class task extends \ounun\cmd\cmd
@@ -31,7 +32,6 @@ class task extends \ounun\cmd\cmd
 
     /**
      * @param array $input
-     * @return mixed
      */
     public function execute(array $input)
     {
@@ -53,7 +53,7 @@ class task extends \ounun\cmd\cmd
         $time_live = ($input_len >= 6) ? ((int)array_shift($input)) : 0;
 
         // instance
-        $db_biz = pdo::instance('biz');
+        $db_biz = pdo::instance(config::database_default_get() );
         $manage = manage::instance($db_biz);
         // 设定表名
         manage::table_set();

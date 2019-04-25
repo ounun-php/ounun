@@ -52,29 +52,29 @@ define('Const_Baidu_Xzh_Token', '');
 \ounun\config::database_set([
     'account' =>
         [
-            'host' => 'shihundb001pub.mysql.rds.aliyuncs.com:3306',
+            'host' => 'localhost:3306',
+            'username' => 'root',
+            'password' => 'root',
+            'charset' => 'utf8mb4',
             'database' => 'v2com_moko8_adm',
-            'username' => 'v2cms',
-            'password' => 'kChs2r4s2r716Zd6',
-            'charset' => 'utf8',
         ],
     'adm' =>
         [
-            'host' => 'shihundb001pub.mysql.rds.aliyuncs.com:3306',
+            'host' => 'localhost:3306',
+            'username' => 'root',
+            'password' => 'root',
+            'charset' => 'utf8mb4',
             'database' => 'v2com_libs_v2',
-            'username' => 'v2cms',
-            'password' => 'kChs2r4s2r716Zd6',
-            'charset' => 'utf8'
         ],
     'libs_v1' =>
         [
-            'host' => 'shihundb001pub.mysql.rds.aliyuncs.com:3306',
+            'host' => 'localhost:3306',
+            'username' => 'root',
+            'password' => 'root',
+            'charset' => 'utf8mb4',
             'database' => 'v2com_libs_v1',
-            'username' => 'v2cms',
-            'password' => 'kChs2r4s2r716Zd6',
-            'charset' => 'utf8'
         ],
-]);
+], 'biz');
 
 /** 支持的语言 */
 \ounun\config::lang_support_set([

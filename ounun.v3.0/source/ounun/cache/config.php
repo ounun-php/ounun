@@ -48,7 +48,7 @@ class config
     {
         $this->_db = $db;
         $this->_cache = new core();
-        $this->_cache->config($cache_config, "cfg_{$tag}");
+        $this->_cache->config($cache_config, "config_{$tag}");
     }
 
     /**

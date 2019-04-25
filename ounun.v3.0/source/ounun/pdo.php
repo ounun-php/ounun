@@ -66,6 +66,10 @@ class pdo
     protected $_charset = 'utf8'; //'utf8mb4','utf8','gbk',latin1;
     /** @var string pdo驱动默认为mysql */
     protected $_driver = 'mysql';
+    /** @var string table前缀 - 替换成的前缀 */
+    protected $_table_prefix_replace = '';
+    /** @var string table前缀 - 被替换的常量 */
+    protected $_table_prefix_search = '#@_';
 
     /** @var string 当前table */
     protected $_table = '';
@@ -147,6 +151,12 @@ class pdo
         if ($config['driver']) {
             $this->_driver = $config['driver'];
         }
+        if ($config['prefix_replace']) {
+            $this->_table_prefix_replace = $config['prefix_replace'];
+        }
+        if ($config['prefix_search']) {
+            $this->_table_prefix_search = $config['prefix_search'];
+        }
     }
 
     /**
@@ -202,6 +212,9 @@ class pdo
             $this->active();
         }
         if ($sql) {
+            if ($this->_table_prefix_replace) {
+                $sql = str_replace($this->_table_prefix_search,$this->_table_prefix_replace,$sql);
+            }
             $this->_last_sql = $sql;
         }
         $this->_bind_keys = $this->_keys_parse($this->_last_sql);

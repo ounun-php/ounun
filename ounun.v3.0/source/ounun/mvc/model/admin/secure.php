@@ -69,25 +69,25 @@ class secure
         // print_r(['$url'=>$url,'$c'=>$c]);
         if ($c) {
             $json = json_decode($c, true);
-            if ($json && $json['ret'] && $json['data']) {
+            if(error_is($json)){
+                return $json;
+            }
+            if ($json && $json['data']) {
                 $data = $this->decode($json['data']);
                 if ($data) {
-                    $json['ret'] = true;
+                    $json['error_code'] = (int)$json['error_code'];
                     $json['data'] = $data;
                     return $json;
                 } else {
                     $error_msg = "出错:解码出错:({$json['data']})";
                 }
-            } elseif ($json && $json['error']) {
-                $json['ret'] = false;
-                return $json;
             } else {
                 $error_msg = "出错:数据出错:({$c})";
             }
         } else {
             $error_msg = "出错:服务器没反:({$url_root})";
         }
-        return ['ret' => false, 'error' => $error_msg];
+        return error($error_msg);
     }
 
     /**
@@ -96,11 +96,14 @@ class secure
      */
     public function outs(array $data)
     {
-        $data['ret'] = $data['ret'] ? true : false;
-        if ($data['ret'] && $data['data']) {
+        if(error_is($data)) {
+            out($data);
+        }
+        $data['error_code'] = (int)$data['error_code'];
+        if ($data['data']) {
             $data['data'] = $this->encode($data['data']);
         }
-        exit(json_encode($data, JSON_UNESCAPED_UNICODE));
+        out($data);
     }
 
     /**

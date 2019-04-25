@@ -12,7 +12,7 @@ class c extends \ounun\mvc\c
     const Logs = [0 => "失败", 1 => "成功"];
 
     /** 站点tag */
-    const Cache_Tag_Site = 'tag';
+    const Cache_Tag_Site = 'biz';
 
     /** 翻页配制 */
     const Page_Config_B = [

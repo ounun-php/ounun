@@ -245,14 +245,19 @@ function go_msg(string $msg, string $url = ''): void
  * @param string $message
  * @param int $error_code
  * @param mixed $data
+ * @param array $extend 延伸数据
  * @return array
  */
-function error(string $message = '', int $error_code = 1, $data = '')
+function error(string $message = '', int $error_code = 1, $data = null, $extend = [])
 {
-    if(empty($data)){
-        return [ 'message' => $message, 'error_code' => $error_code ];
+    $rs = ['message' => $message, 'error_code' => $error_code];
+    if ($data) {
+        $rs['data'] = $data;
     }
-    return [ 'message' => $message, 'error_code' => $error_code, 'data' => $data ];
+    if ($extend) {
+        $rs = array_merge($extend, $rs);
+    }
+    return $rs;
 }
 
 /**
@@ -292,11 +297,15 @@ function error_code($data): int
 /**
  * @param mixed $data
  * @param string $message
+ * @param array $extend 延伸数据
  * @return array
  */
-function succeed($data, string $message = '')
+function succeed($data, string $message = '', $extend = [])
 {
-    return [ 'message' => $message, 'error_code' => 0, 'data' => $data ];
+    if ($extend) {
+        return array_merge($extend, ['message' => $message, 'error_code' => 0, 'data' => $data]);
+    }
+    return ['message' => $message, 'error_code' => 0, 'data' => $data];
 }
 
 /**
@@ -307,6 +316,47 @@ function succeed($data, string $message = '')
 function succeed_data($data)
 {
     return $data['data'];
+}
+
+/**
+ * Ajax方式返回数据到客户端
+ * @param mixed $data 要返回的数据
+ * @param string $type AJAX返回数据格式
+ * @param string $jsonp_callback
+ * @param int $json_options 传递给json_encode的option参数
+ */
+function out($data, string $type = '', string $jsonp_callback = '', int $json_options = JSON_UNESCAPED_UNICODE)
+{
+    if (empty($type)) {
+        $type = \ounun\mvc\c::Format_Html;
+    }
+    switch ($type) {
+        // 返回JSON数据格式到客户端 包含状态信息
+        case \ounun\mvc\c::Format_Json :
+            header('Content-Type:application/json; charset=utf-8');
+            exit(json_encode($data, $json_options));
+        // 返回xml格式数据
+        case \ounun\mvc\c::Format_Xml :
+            header('Content-Type:text/xml; charset=utf-8');
+            exit(\ounun\tool\data::xml_encode($data));
+        // 返回JSON数据格式到客户端 包含状态信息
+        case \ounun\mvc\c::Format_Jsonp:
+            header('Content-Type:application/javascript; charset=utf-8');
+            if (empty($jsonp_callback)) {
+                $jsonp_callback = (isset($_GET['jsonp_callback']) && $_GET['jsonp_callback']) ? $_GET['jsonp_callback'] : 'jsonp_callback';
+            }
+            exit($jsonp_callback . '(' . json_encode($data, $json_options) . ');');
+        // 返回可执行的js脚本
+        case  \ounun\mvc\c::Format_JS :
+        case  \ounun\mvc\c::Format_Eval :
+            header('Content-Type:application/javascript; charset=utf-8');
+            exit($data);
+        // 返回可执行的js脚本
+        // case \ounun\mvc\c::Format_Html :
+        default :
+            header('Content-Type:text/html; charset=utf-8');
+            exit($data);
+    }
 }
 
 /**
@@ -687,10 +737,10 @@ function environment()
     if (isset($GLOBALS['_environment_'])) {
         return $GLOBALS['_environment_'];
     }
-    $env_file =  isset( $GLOBALS['_environment_file_'] ) && $GLOBALS['_environment_file_'] ? $GLOBALS['_environment_file_'] : '/www/wwwroot/release.txt';
-    if(is_file($env_file)) {
+    $env_file = isset($GLOBALS['_environment_file_']) && $GLOBALS['_environment_file_'] ? $GLOBALS['_environment_file_'] : '/www/wwwroot/release.txt';
+    if (is_file($env_file)) {
         $GLOBALS['_environment_'] = '';
-    }else {
+    } else {
         $env_file = Dir_Root . 'environment.txt';
         $GLOBALS['_environment_'] = (is_file($env_file) && filesize($env_file) >= 1) ? trim(file_get_contents($env_file)) : '';
     }
@@ -893,7 +943,7 @@ abstract class v
     public function __call($method, $arguments)
     {
         header('HTTP/1.1 404 Not Found');
-        if(empty(static::$debug)) {
+        if (empty(static::$debug)) {
             static::$debug = new \ounun\debug(\ounun\config::$dir_data . 'logs/error_404_' . date('Ymd') . '.txt', false, false, false, true);
         }
         error404("\$method:{$method} \$args:" . json_encode($arguments) . "");

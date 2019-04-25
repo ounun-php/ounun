@@ -8,26 +8,17 @@ use ounun\cmd\task\struct;
 
 abstract class baidu_xzh extends _system
 {
+    /** @var string 分类 */
+    public static $tag = 'system';
+    /** @var string 子分类 */
+    public static $tag_sub = 'baidu_xzh';
 
+    /** @var string 任务名称 */
     public static $name = '提交熊掌号 [baidu_xzh]';
     /** @var string 定时 */
     public static $crontab = '{1-59} 11 * * *';
     /** @var int 最短间隔 */
     public static $interval = 86400;
-
-    /**
-     * baidu_xzh constructor.
-     * @param struct $task_struct
-     * @param string $tag
-     * @param string $tag_sub
-     */
-    public function __construct(struct $task_struct, string $tag = '', string $tag_sub = '')
-    {
-        $this->_tag = 'baidu_xzh';
-        $this->_tag_sub = '';
-
-        parent::__construct($task_struct, $tag, $tag_sub);
-    }
 
     /**
      * 执行任务

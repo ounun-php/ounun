@@ -363,13 +363,13 @@ class config
             '{$page_url}' => static::$view->page_url,
             '{$page_file}' => static::$view->page_file,
 
-            '{$url_www}' => static::$url_www,
-            '{$url_wap}' => static::$url_wap,
-            '{$url_mip}' => static::$url_mip,
-            '{$url_api}' => static::$url_api,
-            '{$url_app}' => static::url_page(),
+            '{$url_www}'  => static::$url_www,
+            '{$url_wap}'  => static::$url_wap,
+            '{$url_mip}'  => static::$url_mip,
+            '{$url_api}'  => static::$url_api,
+            '{$url_page}' => static::url_page(),
 
-            '{$canonical_pc}' => static::$url_www . $url_base,
+            '{$canonical_www}' => static::$url_www . $url_base,
             '{$canonical_mip}' => static::$url_mip . $url_base,
             '{$canonical_wap}' => static::$url_wap . $url_base,
 

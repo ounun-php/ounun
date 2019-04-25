@@ -171,7 +171,7 @@ class mysqli
      *
      * @param string $table 表名
      * @param array $bind 数据
-     * @param string $param 可选参数  //[LOW_PRIORITY | DELAYED(仅适用于MyISAM, MEMORY和ARCHIVE表) | HIGH_PRIORITY] [IGNORE]
+     * @param string $params 可选参数  //[LOW_PRIORITY | DELAYED(仅适用于MyISAM, MEMORY和ARCHIVE表) | HIGH_PRIORITY] [IGNORE]
      * @param string $ext 扩展  //ON DUPLICATE KEY UPDATE col_name=expr, ...
      * @param array $bind2 数据
      * @return int $insert_id
