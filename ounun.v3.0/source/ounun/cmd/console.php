@@ -13,16 +13,16 @@ class console
     const Color_Dark_Gray = "\033[1;30m";
     const Color_Blue = "\033[0;34m";
     const Color_Light_BBlue = "\033[1;34m";
-    const Color_Green = "\033[0;32m";
+    const Color_Green = "\033[0;32m";      // success
     const Color_Light_Green = "\033[1;32m";
     const Color_Cyan = "\033[0;36m";
     const Color_Light_Cyan = "\033[1;36m";
     const Color_Red = "\033[0;31m";
-    const Color_Light_Red = "\033[1;31m";
+    const Color_Light_Red = "\033[1;31m"; // error
     const Color_Purple = "\033[0;35m";
     const Color_Light_Purple = "\033[1;35m";
     const Color_Brown = "\033[0;33m";
-    const Color_Yellow = "\033[1;33m";
+    const Color_Yellow = "\033[1;33m";    // info
     const Color_Light_Gray = "\033[0;37m";
     const Color_White = "\033[1;37m";
 
@@ -171,17 +171,30 @@ class console
      * \033[?25l           隐藏光标    
      * \33[?25h            显示光标  
      */
+
     /**
      * @param string $msg
      * @param string $color
+     * @param string $file
+     * @param int $line
+     * @param int $time
      * @param string $end
      */
-    static public function echo(string $msg, string $color = '', string $end = "\n")
+    static public function echo(string $msg, string $color = '',string $file = '', int $line = 0,int $time = 0, string $end = "\n")
     {
+        if($file){
+            $file = basename($file);
+            $file = "{$file}:{$line} ";
+        }else{
+            $file = '';
+        }
+        if($time){
+            $file = static::Color_Cyan . '['.date("Y-m-d H:i:s").']' .static::Color_None.$file;
+        }
         if (empty($color)) {
-            echo $msg . $end;
+            echo $file.$msg . $end;
         } else {
-            echo $color . $msg . self::Color_None . $end;
+            echo $file.$color . $msg . static::Color_None . $end;
         }
     }
 
@@ -189,27 +202,28 @@ class console
      * @param $array
      * @param string $tab
      * @param int $depth0
+     * @param string $file
+     * @param int $line
      */
-    static public function print_r($array, $tab = '', int $depth0 = 0)
+    static public function print_r($array, $tab = '', int $depth0 = 0,string $file = '', int $line = 0)
     {
-
         $depth = $depth0 % static::Depth_Colors_Count;
         $color = static::Depth_Colors[$depth];
         // echo "\$depth:{$depth} - ";
         if (is_array($array)) {
             if (empty($array)) {
-                static::echo("[]", $color);
+                static::echo("[]", $color,$file,$line);
             } else {
-                static::echo("[", $color);
+                static::echo("[", $color,$file,$line);
                 foreach ($array as $k => $v) {
-                    static::echo("\t" . $tab . (is_numeric($k) ? $k : '"' . $k . '"'), $color, '');
-                    static::echo(' => ', static::Color_Light_Gray, '');
-                    static::print_r($v, "\t" . $tab, $depth + 1);
+                    static::echo("\t" . $tab . (is_numeric($k) ? $k : '"' . $k . '"'), $color, $file,$line,0,'');
+                    static::echo(' => ', static::Color_Light_Gray, '',0,0, '');
+                    static::print_r($v, "\t" . $tab, $depth + 1,$file,$line);
                 }
-                static::echo($tab . "]", $color);
+                static::echo($tab . "]", $color,$file,$line);
             }
         } else {
-            static::echo(is_numeric($array) ? $array : '"' . $array . '"', $color);
+            static::echo(is_numeric($array) ? $array : '"' . $array . '"', $color,$file,$line);
         }
     }
 }

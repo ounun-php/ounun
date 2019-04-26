@@ -71,7 +71,7 @@ abstract class _caiji extends task_base
     public function status()
     {
         $this->_logs_status = manage::Logs_Fail;
-        manage::logs_msg("error:" . __METHOD__, $this->_logs_status);
+        manage::logs_msg("error:" . __METHOD__, $this->_logs_status,$this->_logs_status,__FILE__,__LINE__,time());
         return [];
     }
 
@@ -86,11 +86,11 @@ abstract class _caiji extends task_base
         try {
             $this->_logs_status = manage::Logs_Succeed;
 
-            manage::logs_msg("Successful update:{$this->_task_struct->task_id}/{$this->_task_struct->task_name}", manage::Logs_Succeed);
+            manage::logs_msg("Successful update:{$this->_task_struct->task_id}/{$this->_task_struct->task_name}", manage::Logs_Succeed,$this->_logs_status,__FILE__,__LINE__,time());
         } catch (\Exception $e) {
             $this->_logs_status = manage::Logs_Fail;
-            manage::logs_msg($e->getMessage(), manage::Logs_Fail);
-            manage::logs_msg('Fail Coll tag:' . static::$tag . ' tag_sub:' . static::$tag_sub, manage::Logs_Fail);
+            manage::logs_msg($e->getMessage(),$this->_logs_status,__FILE__,__LINE__,time());
+            manage::logs_msg('Fail Coll tag:' . static::$tag . ' tag_sub:' . static::$tag_sub, manage::Logs_Fail,$this->_logs_status,__FILE__,__LINE__,time());
         }
     }
 

@@ -31,11 +31,11 @@ abstract class baidu_wap extends _system
         try {
             $this->_logs_status = manage::Logs_Succeed;
             // $this->url_push_baidu_pc_mip();
-            manage::logs_msg("Successful push baidu_wap",$this->_logs_status);
+            manage::logs_msg("Successful push baidu_wap",$this->_logs_status,__FILE__,__LINE__,time());
         } catch (\Exception $e) {
             $this->_logs_status = manage::Logs_Fail;
-            manage::logs_msg($e->getMessage(),$this->_logs_status);
-            manage::logs_msg("Fail push baidu_wap",$this->_logs_status);
+            manage::logs_msg($e->getMessage(),$this->_logs_status,__FILE__,__LINE__,time());
+            manage::logs_msg("Fail push baidu_wap",$this->_logs_status,__FILE__,__LINE__,time());
         }
     }
 

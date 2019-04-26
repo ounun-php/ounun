@@ -63,6 +63,6 @@ class task extends \ounun\cmd\cmd
         // execute
         $manage->execute($task_id, $mode, $time_sleep, $time_live, $input);
         // ok
-        console::print_r("---> " . date("Y-m-d H:i:s ") . ' ' . __CLASS__ . ' execute ok');
+        console::echo("-- " . date("Y-m-d H:i:s ") . ' ' . __CLASS__ . ' execute ok',console::Color_Blue);
     }
 }

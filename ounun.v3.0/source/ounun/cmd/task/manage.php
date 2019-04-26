@@ -40,7 +40,7 @@ class manage
     const Status = [
         self::Status_Await => '空置(等待)',
         self::Status_Runing => '运行中...',
-        self::Status_Full => '满载(过载)', 
+        self::Status_Full => '满载(过载)',
     ];
 
     /** @var int 正常(灰) */
@@ -85,7 +85,7 @@ class manage
         if (empty(static::$_instance_manage)) {
             static::$_instance_manage = new static();
         }
-        if ($db_task) {
+        if ($db_biz) {
             static::$_db_biz = $db_biz;
         }
         if ($db_caiji) {
@@ -151,7 +151,7 @@ class manage
         if ($table_process) {
             self::$table_process = $table_process;
         }
-        static::logs_table_set($logs_table_task,$logs_table_task_details);
+        static::logs_table_set($logs_table_task, $logs_table_task_details);
     }
 
     /**
@@ -186,23 +186,21 @@ class manage
     static protected $_logs_extend = [];
     /** @var int 状态  0:正常(灰) 1:失败(红色) 6:突出(橙黄)  99:成功(绿色) */
     static protected $_logs_status = self::Logs_Normal;
+    /** @var int 日志id */
+    static protected $_logs_id = 0;
 
     /**
-     * 任务日志
-     * @param int $task_id
-     * @param string $tag
-     * @param string $tag_sub
-     * @param int $time
-     * @param string $table
-     * @param pdo|null $db
+     * 初始化任务日志
+     * @param int $time_add
      */
-    static public function logs_init(int $time_add  = 0)
+    static public function logs_init(int $time_add = 0)
     {
         static::$_logs_data = [];
         static::$_logs_data_important = [];
         static::$_logs_time_add = $time_add == 0 ? time() : $time_add;
         static::$_logs_extend = [];
         static::$_logs_status = manage::Logs_Normal;
+        static::$_logs_id = 0;
     }
 
     /**
@@ -215,8 +213,8 @@ class manage
     }
 
     /**
-     * @param string $table_logs_task
-     * @param string $table_logs_task_details
+     * @param string $logs_table_task
+     * @param string $logs_table_task_details
      */
     static public function logs_table_set(string $logs_table_task = '', string $logs_table_task_details = '')
     {
@@ -228,21 +226,87 @@ class manage
         }
     }
 
+
+    /**
+     * @param string $msg
+     * @param string $file
+     * @param int $line
+     * @param int $time
+     */
+    static public function logs_msg_normal(string $msg,string $file = '', int $line = 0,  int $time = 0)
+    {
+
+        static::logs_msg($msg,static::Logs_Normal,$file,$line,$time);
+    }
+
+    /**
+     * @param string $msg
+     * @param string $file
+     * @param int $line
+     * @param int $time
+     */
+    static public function logs_msg_fail(string $msg,string $file = '', int $line = 0, int $time = 0)
+    {
+        static::logs_msg($msg,static::Logs_Fail,$file,$line,$time);
+    }
+
+    /**
+     * @param string $msg
+     * @param string $file
+     * @param int $line
+     * @param int $time
+     */
+    static public function logs_msg_warning(string $msg, string $file = '', int $line = 0, int $time = 0)
+    {
+        static::logs_msg($msg,static::Logs_Warning,$file,$line,$time);
+    }
+
+    /**
+     * @param string $msg
+     * @param string $file
+     * @param int $line
+     * @param int $time
+     */
+    static public function logs_msg_succeed(string $msg, string $file = '', int $line = 0,  int $time = 0)
+    {
+        static::logs_msg($msg,static::Logs_Succeed,$file,$line,$time);
+    }
+
     /**
      * 日志数据logs_data
-     * @param string $msg 内容
-     * @param int $status 状态  0:正常(灰) 1:失败(红色) 6:突出(橙黄)  99:成功(绿色)
-     * @param int $time 时间
+     * @param string $msg  内容
+     * @param int $status  状态  0:正常(灰) 1:失败(红色) 6:突出(橙黄)  99:成功(绿色)
+     * @param string $file
+     * @param int $line
+     * @param int $time    时间
      */
-    static public function logs_msg(string $msg, int $status = self::Logs_Normal, int $time = 0)
+    static public function logs_msg(string $msg, int $status = self::Logs_Normal, string $file = '', int $line = 0, int $time = 0)
     {
+        static::logs_write_start($status);
+
         $time = $time == 0 ? time() : $time;
         /**  状态  时间 内容  */
         $data = ['s' => $status, 't' => $time, 'l' => $msg];
-        if(static::Logs_Fail == $status || static::Logs_Warning == $status || static::Logs_Succeed == $status ){
-            static::$_logs_data[] = $data;
+        if (static::Logs_Fail == $status || static::Logs_Warning == $status || static::Logs_Succeed == $status) {
+            static::$_logs_data_important[] = $data;
         }
-        static::$_logs_data_important[] = $data;
+        static::$_logs_data[] = $data;
+        if (static::$_logs_id) {
+            $db = static::db_biz();
+            if ($db) {
+                $db->table(static::$_logs_table_task_details)->insert(array_merge(['logs_id' => static::$_logs_id], $data));
+            }
+        }
+        if(static::Logs_Fail == $status){
+            $color = console::Color_Red;
+        }elseif (static::Logs_Warning == $status){
+            $color = console::Color_Brown;
+        }elseif (static::Logs_Succeed == $status){
+            $color = console::Color_Green;
+        }else{
+            $color = console::Color_Yellow;
+        }
+        console::echo($msg,$color,$file,$line,$time,"\n");
     }
 
     /**
@@ -253,12 +317,41 @@ class manage
      */
     static public function logs_write(int $status, float $run_time, bool $over_clean = true)
     {
-        $m       = static::instance();
-        if($m && $m->task_curr_get() && $m->task_curr_get()->struct_get() ){
-            $task_id   = $m->task_curr_get()->struct_get()->task_id;
-            $task_curr = $m->task_curr_get();
-            if ( $task_id && static::$_logs_data ) {
-                // $this->_state  = $state;
+        static::logs_write_start($status);
+
+        if (static::$_logs_id) {
+            $bind = [
+                'state' => $status,
+                'data' => json_encode(static::$_logs_data_important, JSON_UNESCAPED_UNICODE),
+                'time_end' => time(),
+                'time_run' => $run_time,
+                'extend' => json_encode(static::$_logs_extend, JSON_UNESCAPED_UNICODE),
+            ];
+            $db = static::db_biz();
+            if ($db) {
+                $db->table(static::$_logs_table_task)->where(' `logs_id` = :logs_id ', ['logs_id' => static::$_logs_id])->update($bind);
+            }
+            if ($over_clean) {
+                static::logs_init(0);
+            }
+        }
+    }
+
+    /**
+     * 写入日志 - 开始
+     * @param int $status
+     */
+    static protected function logs_write_start(int $status = self::Logs_Normal)
+    {
+        if (static::$_logs_id) {
+            return;
+        }
+
+        $manage = static::instance();
+        if ($manage && $manage->task_curr_get() && $manage->task_curr_get()->struct_get()) {
+            $task_id = $manage->task_curr_get()->struct_get()->task_id;
+            $task_curr = $manage->task_curr_get();
+            if ($task_id && static::$_logs_data) {
                 $bind = [
                     'task_id' => $task_id,
                     'tag' => $task_curr->tag_get(),
@@ -266,27 +359,18 @@ class manage
                     'state' => $status,
                     'data' => json_encode(static::$_logs_data_important, JSON_UNESCAPED_UNICODE),
                     'time_add' => static::$_logs_time_add,
-                    'time_end' => time(),
-                    'time_run' => $run_time,
+                    'time_end' => 0,
+                    'time_run' => 0,
                     'extend' => json_encode(static::$_logs_extend, JSON_UNESCAPED_UNICODE),
                 ];
-                $id = 0;
-                $db = manage::db_biz();
-                if($db){
-                    $id = $db->table(static::$_logs_table_task)->insert($bind);
-                    if($id){
-                        $bind_details = [];
-                        $db->table(static::$_logs_table_task_details)->insert($bind_details);
-                    }
+                $db = static::db_biz();
+                if ($db) {
+                    static::$_logs_id = $db->table(static::$_logs_table_task)->insert($bind);
                 }
-                // $id
-                if ($id && $over_clean) {
-                    static::logs_init(0);
-                }
-                // echo $this->_db->sql()."\n";
             }
         }
     }
+
 
     /**
      * DROP TABLE IF EXISTS `z_task_logs`;
@@ -375,13 +459,13 @@ class manage
             $tasks = $this->tasks();
             console::echo("Start          \$tasks_count:" . str_pad(count($tasks), 5) .
                 "\$sleep:" . str_pad($time_sleep, 5) . " \$count:" . str_pad($this->_run_count, 5) . "  " .
-                "\$past:" . str_pad($this->_time_past, 5) . " \$live:" . str_pad($time_live, 5) . ' ----------------- ', console::Color_Purple);
+                "\$past:" . str_pad($this->_time_past, 5) . " \$live:" . str_pad($time_live, 5) . ' ----------------- ', console::Color_Purple,__FILE__,__LINE__,time());
             /** @var task_base $task */
             foreach ($tasks as $task) {
                 // var_dump(['$task'=>$task]);
                 if ($task && is_subclass_of($task, "ounun\\cmd\\task\\task_base")) {
                     $this->_task_curr = $task;
-                    console::echo("\$task_id:" . str_pad($task->struct_get()->task_id, 5) . " \$run_time:" . str_pad(round($task->run_time_get(), 4) . 's', 8), console::Color_Brown);
+                    console::echo("\$task_id:" . str_pad($task->struct_get()->task_id, 5) . " \$run_time:" . str_pad(round($task->run_time_get(), 4) . 's', 8), console::Color_Brown,__FILE__,__LINE__,time());
                     $this->_task_curr->execute_do($input, $this->_mode, $is_pass_check);
                 }
             }
@@ -417,13 +501,14 @@ class manage
                         $struct = new struct($v);
                         /** @var task_base $task */
                         $task = new $cls($struct);
+                        console::echo($cls, console::Color_Blue);
                         if (is_subclass_of($task, "ounun\\cmd\\task\\task_base")) {
                             $this->_tasks[$v['task_id']] = $task;
                         } else {
-                            console::echo("error --> class:{$cls} not subclass:task\\task_base", console::Color_Red);
+                            console::echo(__FILE__.':'.__LINE__. " error --> class:{$cls} not subclass:task\\task_base", console::Color_Red);
                         }
                     } else {
-                        console::echo("error --> class_exists:{$cls}", console::Color_Red);
+                        console::echo(__FILE__.':'.__LINE__." error --> class_exists:{$cls}", console::Color_Red);
                     }
                 }
             }

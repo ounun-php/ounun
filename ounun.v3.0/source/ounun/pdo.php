@@ -990,7 +990,13 @@ class pdo
         if ($this->_is_debug) {
             $this->_stmt->debugDumpParams();
         }
-        $this->_stmt->execute();
+        try{
+            $this->_stmt->execute();
+        }catch (\Exception $e){
+            $this->_stmt->debugDumpParams();
+            // print_r($e->getTrace());
+            trigger_error("Sql Error:".$e->getMessage()."\n", E_USER_ERROR);
+        }
     }
 
     /**

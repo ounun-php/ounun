@@ -38,7 +38,7 @@ class help extends cmd
         console::echo("\n可执行命令:", console::Color_Purple);
         foreach ($cs as $v) {
             foreach ($v as $c) {
-                console::echo($c->name, console::Color_Blue, " \t");
+                console::echo($c->name, console::Color_Blue, '',0,0," \t");
                 console::echo($c->description, console::Color_Black);
             }
             $i++;
@@ -46,8 +46,8 @@ class help extends cmd
                 echo "\n";
             }
         }
-        console::echo('帮助', console::Color_Purple, ' ');
-        console::echo('./ounun <命令> --help', console::Color_Black, '  ');
-        console::echo('显示对应"命令"提示', console::Color_Purple, "\n\n");
+        console::echo('帮助', console::Color_Purple, '',0,0,' ');
+        console::echo('./ounun <命令> --help', console::Color_Black,'',0,0, '  ');
+        console::echo('显示对应"命令"提示', console::Color_Purple, '',0,0,"\n\n");
     }
 }
