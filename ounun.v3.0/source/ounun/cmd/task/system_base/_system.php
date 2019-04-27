@@ -43,7 +43,6 @@ abstract class _system extends task_base
      */
     public function execute(array $input = [], int $mode = manage::Mode_Dateup, bool $is_pass_check = false)
     {
-        console::echo(__METHOD__, console::Color_Red);
         try {
             $this->_logs_status = manage::Logs_Succeed;
 

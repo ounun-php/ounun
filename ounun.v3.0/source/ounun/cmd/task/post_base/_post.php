@@ -51,7 +51,6 @@ abstract class _post extends task_base
             '$site_tag' => $site_tag
         ]);
 
-        console::echo(__METHOD__, console::Color_Red);
         try {
             $this->_logs_status = manage::Logs_Succeed;
             manage::logs_msg("Successful update:{$this->_task_struct->task_id}/{$this->_task_struct->task_name}", $this->_logs_status,__FILE__,__LINE__,time());

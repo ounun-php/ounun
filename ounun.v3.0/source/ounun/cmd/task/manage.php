@@ -279,7 +279,7 @@ class manage
      */
     static public function logs_msg(string $msg, int $status = self::Logs_Normal, string $file = '', int $line = 0, int $time = 0)
     {
-        static::logs_write_start($status);
+        static::logs_write_init($status);
 
         $time = $time == 0 ? time() : $time;
         /**  状态  时间 内容  */
@@ -314,11 +314,11 @@ class manage
      */
     static public function logs_write(int $status, float $run_time, bool $over_clean = true)
     {
-        static::logs_write_start($status);
+        static::logs_write_init($status);
 
         if (static::$_logs_id) {
             $bind = [
-                'state' => $status,
+                'status' => $status,
                 'data' => json_encode(static::$_logs_data_important, JSON_UNESCAPED_UNICODE),
                 'time_end' => time(),
                 'time_run' => $run_time,
@@ -338,7 +338,7 @@ class manage
      * 写入日志 - 开始
      * @param int $status
      */
-    static protected function logs_write_start(int $status = self::Logs_Normal)
+    static protected function logs_write_init(int $status = self::Logs_Normal)
     {
         if (static::$_logs_id) {
             return;
@@ -353,7 +353,7 @@ class manage
                     'task_id' => $task_id,
                     'tag' => $task_curr->tag_get(),
                     'tag_sub' => $task_curr->tag_sub_get(),
-                    'state' => $status,
+                    'status' => $status,
                     'data' => json_encode(static::$_logs_data_important, JSON_UNESCAPED_UNICODE),
                     'time_add' => static::$_logs_time_add,
                     'time_end' => 0,
@@ -454,7 +454,7 @@ class manage
         $this->init();
         do {
             $tasks = $this->tasks();
-            console::echo("Start          \$tasks_count:" . str_pad(count($tasks), 5) .
+            console::echo("Start    host:".gethostname()."      \$tasks_count:" . str_pad(count($tasks), 5) .
                 "\$sleep:" . str_pad($time_sleep, 5) . " \$count:" . str_pad($this->_run_count, 5) . "  " .
                 "\$past:" . str_pad($this->_time_past, 5) . " \$live:" . str_pad($time_live, 5) . ' ----------------- ', console::Color_Purple, __FILE__, __LINE__);
             /** @var task_base $task */
@@ -462,7 +462,6 @@ class manage
                 // var_dump(['$task'=>$task]);
                 if ($task && is_subclass_of($task, "ounun\\cmd\\task\\task_base")) {
                     $this->_task_curr = $task;
-                    console::echo("\$task_id:" . str_pad($task->struct_get()->task_id, 5) . " \$run_time:" . str_pad(round($task->run_time_get(), 4) . 's', 8), console::Color_Brown, __FILE__, __LINE__);
                     $this->_task_curr->execute_do($input, $this->_mode, $is_pass_check);
                 }
             }
