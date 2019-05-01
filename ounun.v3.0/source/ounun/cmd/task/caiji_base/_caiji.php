@@ -66,21 +66,11 @@ abstract class _caiji extends task_base
     public static $wget_file_mini_size = 1024;
 
     /**
-     * @return array
-     */
-    public function status()
-    {
-        $this->_logs_status = manage::Logs_Fail;
-        manage::logs_msg("error:" . __METHOD__, $this->_logs_status,__FILE__,__LINE__,time());
-        return [];
-    }
-
-    /**
-     * @param array $input
-     * @param int $mode
+     * @param array $argc_input
+     * @param int $argc_mode
      * @param bool $is_pass_check
      */
-    public function execute(array $input = [], int $mode = manage::Mode_Dateup, bool $is_pass_check = false)
+    public function execute(array $argc_input = [], int $argc_mode = manage::Mode_Dateup, bool $is_pass_check = false)
     {
         try {
             $this->_logs_status = manage::Logs_Succeed;
@@ -244,7 +234,9 @@ abstract class _caiji extends task_base
      * @param array $extend
      * @return array
      */
-    protected function _fields_list(int $list_id , int $task_id = 0, string $origin_url = '', int $origin_level = 0, array $origin_data = [], int $is_status = 0, int $is_wget_again = 0, int $is_done = 0, int $time_add = 0, int $time_last = 0, float $execution_time = 0, array $extend = [])
+    protected function _bind_list_biz(int $list_id , int $task_id = 0, string $origin_url = '', int $origin_level = 0,
+                                           array $origin_data = [], int $is_status = 0, int $is_wget_again = 0, int $is_done = 0,
+                                           int $time_add = 0, int $time_last = 0, float $execution_time = 0, array $extend = [])
     {
         if (empty($time_last)) {
             $time_last = \time();
@@ -253,18 +245,17 @@ abstract class _caiji extends task_base
             $time_add = \time();
         }
         $bind = [
-            //  'list_id' => $list_id,
-            'task_id' => $task_id,
-            'origin_url' => $origin_url,
-            'origin_level' => $origin_level,
-            'origin_data' => json_encode_unescaped($origin_data),
-            'is_status' => $is_status,
-            'is_wget_again' => $is_wget_again,
-            'is_done' => $is_done,
-            'time_add' => $time_add,
-            'time_last' => $time_last,
-            'execution_time' => $execution_time,
-            'extend' => json_encode_unescaped($extend),
+            'task_id' => $task_id, // 任务ID
+            'origin_url' => $origin_url, // 源地址
+            'origin_level' => $origin_level, // 级别
+            'origin_data' => json_encode_unescaped($origin_data), // 数据(json)
+            'is_status' => $is_status, // 状态
+            'is_wget_again' => $is_wget_again, // 重试-是否每天
+            'is_done' => $is_done, // 是否完成
+            'time_add' => $time_add, // 添加时间
+            'time_last' => $time_last, // 完成时间
+            'execution_time' => $execution_time, // 执行时间(秒)
+            'extend' => json_encode_unescaped($extend), // 任务参数paras/扩展json
         ];
         if ($list_id) {
             $bind['list_id'] = $list_id;
@@ -273,18 +264,71 @@ abstract class _caiji extends task_base
     }
 
     /**
+     * @param int $id             自增ID
+     * @param int $data_id        数据id
+     * @param string $origin_url  目标URL
+     * @param string $origin_key  目标Key
+     * @param string $origin_tag  目标Tag(json)
+     * @param string $origin_title 目标标题
+     * @param array $origin_data   目标数据(json)
+     * @param array $origin_extend 扩展(json)
+     * @param int $caiji_count     采集次数
+     * @param int $is_wget_attachment 附件-是否采集
+     * @param int $is_wget_data       内容-是否采集
+     * @param int $is_done     是否完成
+     * @param int $time_add    添加时间
+     * @param int $time_update 更新时间
+     * @return array
+     */
+    protected function _bind_data_caiji(int $id = 0,int $data_id = 0, string $origin_url = '',
+                                  string $origin_key = '', string $origin_tag = '',string $origin_title = '',
+                                  array $origin_data = [], array  $origin_extend = [],
+                                  int $caiji_count = 1,int $is_wget_attachment = 0,int $is_wget_data = 0,int $is_done = 0,int $time_add = 0,int $time_update = 0)
+    {
+        if (empty($time_add)) {
+            $time_add = \time();
+        }
+        if (empty($time_update)) {
+            $time_update = \time();
+        }
+        $bind = [
+            //  'list_id' => $list_id,
+            'data_id' => $data_id,
+            'origin_url' => $origin_url,
+            'origin_key' => $origin_key,
+            'origin_tag' => $origin_tag,
+            'origin_title' => $origin_title,
+
+            'origin_data' => json_encode_unescaped($origin_data),
+            'origin_extend' => json_encode_unescaped($origin_extend),
+
+            'caiji_count' => $caiji_count,
+
+            'is_wget_attachment' => $is_wget_attachment,
+            'is_wget_data' => $is_wget_data,
+            'is_done' => $is_done,
+
+            'time_add' => $time_add,
+            'time_update' => $time_update,
+        ];
+        if ($id) {
+            $bind['id'] = $id;
+        }
+        return $bind;
+    }
+    /**
      * @param array $data
      * @param string $table_name
      * @param string $fields_name
      */
-    protected function _data_insert(array $data, string $table_name, string $fields_name = 'data_id')
+    protected function _data_insert(array $data, string $table_name, string $fields_name = 'data_id',bool $is_replace = false)
     {
         $data_id = $data[$fields_name];
         $rs = $this->_data_check($data_id, $table_name, $fields_name);
         if (!$rs) {
             manage::db_caiji()->table($table_name)->insert($data);
             // echo $this->_db->sql()."\n";
-            $is_insert = $this->_data_check($data_id, $fields_name);
+            $is_insert = $this->_data_check($data_id, $table_name, $fields_name);
             if ($is_insert) {
                 manage::logs_msg("ok->[成功][{$table_name}]{$fields_name}:{$data_id}");
             } else {

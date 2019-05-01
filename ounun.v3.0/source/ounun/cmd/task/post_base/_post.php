@@ -28,36 +28,33 @@ abstract class _post extends task_base
     /** @var string  网站数据 - 附件 - 表名 */
     public static $table_site_attachment = '';
 
-    /**
-     * @return array
-     */
-    public function status()
-    {
-        $this->_logs_status = manage::Logs_Fail;
-        manage::logs_msg("error:" . __METHOD__, $this->_logs_status,__FILE__,__LINE__,time());
-        return [];
-    }
+    /** @var string  outs数据 - 网站 - 表名 */
+    public static $table_caiji_post_outs = '';
+
 
     /**
-     * @param array $input
-     * @param int $mode
+     * @param array $argc_input
+     * @param int $argc_mode
      * @param bool $is_pass_check
      */
-    public function execute(array $input = [], int $mode = manage::Mode_Dateup, bool $is_pass_check = false)
+    public function execute(array $argc_input = [], int $argc_mode = manage::Mode_Dateup, bool $is_pass_check = false)
     {
-        $site_tag = ($input && is_array($input)) ? ((int)array_shift($input)) : '';
-
-        print_r([
-            '$site_tag' => $site_tag
-        ]);
-
+        // $site_tag = ($argc_input && is_array($argc_input)) ? ((int)array_shift($argc_input)) : '';
         try {
+            $this->post_01();
             $this->_logs_status = manage::Logs_Succeed;
-            manage::logs_msg("Successful update:{$this->_task_struct->task_id}/{$this->_task_struct->task_name}", $this->_logs_status,__FILE__,__LINE__,time());
+            manage::logs_msg("Successful post:{$this->_task_struct->task_id}/{$this->_task_struct->task_name}", $this->_logs_status,__FILE__,__LINE__,time());
         } catch (\Exception $e) {
             $this->_logs_status = manage::Logs_Fail;
             manage::logs_msg($e->getMessage(),$this->_logs_status,__FILE__,__LINE__,time());
             manage::logs_msg('Fail Coll tag:'.static::$tag.' tag_sub:'.static::$tag_sub, $this->_logs_status,__FILE__,__LINE__,time());
         }
+    }
+
+
+    /** 发布 01 */
+    public function post_01()
+    {
+        print_r([ '$site_tag' => $this->struct_get()->site_tag, 'arguments' => $this->struct_get()->arguments,  ]);
     }
 }

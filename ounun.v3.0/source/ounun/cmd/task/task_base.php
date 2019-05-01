@@ -2,8 +2,12 @@
 
 namespace ounun\cmd\task;
 
+
+use extend\config_cache;
 use ounun\cmd\console;
+use ounun\config;
 use ounun\mvc\model\admin\purview;
+use ounun\pdo;
 
 abstract class task_base
 {
@@ -27,7 +31,7 @@ abstract class task_base
     /** @var int 状态  0:正常(灰) 1:失败(红色) 6:突出(橙黄)  99:成功(绿色) */
     protected $_logs_status = manage::Logs_Normal;
     /** @var int 模式  0:采集全部  1:检查 2:更新   见 \task\manage::mode_XXX */
-    protected $_mode = manage::Mode_Check;
+    protected $_argc_mode = manage::Mode_Check;
 
 
     /** @var bool 是否运行过 */
@@ -102,45 +106,59 @@ abstract class task_base
 
     /**
      * 执行任务
-     * @param array $input
-     * @param int $mode
+     * @param array $argc_input
+     * @param int $argc_mode
      * @param bool $is_pass_check
+     * @return int
      */
-    public function execute_do(array $input = [], int $mode = manage::Mode_Dateup, bool $is_pass_check = false)
+    public function execute_do(array $argc_input = [], int $argc_mode = manage::Mode_Dateup, bool $is_pass_check = false)
     {
         $rs = $this->check($is_pass_check);
         if (error_is($rs)) {
             console::echo(error_message($rs), console::Color_Red, __FILE__, __LINE__, time(), ' ');
             console::echo(" task_id:{$this->struct_get()->task_id} name:{$this->tag_get()}/{$this->struct_get()->task_name}", console::Color_Brown, '', 0, 0, ' ');
             console::echo(get_class($this), console::Color_Blue);
-            return;
+            return 0;
         }
-        //
-        $this->_run_is = true;
+        // start
         $this->_run_time = 0 - microtime(true);
+        $this->_argc_mode = $argc_mode;
+        $this->_run_is = true;
+        // init
+        $this->_db_init();
+        manage::logs_init();
+        $this->_db_update(manage::Status_Runing);
+        // logs
         console::echo("↓↓↓ 任务开始 ↓↓↓ --> task_id:{$this->struct_get()->task_id} name:{$this->tag_get()}/{$this->struct_get()->task_name}", console::Color_Green, __FILE__, __LINE__, time(), ' ');
         console::echo(get_class($this), console::Color_Blue);
-        // init
-        manage::logs_init();
         // execute
-        $this->execute($input, $mode, $is_pass_check);
+        $this->execute($argc_input, $argc_mode, $is_pass_check);
         // _run_time
         $this->_run_time += microtime(true);
-        $this->done();
-        console::echo("↑↑↑ 任务结束 ↑↑↑ <-- task_id:{$this->struct_get()->task_id} ", console::Color_Green, __FILE__, __LINE__, time(), '');
-        console::echo('运行时间:' . str_pad(round($this->run_time_get(), 4) . 's', 8), console::Color_Light_Purple);
+        $this->_db_done();
+        console::echo("↑↑↑ 任务结束 ↑↑↑ <-- task_id:{$this->struct_get()->task_id} logs_id:".manage::logs_id_get()." ", console::Color_Green, __FILE__, __LINE__, time(), '');
+        console::echo('运行时间:' . str_pad(round($this->run_time_get(), 4) . 's', 8), console::Color_Light_Purple,'',0,0,"\n\n");
+        return $this->struct_get()->task_id;
     }
 
     /**
      * 执行任务
-     * @param array $input
-     * @param int $mode
+     * @param array $argc_input
+     * @param int $argc_mode
      * @param bool $is_pass_check
      */
-    abstract public function execute(array $input = [], int $mode = manage::Mode_Dateup, bool $is_pass_check = false);
+    abstract public function execute(array $argc_input = [], int $argc_mode = manage::Mode_Dateup, bool $is_pass_check = false);
 
-    /** 返回运行状态 */
-    abstract public function status();
+    /**
+     * 返回运行状态
+     * @return array
+     */
+    public function status()
+    {
+        $this->_logs_status = manage::Logs_Fail;
+        manage::logs_msg("class:" . get_class($this), $this->_logs_status,__FILE__,__LINE__,time());
+        return [];
+    }
 
     /**
      * 检查 执行
@@ -162,21 +180,82 @@ abstract class task_base
     }
 
     /**
+     * _db_init
+     */
+    public function _db_init()
+    {
+        if ($this->_run_is && $this->_task_struct) {
+            $is_db_caiji = false;
+            $is_db_site  = false;
+            if($this->_task_struct->run_type == manage::Run_Type_Post){
+                $is_db_caiji = true;
+                $is_db_site  = true;
+            }elseif($this->_task_struct->run_type == manage::Run_Type_System){
+                $is_db_caiji = false;
+                $is_db_site  = true;
+            }else{ // manage::Run_Type_Caiji
+                $is_db_caiji = true;
+                $is_db_site  = false;
+            }
+            // caiji
+            if($is_db_caiji && $this->_task_struct->caiji_tag){
+                $caiji_tag = $this->_task_struct->caiji_tag;
+                $libs = config::$global['caiji'][$caiji_tag];
+                if ($libs && $libs['db'] && config::$database[$libs['db']]) {
+                    manage::db_caiji(config::$database[$libs['db']]);
+                }
+            }
+            // site
+            if($is_db_site && $this->_task_struct->site_tag){
+                $site_info = config_cache::instance(\c::Cache_Tag_Site, manage::db_biz())->site_info($this->_task_struct->site_tag);
+                if ($site_info['config_db']) {
+                    $db_cfg = json_decode($site_info['config_db'], true);
+                    if ($db_cfg && $db_cfg['host']) {
+                        manage::db_site($db_cfg); 
+                    }
+                }
+            }
+        }
+    }
+
+    /**
      * 执行完成
      */
-    public function done()
+    protected function _db_done()
     {
         if ($this->_run_is) {
+            $this->_task_struct->update(time());
             $bind = [
                 'task_id' => $this->_task_struct->task_id,
                 'time_ignore' => $this->_task_struct->time_ignore,
                 'time_last' => $this->_task_struct->time_last,
+
+                'run_hostname' => gethostname(),
+                'run_status'   => manage::Status_Await,
             ];
             $this->_run_is = false;
             manage::logs_extend_set(['count' => $this->_task_struct->count]);
-            manage::db_biz()->query("UPDATE ".manage::$table_task." SET `time_ignore` = :time_ignore ,`time_last` = :time_last ,`count` = `count` + 1 WHERE `task_id` = :task_id; ", $bind)->affected();
-            // manage::db_biz()->stmt()->debugDumpParams();
+            manage::db_biz()->query("UPDATE ".manage::$table_task." SET `run_hostname` = :run_hostname ,`run_status` = :run_status ,`time_ignore` = :time_ignore ,`time_last` = :time_last ,`count` = `count` + 1 WHERE `task_id` = :task_id; ", $bind)->affected();
         }
-        manage::logs_write($this->_logs_status, $this->run_time_get());
+        manage::logs_write($this->_logs_status, $this->run_time_get(),true);
+    }
+
+    /**
+     * @param int $run_status
+     */
+    protected function _db_update(int $run_status = manage::Status_Runing)
+    {
+        if ($this->_run_is) {
+            $this->_task_struct->update(time());
+            $bind = [
+                'task_id' => $this->_task_struct->task_id,
+                'time_ignore' => $this->_task_struct->time_ignore,
+                'time_last' => $this->_task_struct->time_last,
+
+                'run_hostname' => gethostname(),
+                'run_status'   => $run_status,
+            ];
+            manage::db_biz()->query("UPDATE ".manage::$table_task." SET `run_hostname` = :run_hostname ,`run_status` = :run_status ,`time_ignore` = :time_ignore ,`time_last` = :time_last  WHERE `task_id` = :task_id; ", $bind)->affected();
+        }
     }
 }

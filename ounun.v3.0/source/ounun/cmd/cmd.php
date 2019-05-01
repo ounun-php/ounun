@@ -63,6 +63,6 @@ abstract class cmd
      * @return null|int
      * @throws \LogicException
      */
-    abstract public function execute(array $input);
+    abstract public function execute(array $argc_input);
 
 }

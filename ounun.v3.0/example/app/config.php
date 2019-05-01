@@ -38,6 +38,23 @@ define('Const_Baidu_Xzh_Token', '');
 
 /** 配制cache_file */
 \ounun\config::global_set([
+    'stat' =>
+        [
+            'baidu' 		=> '',  // 百度统计
+            'cnzz'  		=> '',  // cnzz统计
+        ],
+    'benan' => '', // 备案号
+    'seo' => [
+        'baidu_token'       => '', // Baidu API
+        'baidu_xzh_site_id' => '', // SiteId_Xzh API
+        'baidu_xzh_token'   => '', // Const_Baidu_Xzh_Token API
+    ],
+    // sitemap
+    'sitemap' => [
+        'urls'  => ' `v1_core_sitemap` ',      // 表格 所有的URL  网站地图
+        'push'  => ' `v1_core_sitemap_push` ', // 表格 URL提交
+    ],
+    //  配制cache_file
     'cache_file' =>
         [
             'type' => \ounun\cache\core::Type_File,

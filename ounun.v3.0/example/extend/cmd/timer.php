@@ -17,15 +17,15 @@ class timer extends \ounun\cmd\cmd
             "./ounun adm:tools oss [6mm,99mm] 文件移动\n";
     }
 
-    public function execute(array $input)
+    public function execute(array $argc_input)
     {
         $method_default = 'timer_5m';
-        $method = $input[2] ? 'timer_' . $input[2] : $method_default;
+        $method = $argc_input[2] ? 'timer_' . $argc_input[2] : $method_default;
         if (method_exists($this, $method)) {
-            $this->$method($input);
+            $this->$method($argc_input);
         } else {
             console::echo("找不到\"{$method}\",执行默认:\"{$method_default}\"", console::Color_Red);
-            $this->$method_default($input);
+            $this->$method_default($argc_input);
         }
     }
 

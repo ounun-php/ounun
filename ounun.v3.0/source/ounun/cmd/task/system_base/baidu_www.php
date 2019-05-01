@@ -4,16 +4,17 @@ namespace ounun\cmd\task\system_base;
 
 use ounun\api_sdk\com_baidu;
 use ounun\cmd\task\manage;
+use ounun\cmd\task\struct;
 
-abstract class baidu_wap extends _system
+abstract class baidu_www extends _system
 {
     /** @var string 分类 */
     public static $tag = 'system';
     /** @var string 子分类 */
-    public static $tag_sub = 'baidu_wap';
+    public static $tag_sub = 'baidu_www';
 
     /** @var string 任务名称 */
-    public static $name = '提交新网址 [baidu_wap]';
+    public static $name = '提交新网址 [baidu_www]';
     /** @var string 定时 */
     public static $crontab = '{1-59} 10 * * *';
     /** @var int 最短间隔 */
@@ -30,7 +31,7 @@ abstract class baidu_wap extends _system
         $this->_push_step = com_baidu::max_push_step;
         $this->_push_step_max = com_baidu::max_push_step;
         do {
-            $do = $this->_do_push(com_baidu::type_baidu_wap, $is_today);
+            $do = $this->_do_push(com_baidu::type_baidu_pc, $is_today);
         } while ($do);
     }
 
@@ -40,9 +41,9 @@ abstract class baidu_wap extends _system
      */
     public function _push_api(array $urls_domain)
     {
-        list($http, $space, $domain) = explode('/', $this->_url_root_wap);
+        list($http, $space, $domain) = explode('/', $this->_url_root_www);
         $site_url = "{$http}//{$domain}";
-        $api = com_baidu::replace(com_baidu::api_baidu_wap, $this->_seo, $site_url);
+        $api = com_baidu::replace(com_baidu::api_baidu_www, $this->_seo, $site_url);
         $rs = $this->_push_curl($api, $urls_domain);
         manage::logs_msg("\$rs:" . json_encode_unescaped($rs), manage::Logs_Normal, __FILE__, __LINE__, time());
         $success = (int)$rs['success'];
@@ -50,13 +51,14 @@ abstract class baidu_wap extends _system
         return [$success, $remain];
     }
 
+
     /**
      * @param array $rs
      * @return array [$urls_path, $urls_domain]
      */
     protected function _urls(array $rs)
     {
-        $root        = $this->_url_root_wap;
+        $root        = $this->_url_root_www;
         // -------------------------------------
         $urls_path   = [];
         $urls_domain = [];

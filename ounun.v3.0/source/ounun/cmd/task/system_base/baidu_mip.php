@@ -2,9 +2,8 @@
 
 namespace ounun\cmd\task\system_base;
 
-use ounun\cmd\task\libs\com_baidu;
+use ounun\api_sdk\com_baidu;
 use ounun\cmd\task\manage;
-use ounun\cmd\task\struct;
 
 abstract class baidu_mip extends _system
 {
@@ -21,49 +20,51 @@ abstract class baidu_mip extends _system
     public static $interval = 86400;
 
     /**
-     * 执行任务
-     * @param array $input
-     * @param int $mode
-     * @param bool $is_pass_check
-     */
-    public function execute(array $input = [], int $mode = manage::Mode_Dateup, bool $is_pass_check = false)
-    {
-        try {
-            $this->_logs_status = manage::Logs_Succeed;
-            // $this->url_push_baidu_pc_mip();
-            manage::logs_msg("Successful push baidu_mip",$this->_logs_status,__FILE__,__LINE__,time());
-        } catch (\Exception $e) {
-            $this->_logs_status = manage::Logs_Fail;
-            manage::logs_msg($e->getMessage(),$this->_logs_status,__FILE__,__LINE__,time());
-            manage::logs_msg("Fail push baidu_mip",$this->_logs_status,__FILE__,__LINE__,time());
-        }
-    }
-
-    public function push_mip(array $urls)
-    {
-        $api = str_replace(['{$site}', '{$token}'], [$this->_url_root_mip, $this->_token_site], com_baidu::api_baidu_mip);
-        return $this->_push($api, $urls);
-    }
-
-
-    /**
      * 定时  数据接口提交 mip
-     * @param bool $is_today false :历史   true  :当天
+     * @param bool $is_today
      */
-    public function do_push_mip($is_today = false)
+    protected function _do(bool $is_today = false)
     {
+        manage::logs_msg(__METHOD__ . "->_do", manage::Logs_Normal, __FILE__, __LINE__, time());
+
         $this->_push_step = com_baidu::max_push_step;
+        $this->_push_step_max = com_baidu::max_push_step;
         do {
             $do = $this->_do_push(com_baidu::type_baidu_mip, $is_today);
         } while ($do);
     }
 
     /**
-     * 定时  数据接口提交
-     * @param bool $is_today false :历史   true  :当天
+     * @param array $urls_domain
+     * @return mixed
      */
-    public function do_push($is_today = false)
+    public function _push_api(array $urls_domain)
     {
-        $this->do_push_mip($is_today);
+        list($http, $space, $domain) = explode('/', $this->_url_root_mip);
+        $site_url = "{$http}//{$domain}";
+        $api = com_baidu::replace(com_baidu::api_baidu_mip, $this->_seo, $site_url);
+        $rs = $this->_push_curl($api, $urls_domain);
+        //
+        manage::logs_msg("\$rs:" . json_encode_unescaped($rs), manage::Logs_Normal, __FILE__, __LINE__, time());
+        $success = (int)$rs['success_mip'];
+        $remain = (int)$rs['remain_mip'];
+        return [$success, $remain];
+    }
+
+    /**
+     * @param array $rs
+     * @return array [$urls_path, $urls_domain]
+     */
+    protected function _urls(array $rs)
+    {
+        $root        = $this->_url_root_mip;
+        // -------------------------------------
+        $urls_path   = [];
+        $urls_domain = [];
+        foreach ($rs as $v) {
+            $urls_path[] = $v['loc'];
+            $urls_domain[] = $root . $v['loc'];
+        }
+        return [$urls_path, $urls_domain];
     }
 }

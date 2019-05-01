@@ -11,10 +11,10 @@ class data
      */
     static public function arrays2array(array $array): array
     {
-        static $result_array = array();
+        static $result_array = [];
         foreach ($array as $value) {
             if (is_array($value)) {
-                self::arrays2array($value);
+                static::arrays2array($value);
             } else {
                 $result_array[] = $value;
             }
@@ -55,12 +55,12 @@ class data
             if ($ps) {
                 $xml .= "{$t}<{$key2}s>\n";
                 foreach ($data as $data2) {
-                    $xml .= self::array2xml($data2, $key, "{$t}\t", $ps, $ps_auto);
+                    $xml .= static::array2xml($data2, $key, "{$t}\t", $ps, $ps_auto);
                 }
                 $xml .= "{$t}</{$key2}s>\n";
             } else {
                 foreach ($data as $data2) {
-                    $xml .= self::array2xml($data2, $key, "{$t}", $ps, $ps_auto);
+                    $xml .= static::array2xml($data2, $key, "{$t}", $ps, $ps_auto);
                 }
             }
         } else {
@@ -79,7 +79,7 @@ class data
             //////////////////////////////////////////////////////
             $v = '';
             foreach ($data as $key2 => $data2) {
-                $v .= self::array2xml($data2, $key2, "{$t}\t", $ps, $ps_auto);
+                $v .= static::array2xml($data2, $key2, "{$t}\t", $ps, $ps_auto);
             }
             if (is_array($data['#'])) {
                 $a = '';
@@ -191,7 +191,7 @@ class data
     public static  function xml_encode($data, $root = 'ounun', $item = 'item', $attr = '', $id = 'id', $encoding = 'utf-8')
     {
         if (is_array($attr)) {
-            $_attr = array();
+            $_attr = [];
             foreach ($attr as $key => $value) {
                 $_attr[] = "{$key}=\"{$value}\"";
             }

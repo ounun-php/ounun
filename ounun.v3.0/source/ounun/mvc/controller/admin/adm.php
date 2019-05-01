@@ -117,7 +117,7 @@ abstract class adm extends \v
         // print_r($this->_replace_data);
         $this->init_page($page, false, true, '', 0, false);
         //
-        $this->_nav_data_set($page_title, $page_title_sub, $nav);
+        $this->_nav_data_set( $page_title_sub, $page_title,$nav);
     }
 
     /**

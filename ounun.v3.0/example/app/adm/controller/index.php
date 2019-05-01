@@ -18,10 +18,11 @@ class index extends adm
 
             $scfg_cache = config_cache::instance(\c::Cache_Tag_Site, self::$db_biz);
             $site0 = $scfg_cache->site();
+
             $site = [];
             foreach ($site0 as $k2 => $v2) {
                 foreach ($v2 as $k => $v) {
-                    if ($v['state']) {
+                    if ($v['status']) {
                         $site[$v['zqun_tag']][] = [
                             'k' => $v['site_tag'],
                             'name' => $v['name'],
@@ -33,12 +34,14 @@ class index extends adm
             }
 
             $zqun0 = $scfg_cache->zqun();
+
             $zqun = [];
             foreach ($zqun0 as $v) {
                 if ($site[$v['zqun_tag']]) {
                     $zqun[$v['zqun_tag']] = $v['name'];
                 }
             }
+            //  print_r(['$zqun'=>$zqun,'$site0'=>$site0,'$site'=>$site]);
             $scfg = ['site' => $site, 'zqun' => $zqun];
 
             require \v::tpl_fixed('index.html.php');

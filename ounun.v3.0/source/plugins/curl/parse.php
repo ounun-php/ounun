@@ -10,7 +10,7 @@ class parse
      * @param string $content 所在内容
      * @param string $left 目标内容左边标识点
      * @param string $right 目标内容右边标识点
-     * @return mixed
+     * @return string
      */
     static public function left(string $content, string $left, string $right)
     {
@@ -22,7 +22,7 @@ class parse
      * @param string $content  所在内容
      * @param string $right    目标内容右边标识点
      * @param string $left     目标内容左边标识点
-     * @return mixed
+     * @return string
      */
     static public function right(string $content, string $right, string $left)
     {
@@ -62,7 +62,10 @@ class parse
         $rs = [];
         $c2 = explode($middle, $content);
         foreach ($c2 as $v2) {
-            $rs[] = self::left($v2, $left, $right);
+            $v3   = self::left($v2, $left, $right);
+            if($v3){
+                $rs[] =  $v3;
+            }
         }
         return $rs;
     }
@@ -80,7 +83,10 @@ class parse
         $rs = [];
         $c2 = explode($middle, $content);
         foreach ($c2 as $v2) {
-            $rs[] = self::right($v2, $right, $left);
+            $v3 = self::right($v2, $right, $left);
+            if($v3){
+                $rs[] =  $v3;
+            }
         }
         return $rs;
     }
@@ -98,5 +104,18 @@ class parse
         $matches = [];
         preg_match_all('/' . $pattern . '/', $subject, $matches, PREG_SET_ORDER);
         return $matches;
+    }
+
+
+    /**
+     * 正则提取正文里指定的第几张图片地址
+     * @param string $content
+     * @return array
+     */
+    static function img_urls(string $content): array
+    {
+        preg_match_all('/<img(.*?)src="(.*?)(?=")/si', $content, $imgarr);///(?<=img.src=").*?(?=")/si
+        preg_match_all('/(?<=src=").*?(?=")/si', implode('" ', $imgarr[0]) . '" ', $imgarr);
+        return $imgarr[0];
     }
 }

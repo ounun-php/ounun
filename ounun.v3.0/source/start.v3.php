@@ -215,9 +215,9 @@ class config
     {
         /** Www URL */
         static::$url_www = $url_www;
-        /** Mobile URL */
+        /** Wap URL Mobile */
         static::$url_wap = $url_wap;
-        /** Mobile URL */
+        /** Mip URL */
         static::$url_mip = $url_mip;
         /** Api URL */
         static::$url_api = $url_api;
@@ -363,10 +363,10 @@ class config
             '{$page_url}' => static::$view->page_url,
             '{$page_file}' => static::$view->page_file,
 
-            '{$url_www}'  => static::$url_www,
-            '{$url_wap}'  => static::$url_wap,
-            '{$url_mip}'  => static::$url_mip,
-            '{$url_api}'  => static::$url_api,
+            '{$url_www}' => static::$url_www,
+            '{$url_wap}' => static::$url_wap,
+            '{$url_mip}' => static::$url_mip,
+            '{$url_api}' => static::$url_api,
             '{$url_page}' => static::url_page(),
 
             '{$canonical_www}' => static::$url_www . $url_base,
@@ -390,6 +390,8 @@ class config
     {
         return static::$i18n;
     }
+
+
 
     /** @return string 默认 数据库 */
     static public function database_default_get()
@@ -435,6 +437,17 @@ class config
             $url = count($url) > 1 ? '??' . implode(',', $url) : $url[0];
         }
         return "{$static_root}{$url}";
+    }
+
+    /** @return string 当前带http的网站根 */
+    static public function url_root_curr_get()
+    {
+        if (static::$tpl_style == '_mip') {
+            return static::$url_mip;
+        } elseif (static::$tpl_style == '_wap') {
+            return static::$url_wap;
+        }
+        return static::$url_www;
     }
 
     /**
@@ -621,7 +634,7 @@ function start(array $mod, string $host)
         $val_0 = config::$routes_default;
     }
     // apps_domain_set
-    config::app_name_path_set(Dir_Ounun, Dir_Root,Dir_Data, (string)$val_0['app'], (string)$val_0['url']);
+    config::app_name_path_set(Dir_Ounun, Dir_Root, Dir_Data, (string)$val_0['app'], (string)$val_0['url']);
     // add_paths
     config::add_paths(Dir_App, 'app', true);
     // load_config 1 scfg::$dir_app

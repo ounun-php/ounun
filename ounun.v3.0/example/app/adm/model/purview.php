@@ -12,7 +12,7 @@ class purview extends \ounun\mvc\model\admin\purview
     /** 导航头 要显示 站点 */
     const nav_site = 10;
     /** 导航头 要显示 站点 */
-    const nav_libs = 20;
+    const nav_caiji = 20;
 
     /** 网站后台配 */
     public $config = [

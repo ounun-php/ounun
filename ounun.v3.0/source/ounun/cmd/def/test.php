@@ -14,7 +14,7 @@ class test extends \ounun\cmd\cmd
         $this->help = "Test phpuint instructions";
     }
 
-    public function execute(array $input)
+    public function execute(array $argc_input)
     {
         // 打包下载
         echo "\n ---> " . date("Y-m-d H:i:s ") . ' ' . __CLASS__ . ' ok' . "\n";

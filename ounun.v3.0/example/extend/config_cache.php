@@ -56,6 +56,7 @@ class config_cache extends \ounun\cache\config
     public function site_clean()
     {
         $this->_clean("site");
+        $this->_clean("site_info");
     }
 
     protected function _site_mysql($args)
@@ -69,6 +70,36 @@ class config_cache extends \ounun\cache\config
         $data = [];
         foreach ($rs as $v) {
             $data[$v['zqun_tag']][$v['site_tag']] = $v;
+        }
+        return $data;
+    }
+
+    /** site_info */
+    public function site_info($site_tag)
+    {
+        $data =  $this->_data('site_info', '_site_info_mysql');
+        if($data && $data[$site_tag]){
+            return $data[$site_tag];
+        }
+        return [];
+    }
+
+    public function site_info_clean()
+    {
+        $this->site_clean();
+    }
+
+    protected function _site_info_mysql($args)
+    {
+        $rs = $this->_db->table('`sys_site_info`')
+            ->field('*')
+            ->order('`type`', pdo::Order_Desc)
+            ->order('`zqun_tag`', pdo::Order_Asc)
+            ->order('`site_tag`', pdo::Order_Asc)
+            ->column_all();
+        $data = [];
+        foreach ($rs as $v) {
+            $data[$v['site_tag']] = $v;
         }
         return $data;
     }

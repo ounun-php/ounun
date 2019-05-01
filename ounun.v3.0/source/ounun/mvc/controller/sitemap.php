@@ -2,8 +2,26 @@
 
 namespace ounun\mvc\controller;
 
+use ounun\api_sdk\com_baidu;
+use ounun\config;
+
 class sitemap extends \v
 {
+    /**  @var string  网站地图   */
+    protected $_table = ' `v1_core_sitemap` ';
+
+    /**
+     * sitemap constructor.
+     * @param $mod
+     */
+    public function __construct($mod)
+    {
+        if( config::$global['sitemap'] && config::$global['sitemap']['urls']  ){
+            $this->_table = config::$global['sitemap']['urls'];
+        }
+        parent::__construct($mod);
+    }
+
     /**
      * 网站地址
      * @param $mod array
@@ -13,8 +31,8 @@ class sitemap extends \v
         header("Content-type:text/xml");
         $this->init_page('/sitemap/index.xml', true, true, true, '', 86400);
 
-        $url_root = "sitemap/list/";
-        $xml = $this->maps_index($url_root, $_SERVER['HTTP_HOST']);
+        $path_root = "/sitemap/list/";
+        $xml = $this->_maps_index($path_root);
         exit($xml);
     }
 
@@ -26,10 +44,9 @@ class sitemap extends \v
         header("Content-type:text/xml");
         $page = (int)$mod[1];
         $this->init_page("/sitemap/list/{$page}.xml", true, true, true, '', 86400);
-        $xml = $this->maps_page($page, $_SERVER['HTTP_HOST']);
+        $xml = $this->_maps_page($page);
         exit($xml);
     }
-
 
     /**
      * 网站地址
@@ -37,19 +54,21 @@ class sitemap extends \v
      * @param string $host
      * @return string
      */
-    protected function maps_index($url_root = 'sitemap/list/', string $host = '')
+    protected function _maps_index($url_root)
     {
-        $total = static::$db_v->query("SELECT count(`url_id`) as `cc` FROM {$this->_table_sitemap};")->column_one();
-        $total = (int)$total['cc'];
+        $total = static::$db_v->table($this->_table)->count_value('`url_id`');
         $total_page = ceil($total / com_baidu::max_sitemaps_page);
 
-        $url_root2 = $this->_maps_url($host);
+        $url_root_curr = substr(config::url_root_curr_get(),0,-1);
         $urls = [];
         $date = date('Y-m-d', time());
         for ($page = 1; $page <= $total_page; $page++) {
-            $urls[] = ['lastmod' => $date, 'loc' => "{$url_root2}/{$url_root}{$page}.xml"];
+            $urls[] = [
+                'lastmod' => $date,
+                'loc' => "{$url_root_curr}/{$url_root}{$page}.xml"
+            ];
         }
-        $xml = $this->_maps_index($urls);
+        $xml = $this->_maps_xml_index($urls);
         return $xml;
     }
 
@@ -59,26 +78,26 @@ class sitemap extends \v
      * @param string $host
      * @return mixed|string
      */
-    protected function maps_page(int $page = 1, string $host = '')
+    protected function _maps_page(int $page = 1)
     {
         $page = $page < 1 ? 1 : $page;
         $start = ($page - 1) * com_baidu::max_sitemaps_page;
         $rows = com_baidu::max_sitemaps_page;
-        $rs = $this->_db_site->query("SELECT * FROM {$this->_table_sitemap} ORDER BY `lastmod` DESC ,`url_id` ASC limit {$start},{$rows};")->column_all();
+        $rs = static::$db_v->query("SELECT * FROM {$this->_table} ORDER BY `lastmod` DESC ,`url_id` ASC limit {$start},{$rows};")->column_all();
         // echo $this->_db->sql()."<br />";
-        $url_root = $this->_maps_url($host);
+        $url_root_curr = substr(config::url_root_curr_get(),0,-1);
         $urls = [];
         foreach ($rs as $v) {
             $urls[] = [
-                'loc' => $url_root . $v['loc'],
+                'loc' => $url_root_curr . $v['loc'],
                 'priority' => 0.0 + $v['weight'],
                 'lastmod' => date('Y-m-d', $v['lastmod']),
                 'changefreq' => $v['changefreq']
             ];
         }
         // print_r($urls);
-        $xml = $this->_maps_page($urls);
-        if ($this->_domain_mip == $host && $this->_domain_wap == $host) {
+        $xml = $this->_maps_xml_page($urls);
+        if (config::$tpl_style == '_wap' || config::$tpl_style == '_mip') {
             $xml = str_replace('</loc>', '</loc><mobile:mobile type="mobile" />', $xml);
         }
         return $xml;
@@ -88,11 +107,12 @@ class sitemap extends \v
      * @param mixed $sitemaps
      * @return string
      */
-    protected function _maps_index($sitemaps)
+    protected function _maps_xml_index($sitemaps)
     {
         return '<?xml version="1.0" encoding="utf-8"?' . '>' . "\n"
             . '<sitemapindex>' . "\n"
-            . \ounun\tool\data::array2xml($sitemaps, 'sitemap') . '</sitemapindex>';
+            . \ounun\tool\data::array2xml($sitemaps, 'sitemap') .
+           '</sitemapindex>';
     }
 
     /**
@@ -100,7 +120,7 @@ class sitemap extends \v
      * @param mixed $urls_data [array('loc'=>'http://www.383434.com','priority'=>'1.00', 'lastmod'=>'2015-03-23','changefreq'=>'daily')]
      * @return string
      */
-    protected function _maps_page($urls_data)
+    protected function _maps_xml_page($urls_data)
     {
         $urls = [];
         foreach ($urls_data as $v) {

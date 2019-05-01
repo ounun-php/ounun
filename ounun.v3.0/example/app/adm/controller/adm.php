@@ -28,21 +28,23 @@ class adm extends \ounun\mvc\controller\admin\adm
             $sites = config_cache::instance(\c::Cache_Tag_Site, self::$db_biz)->site();
             $sites2 = $sites[$adm_zqun];
             if ($sites2 && is_array($sites2)) {
-                $sites3 = $sites2[$adm_site];
-                if ($sites3 && purview::app_type_site == $sites3['type'] && $adm_site == $sites3['site_tag']) {
-                    $this->_site_type = $sites3['type'];
-                    if ($sites3['dns']) {
-                        $db_dns0 = json_decode($sites3['dns'], true);
+                $site_info = $sites2[$adm_site];
+                if ($site_info && purview::app_type_site == $site_info['type'] && $adm_site == $site_info['site_tag']) {
+                    $this->_site_type = $site_info['type'];
+                    if ($site_info['dns']) {
+                        $db_dns0 = json_decode($site_info['dns'], true);
                         if ($db_dns0) {
                             $db_dns = [];
                             foreach ($db_dns0 as $v) {
-                                $db_dns[$v['tag']] = $v;
+                                if(isset($v['tag']) && $v['tag']){
+                                    $db_dns[$v['tag']] = $v;
+                                }
                             }
                             $GLOBALS['_site']['dns'] = $db_dns;
                         }
                     }
-                    if ($sites3['db']) {
-                        $db_cfg = json_decode($sites3['db'], true);
+                    if ($site_info['config_db']) {
+                        $db_cfg = json_decode($site_info['config_db'], true);
                         if ($db_cfg && $db_cfg['host']) {
                             static::$db_site = pdo::instance('site', $db_cfg);
                         } else {
@@ -51,7 +53,7 @@ class adm extends \ounun\mvc\controller\admin\adm
                     } else {
                         static::$db_site = static::$db_biz;
                     }
-                } elseif ($sites3 && purview::app_type_admin == $sites3['type']) {
+                } elseif ($site_info && purview::app_type_admin == $site_info['type']) {
                     static::$db_site = static::$db_biz;
                 } else {
                     static::$db_site = static::$db_biz;
@@ -61,16 +63,15 @@ class adm extends \ounun\mvc\controller\admin\adm
         }
 
         // adm_purv -----------------
-        $adm_libs = static::$auth->cookie_get(purview::adm_caiji_tag);
-        if ($adm_libs) {
-            $libs = config::$global['libs'][$adm_libs];
-            if ($libs && $libs['db']) {
-                static::$db_caiji = pdo::instance('caiji', $libs['db']);
+        $caiji_tag = static::$auth->cookie_get(purview::adm_caiji_tag);
+        if ($caiji_tag) {
+            $libs = config::$global['caiji'][$caiji_tag];
+            if ($libs && $libs['db'] && config::$database[$libs['db']]) {
+                static::$db_caiji = pdo::instance('caiji', config::$database[$libs['db']]);
             } else {
                 static::$db_caiji = static::$db_biz;
             }
         }
-
         parent::__construct($mod);
     }
 
@@ -93,9 +94,9 @@ class adm extends \ounun\mvc\controller\admin\adm
     {
         // REQUEST_URI
         $uri = url_original($_SERVER['REQUEST_URI']);
-        if (purview::nav_libs == $nav) {
+        if (purview::nav_caiji == $nav) {
             $libs_key = static::$auth->cookie_get(purview::adm_caiji_tag);
-            $title_sub = '请选择"资料库"';
+            $title_sub = '请选择"采集保存库"';
             // print_r(['$libs_key'=>$libs_key]);
             if (!$libs_key) {
                 go_url("/select_tip.html?nav={$nav}&uri={$uri}&title_sub=" . urlencode($title_sub));

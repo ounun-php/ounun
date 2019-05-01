@@ -21,7 +21,7 @@ class help extends cmd
      * @param array $input
      * @return int|null|void
      */
-    public function execute(array $input)
+    public function execute(array $argc_input)
     {
         $cs = [];
         foreach ($this->console->commands as $c) {

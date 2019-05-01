@@ -2,20 +2,21 @@
 
 namespace ounun\cmd\task\system_base;
 
+
 use ounun\api_sdk\com_baidu;
 use ounun\cmd\task\manage;
 
-abstract class baidu_wap extends _system
+abstract class baidu_xzh_realtime extends _system
 {
     /** @var string 分类 */
     public static $tag = 'system';
     /** @var string 子分类 */
-    public static $tag_sub = 'baidu_wap';
+    public static $tag_sub = 'baidu_xzh_realtime';
 
     /** @var string 任务名称 */
-    public static $name = '提交新网址 [baidu_wap]';
+    public static $name = '提交熊掌号 [baidu_xzh_realtime]';
     /** @var string 定时 */
-    public static $crontab = '{1-59} 10 * * *';
+    public static $crontab = '{1-59} 11 * * *';
     /** @var int 最短间隔 */
     public static $interval = 86400;
 
@@ -27,10 +28,10 @@ abstract class baidu_wap extends _system
     {
         manage::logs_msg(__METHOD__ . "->_do", manage::Logs_Normal, __FILE__, __LINE__, time());
 
-        $this->_push_step = com_baidu::max_push_step;
-        $this->_push_step_max = com_baidu::max_push_step;
+        $this->_push_step = com_baidu::max_push_xzh_doday;
+        $this->_push_step_max = com_baidu::max_push_xzh_doday;
         do {
-            $do = $this->_do_push(com_baidu::type_baidu_wap, $is_today);
+            $do = $this->_do_push(com_baidu::type_baidu_xzh_realtime, $is_today);
         } while ($do);
     }
 
@@ -40,13 +41,12 @@ abstract class baidu_wap extends _system
      */
     public function _push_api(array $urls_domain)
     {
-        list($http, $space, $domain) = explode('/', $this->_url_root_wap);
-        $site_url = "{$http}//{$domain}";
-        $api = com_baidu::replace(com_baidu::api_baidu_wap, $this->_seo, $site_url);
+        $site_url = '';
+        $api = com_baidu::replace(com_baidu::api_xzh_realtime, $this->_seo, $site_url);
         $rs = $this->_push_curl($api, $urls_domain);
         manage::logs_msg("\$rs:" . json_encode_unescaped($rs), manage::Logs_Normal, __FILE__, __LINE__, time());
-        $success = (int)$rs['success'];
-        $remain = (int)$rs['remain'];
+        $success = (int)$rs['success_realtime'];
+        $remain = (int)$rs['remain_realtime'];
         return [$success, $remain];
     }
 
@@ -56,7 +56,7 @@ abstract class baidu_wap extends _system
      */
     protected function _urls(array $rs)
     {
-        $root        = $this->_url_root_wap;
+        $root        = $this->_url_root_mip;
         // -------------------------------------
         $urls_path   = [];
         $urls_domain = [];

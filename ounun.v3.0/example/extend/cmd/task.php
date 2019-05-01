@@ -31,26 +31,26 @@ class task extends \ounun\cmd\cmd
     }
 
     /**
-     * @param array $input
+     * @param array $argc_input
      */
-    public function execute(array $input)
+    public function execute(array $argc_input)
     {
         //设置运存
         ini_set('memory_limit', -1);
 
         // 设定参数
         $input_len = 0;
-        if ($input && is_array($input)) {
-            $input_len = count($input);
+        if ($argc_input && is_array($argc_input)) {
+            $input_len = count($argc_input);
         }
         if ($input_len >= 2) {
-            array_shift($input);
-            array_shift($input);
+            array_shift($argc_input);
+            array_shift($argc_input);
         }
-        $mode = ($input_len >= 3) ? ((int)array_shift($input)) : manage::Mode_Dateup;
-        $task_id = ($input_len >= 4) ? ((int)array_shift($input)) : 0;
-        $time_sleep = ($input_len >= 5) ? ((int)array_shift($input)) : 0;
-        $time_live = ($input_len >= 6) ? ((int)array_shift($input)) : 0;
+        $argc_mode = ($input_len >= 3) ? ((int)array_shift($argc_input)) : manage::Mode_Dateup;
+        $argc_task_id = ($input_len >= 4) ? ((int)array_shift($argc_input)) : 0;
+        $argc_time_sleep = ($input_len >= 5) ? ((int)array_shift($argc_input)) : 0;
+        $argc_time_live = ($input_len >= 6) ? ((int)array_shift($argc_input)) : 0;
 
         // instance
         $db_biz = pdo::instance(config::database_default_get() );
@@ -58,10 +58,11 @@ class task extends \ounun\cmd\cmd
         // 设定表名
         manage::table_set();
         // status
+        $manage->init();
         $status = $manage->status();
-        console::print_r(succeed_data($status));
+        console::print_r($status);
         // execute
-        $manage->execute($task_id, $mode, $time_sleep, $time_live, $input);
+        $manage->execute($argc_task_id, $argc_mode, $argc_time_sleep, $argc_time_live, $argc_input);
         // ok
         console::echo("-- " . date("Y-m-d H:i:s ") . ' ' . __CLASS__ . ' execute ok',console::Color_Blue);
     }
