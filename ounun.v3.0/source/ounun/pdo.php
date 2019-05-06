@@ -273,20 +273,20 @@ class pdo
     }
 
     /**
-     * 用新值更新原有表行中的各列
-     * @param array $data 数据
-     * @param array $operate
-     * @param string $where
+     * @param array $update_data
+     * @param array $update_operate
+     * @param string $where_str
+     * @param array $where_bind
      * @param int $limit
      * @return int
      */
-    public function update(array $data, string $where = '', array $operate = [], int $limit = 1): int
+    public function update(array $update_data, array $update_operate = [], string $where_str = '', array $where_bind = [], int $limit = 1): int
     {
-        $fields = $this->_values_parse($this->_is_multiple ? array_shift($data) : $data);
-        $update = $this->_fields_update($fields, $operate);
+        $fields = $this->_values_parse($this->_is_multiple ? array_shift($update_data) : $update_data);
+        $update = $this->_fields_update($fields, $update_operate);
 
-        if ($where) {
-            $this->where($where)->limit($limit);
+        if ($where_str) {
+            $this->where($where_str)->limit($limit);
         } else {
             $this->limit($limit);
         }
@@ -294,16 +294,53 @@ class pdo
         $this->_prepare('UPDATE ' . $this->_option . ' ' . $this->_table . ' SET ' . implode(', ', $update) . ' ' . $this->_where . ' ' . $this->_limit . ' ;');
 
         if ($this->_is_multiple) {
-            // $this->_execute(array_merge($this->_bind_param,$fields));
-            // print_r(['dd11'=>array_merge($this->_bind_param,$fields),'$this->_bind_param'=>$this->_bind_param,'$fields'=>$fields]);
-            foreach ($data as &$v) {
-                $fields = $this->_values_parse($v);
-                //  print_r(['dd12'=>array_merge($this->_bind_param,$fields),'$this->_bind_param'=>$this->_bind_param,'$fields'=>$fields]);
-                $this->_execute(array_merge($this->_bind_param, $fields));
+            if($where_bind && is_array($where_bind)){
+                if ( array_keys($where_bind) === range(0, count($where_bind) - 1)) {
+                    // echo __FILE__.':'.__LINE__."\n";
+                    $i = 0;
+                    $where_bind_fields = $this->_values_parse($where_bind[$i]);
+                    $this->_execute(array_merge($this->_bind_param,$fields,$where_bind_fields));
+                    foreach ($update_data as &$v) {
+                        $i++;
+                        $where_bind_fields = $this->_values_parse($where_bind[$i]);
+                        $fields = $this->_values_parse($v);
+                        $this->_execute(array_merge($this->_bind_param, $fields,$where_bind_fields));
+                    }
+                }else{
+                    // echo __FILE__.':'.__LINE__."\n";
+                    $where_bind_fields = $this->_values_parse($where_bind);
+                    $this->_execute(array_merge($this->_bind_param,$fields,$where_bind_fields));
+                    foreach ($update_data as &$v) {
+                        $where_bind_fields = $this->_values_parse($where_bind);
+                        $fields = $this->_values_parse($v);
+                        $this->_execute(array_merge($this->_bind_param, $fields,$where_bind_fields));
+                    }
+                }
+            }else{
+                // echo __FILE__.':'.__LINE__."\n";
+                $this->_execute(array_merge($this->_bind_param,$fields));
+                foreach ($update_data as &$v) {
+                    $fields = $this->_values_parse($v);
+                    $this->_execute(array_merge($this->_bind_param, $fields));
+                }
             }
         } else {
-            // print_r(['dd21'=>array_merge($this->_bind_param,$fields),'$this->_bind_param'=>$this->_bind_param,'$fields'=>$fields]);
-            $this->_execute(array_merge($this->_bind_param, $fields));
+            if($where_bind && is_array($where_bind)){
+                if ( array_keys($where_bind) === range(0, count($where_bind) - 1)) {
+                    // echo __FILE__.':'.__LINE__."\n";
+                    foreach ($where_bind as $where_bind_v){
+                        $where_bind_fields = $this->_values_parse($where_bind_v);
+                        $this->_execute(array_merge($this->_bind_param, $fields,$where_bind_fields));
+                    }
+                }else {
+                    // echo __FILE__.':'.__LINE__."\n";
+                    $where_bind_fields = $this->_values_parse($where_bind);
+                    $this->_execute(array_merge($this->_bind_param, $fields,$where_bind_fields));
+                }
+            }else{
+                // echo __FILE__.':'.__LINE__."\n";
+                $this->_execute(array_merge($this->_bind_param, $fields));
+            }
         }
         return $this->_stmt->rowCount();
     }
@@ -780,7 +817,7 @@ class pdo
     {
         if ($field) {
             $k = $this->_param2types($param);
-            $rs = $this->where(" `{$field}` = :field ", [$k . ':field' => $value])->count()->column_one();
+            $rs = $this->where(" {$field} = :field ", [$k . ':field' => $value])->count()->column_one();
             if ($rs && $rs['count']) {
                 return true;
             }
@@ -895,6 +932,7 @@ class pdo
     protected function _keys_parse(string $sql)
     {
         $splits = preg_split('/(\:[A-Za-z0-9_]+)\b/', $sql, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY);
+        // $splits = preg_split('/(\:[^ |^,|\|;)]+)/', $sql, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY); // 支持中文字段
         $result = [];
         foreach ($splits as $v) {
             if ($v[0] == ':') {
@@ -974,9 +1012,11 @@ class pdo
      */
     protected function _execute(array &$fields)
     {
+        // $i = 0; echo "\n\n";
         foreach ($this->_bind_keys as $key) {
             $v = $fields[$key];
             if ($v) {
+                // $i++; echo "{$i} -> field:{$v['field']}, value:{$v['value']}, type:{$v['type']}\n";
                 if (\PDO::PARAM_STR == $v['type'] && isset($v['length'])) {
                     $this->_stmt->bindParam($v['field'], $v['value'], $v['type'], $v['length']);
                 } else {
@@ -993,8 +1033,13 @@ class pdo
         try{
             $this->_stmt->execute();
         }catch (\Exception $e){
+            print_r([
+                '$this->_last_sql' => $this->_last_sql,
+                '$this->_bind_param' => $this->_bind_param,
+                '$fields' => $fields,
+            ]);
             $this->_stmt->debugDumpParams();
-            // print_r($e->getTrace());
+            // echo $this->_stmt->queryString."\n";
             trigger_error("Sql Error:".$e->getMessage()."\n", E_USER_ERROR);
         }
     }

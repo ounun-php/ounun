@@ -18,13 +18,13 @@ class manage
         self::Type_Interval => '循环',
     ];
 
-    /** @var string 采集 - 运行类型  */
+    /** @var string 采集 - 运行类型 */
     const Run_Type_Caiji = 'caiji';
-    /** @var string 发布 - 运行类型  */
-    const Run_Type_Post   = 'post';
-    /** @var string 系统 - 运行类型  */
+    /** @var string 发布 - 运行类型 */
+    const Run_Type_Post = 'post';
+    /** @var string 系统 - 运行类型 */
     const Run_Type_System = 'system';
-    /** @var array 运行类型(采集/发布/系统)  */
+    /** @var array 运行类型(采集/发布/系统) */
     const Run_Type = [
         self::Run_Type_Caiji => '采集',
         self::Run_Type_Post => '发布',
@@ -94,7 +94,7 @@ class manage
      * @param pdo|null $db_site
      * @return manage
      */
-    public static function instance(\ounun\pdo $db_biz = null, \ounun\pdo $db_caiji = null, \ounun\pdo $db_site = null): self
+    public static function instance(pdo $db_biz = null, pdo $db_caiji = null, pdo $db_site = null): self
     {
         if (empty(static::$_instance_manage)) {
             static::$_instance_manage = new static();
@@ -112,7 +112,6 @@ class manage
     }
 
     /**
-     * @param string $db_tag
      * @param array $db_config
      * @return pdo 任务 数据库
      */
@@ -125,7 +124,6 @@ class manage
     }
 
     /**
-     * @param string $db_tag
      * @param array $db_config
      * @return pdo 采集 数据库
      */
@@ -154,7 +152,8 @@ class manage
      * 设定任务表与运行中的任务表
      * @param string $table_task 任务表
      * @param string $table_process 运行中的任务表
-     * @param string $table_logs 日志的任务表
+     * @param string $logs_table_task 日志的任务表
+     * @param string $logs_table_task_details
      */
     public static function table_set(string $table_task = '`sys_task`', string $table_process = '`sys_task_process`', string $logs_table_task = '`sys_logs_task`', string $logs_table_task_details = '`sys_logs_task_details`')
     {
@@ -231,7 +230,7 @@ class manage
      */
     static public function logs_id_get()
     {
-       return  static::$_logs_id;
+        return static::$_logs_id;
     }
 
     /**

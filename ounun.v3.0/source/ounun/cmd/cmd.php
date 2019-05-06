@@ -8,7 +8,7 @@ use ounun\pdo;
 abstract class cmd
 {
     /** @var pdo */
-    protected $_db;
+    public static $db;
 
     /** @var console 控制台 */
     public $console;
