@@ -328,7 +328,7 @@ function succeed_data($data)
 function out($data, string $type = '', string $jsonp_callback = '', int $json_options = JSON_UNESCAPED_UNICODE)
 {
     if (empty($type)) {
-        $type = \ounun\mvc\c::Format_Html;
+        $type = \ounun\mvc\c::Format_Json;
     }
     switch ($type) {
         // 返回JSON数据格式到客户端 包含状态信息

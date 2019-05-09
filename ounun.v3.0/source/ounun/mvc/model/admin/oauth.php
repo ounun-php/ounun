@@ -84,9 +84,9 @@ class oauth
             $ext = $this->user_extend_get($rs, $rs['adm_id']);
             $rs['exts2'] = $ext;
             $is_google = $this->_google_check($ext, $code);
-//            echo $this->_db->sql();
+            // echo adm::$db_adm->last_sql();
             // print_r($rs);
-            // exit();
+            //exit();
             if ($is_google || $ext['google']['is'] == false) {
                 // echo "\$rs['password'] :{$rs['password']} == md5(\$password) :".md5($password)."<br />\n";
                 // exit();
