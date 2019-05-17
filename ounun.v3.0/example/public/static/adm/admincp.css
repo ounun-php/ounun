@@ -518,3 +518,5 @@ a.faq { background: url(img/faq.gif) no-repeat 0 2px; padding:1px; margin-left:1
 	.mbm { margin-bottom: 10px !important; }
 	.mtw { margin-top: 20px !important; }
 	.mbw { margin-bottom: 20px !important; }
+
+	.readonly{color: #2D64B3;}

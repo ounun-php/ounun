@@ -32,24 +32,24 @@ class oauth_cookie
      * @param string $cookie_key 登录cookie Key
      * @param int $overtime_max 登录校验 超时间
      */
-    static public function config_set(string $key_private = '', string $domain = '', string $pre_key = 'a', string $cookie_key = '_', int $overtime_max = 0)
+    static public function config_set(string $key_private = '', string $domain = '', string $pre_key = '', string $cookie_key = '', int $overtime_max = 0)
     {
         // 已设定 又没有设定新的想法 直接返回
         if (empty($key_private) && static::$key_private && static::$domain) {
             return;
         }
         // 设定
-        $oauth_config = config::$global['oauth'];
-        $oauth_config = $oauth_config ? $oauth_config : [];
+        $oauth_config = config::$global['oauth']?config::$global['oauth']:[];
 
         static::$key_private = $key_private ? $key_private : $oauth_config['login_key'];
         static::$domain = $domain ? $domain : $oauth_config['login_domain'];
-        static::$pre_key = $pre_key ? $pre_key : $oauth_config['pre_key'];
-        static::$cookie_key = $cookie_key ? $cookie_key : $oauth_config['cookie_key'];
-        static::$overtime_max = $overtime_max ? $overtime_max : $oauth_config['overtime_max'];
+
+        static::$pre_key = $pre_key ? $pre_key : ($oauth_config['pre_key']?$oauth_config['pre_key']:'a');
+        static::$cookie_key = $cookie_key ? $cookie_key : ($oauth_config['cookie_key']?$oauth_config['cookie_key']:'_');
+        static::$overtime_max = $overtime_max ? $overtime_max : ($oauth_config['overtime_max']?$oauth_config['overtime_max']:static::Overtime_Max);
 
         // 设定就有误 报错
-        if (empty(static::$key_private) || empty(static::$domain) || empty(static::$overtime_max)) {
+        if (empty(static::$key_private) || empty(static::$domain) ) {
             trigger_error("Can't find config::\$global['oauth']", E_USER_ERROR);
         }
     }

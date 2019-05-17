@@ -637,16 +637,14 @@ function start(array $mod, string $host)
     config::app_name_path_set(Dir_Ounun, Dir_Root, Dir_Data, (string)$val_0['app'], (string)$val_0['url']);
     // add_paths
     config::add_paths(Dir_App, 'app', true);
+    // 模板 template_set
+    config::template_set(Dir_Template . config::$app_name . '/', (string)$val_0['tpl_style'], (string)$val_0['tpl_default']);
     // load_config 1 scfg::$dir_app
     config::load_config(config::$dir_app);
     // lang_set
     config::lang_set($lang);
-    // 模板 template_set
-    config::template_set(Dir_Template . config::$app_name . '/', (string)$val_0['tpl_style'], (string)$val_0['tpl_default']);
-
     // 开始 重定义头
     header('X-Powered-By: Ounun.org');
-
     // 设定 模块与方法
     if (is_array($mod) && $mod[0]) {
         $filename = config::load_controller("controller/{$mod[0]}.php");

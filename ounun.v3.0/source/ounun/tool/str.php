@@ -6,8 +6,8 @@ class str
 {
     /**
      * 格式化字节大小
-     * @param  number $size 字节数
-     * @param  string $delimiter 数字和单位分隔符
+     * @param number $size 字节数
+     * @param string $delimiter 数字和单位分隔符
      * @return string            格式化后的带单位的大小
      */
     static public function format_bytes($size, $delimiter = '')
@@ -330,5 +330,62 @@ class str
         if ($asc >= -11847 and $asc <= -11056) return "Y";
         if ($asc >= -11055 and $asc <= -10247) return "Z";
         return "1";//null
+    }
+
+    /**
+     * 生成长为度7的16进制字符串
+     * @return string
+     */
+    static public function rand_hex_7()
+    {
+        $hex7_dec = rand(0, 268435456);
+        return dechex($hex7_dec);
+    }
+
+    /**
+     * @param string $account
+     * @return string
+     */
+    static public function hide_accounts(string $account)
+    {
+        if (verify::email($account)) {
+            return static::hide_email($account);
+        } elseif (verify::mobile($account)) {
+            return static::hide_mobile($account);
+        }
+        return static::hide_card($account);
+    }
+
+    /**
+     * @param string $card
+     */
+    static public function hide_card(string $card)
+    {
+        return mb_substr($name, 0, 2, 'utf-8') . '****' . mb_substr($name, -4, null, 'utf-8');
+    }
+
+    /**
+     * @param string $mobile
+     */
+    static public function hide_mobile(string $mobile)
+    {
+        return '1***' . mb_substr($name, -4, null, 'utf-8');
+    }
+
+    /**
+     * @param string $email
+     */
+    static public function hide_email(string $email)
+    {
+        $arr = explode('@', $email);
+        return mb_substr($arr[0], 0, 2, 'utf-8') . '***' . mb_substr($arr[0], -2, null, 'utf-8') . '@' . $arr[1];
+    }
+
+    /**
+     * @param string $name
+     */
+    static public function hide_name(string $name)
+    {
+        return '**' . mb_substr($name, -1, null, 'utf-8');
     }
 }
