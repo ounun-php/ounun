@@ -644,7 +644,7 @@ function start(array $mod, string $host)
     // lang_set
     config::lang_set($lang);
     // 开始 重定义头
-    header('X-Powered-By: Ounun.org');
+    // header('X-Powered-By: Ounun.org');
     // 设定 模块与方法
     if (is_array($mod) && $mod[0]) {
         $filename = config::load_controller("controller/{$mod[0]}.php");

@@ -338,8 +338,71 @@ class str
      */
     static public function rand_hex_7()
     {
-        $hex7_dec = rand(0, 268435456);
+        $hex7_dec = mt_rand(0, 268435456);
         return dechex($hex7_dec);
+    }
+
+    /**
+     * 生成长为度$len的16进制字符串
+     * @param $len
+     * @return bool|string
+     */
+    static public function rand_hex($len)
+    {
+        $s = '';
+        do {
+            $s .= static::rand_hex_7();
+        } while (strlen($s) < $len);
+        return substr($s, 0, $len);
+    }
+
+    /**
+     * 生成长为度4的36进制字符串
+     * @return string
+     */
+    static public function rand_base36_4()
+    {
+        $i = mt_rand(0, 1679615);
+        $s = base_convert($i, 10, 36);
+        if (strlen($s) < 4) {
+            return substr('0000' . $s, -4);
+        }
+        return $s;
+    }
+
+    /**
+     * 生成长为度$len的36进制字符串
+     * @param $len
+     * @return bool|string
+     */
+    static public function rand_base36($len)
+    {
+        $s = '';
+        do {
+            $s .= static::rand_base36_4();
+        } while (strlen($s) < $len);
+        return substr($s, 0, $len);
+    }
+
+
+    /*
+     * 生成随机字符串
+     * @param int $length 生成随机字符串的长度
+     * @param string $char 组成随机字符串的字符串
+     * @return string $string 生成的随机字符串
+     */
+    static public function rand_base62($length = 32)
+    {
+        if (!is_int($length) || $length < 0) {
+            return false;
+        }
+        $char = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        $string = '';
+        $l = strlen($char) - 1;
+        for ($i = $length; $i > 0; $i--) {
+            $string .= $char[mt_rand(0, $l)];
+        }
+        return $string;
     }
 
     /**
@@ -361,7 +424,7 @@ class str
      */
     static public function hide_card(string $card)
     {
-        return mb_substr($name, 0, 2, 'utf-8') . '****' . mb_substr($name, -4, null, 'utf-8');
+        return substr($card, 0, 2) . '****' . substr($card, -4);
     }
 
     /**
@@ -369,7 +432,7 @@ class str
      */
     static public function hide_mobile(string $mobile)
     {
-        return '1***' . mb_substr($name, -4, null, 'utf-8');
+        return '1***' . substr($name, -4);
     }
 
     /**
@@ -378,7 +441,7 @@ class str
     static public function hide_email(string $email)
     {
         $arr = explode('@', $email);
-        return mb_substr($arr[0], 0, 2, 'utf-8') . '***' . mb_substr($arr[0], -2, null, 'utf-8') . '@' . $arr[1];
+        return substr($arr[0], 0, 2) . '***' . substr($arr[0], -2) . '@' . $arr[1];
     }
 
     /**

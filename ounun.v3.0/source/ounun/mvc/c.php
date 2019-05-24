@@ -46,10 +46,15 @@ class c
     /** @var int 没有实名 */
     const Realname_No = 0;
 
-    /** @var int 女性 */
+    /** @var int 男性 */
     const Sex_Man = 1;
     /** @var int 女性 */
     const Sex_Woman = 2;
+
+    const Sex = [
+        self::Sex_Man => '男',
+        self::Sex_Woman => '女'
+    ];
 
     /** @var int 未婚 1  - 婚姻状况 */
     const Marriage_Yes = 1;

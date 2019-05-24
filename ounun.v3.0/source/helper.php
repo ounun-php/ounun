@@ -374,7 +374,7 @@ function json_encode_unescaped($data): string
  * @param string $json_string
  * @return mixed
  */
-function json_decode_array(string $json_string)
+function json_decode_array(?string $json_string)
 {
     return json_decode($json_string, true);
 }
