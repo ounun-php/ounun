@@ -275,6 +275,22 @@ function error_is($data)
 }
 
 /**
+ * 判断服务器是否是HTTPS连接
+ * @return bool
+ */
+function https_is()
+{
+    if (!empty($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) !== 'off') {
+        return true;
+    } elseif (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') {
+        return true;
+    } elseif (!empty($_SERVER['HTTP_FRONT_END_HTTPS']) && strtolower($_SERVER['HTTP_FRONT_END_HTTPS']) !== 'off') {
+        return true;
+    }
+    return false;
+}
+
+/**
  * 返回错误提示信息
  * @param $data
  * @return string
