@@ -116,8 +116,11 @@ class pdo
      * @param array $config
      * @return $this 返回数据库连接对像
      */
-    public static function instance(string $tag, array $config = []): self
+    public static function instance(string $tag = '', array $config = []): self
     {
+        if (empty($tag)) {
+            $tag = config::database_default_get();
+        }
         if (empty(self::$_instance[$tag])) {
             if (empty($config)) {
                 $config = config::$database[$tag];
@@ -213,7 +216,7 @@ class pdo
         }
         if ($sql) {
             if ($this->_table_prefix_replace) {
-                $sql = str_replace($this->_table_prefix_search,$this->_table_prefix_replace,$sql);
+                $sql = str_replace($this->_table_prefix_search, $this->_table_prefix_replace, $sql);
             }
             $this->_last_sql = $sql;
         }
@@ -294,50 +297,50 @@ class pdo
         $this->_prepare('UPDATE ' . $this->_option . ' ' . $this->_table . ' SET ' . implode(', ', $update) . ' ' . $this->_where . ' ' . $this->_limit . ' ;');
 
         if ($this->_is_multiple) {
-            if($where_bind && is_array($where_bind)){
-                if ( array_keys($where_bind) === range(0, count($where_bind) - 1)) {
+            if ($where_bind && is_array($where_bind)) {
+                if (array_keys($where_bind) === range(0, count($where_bind) - 1)) {
                     // echo __FILE__.':'.__LINE__."\n";
                     $i = 0;
                     $where_bind_fields = $this->_values_parse($where_bind[$i]);
-                    $this->_execute(array_merge($this->_bind_param,$fields,$where_bind_fields));
+                    $this->_execute(array_merge($this->_bind_param, $fields, $where_bind_fields));
                     foreach ($update_data as &$v) {
                         $i++;
                         $where_bind_fields = $this->_values_parse($where_bind[$i]);
                         $fields = $this->_values_parse($v);
-                        $this->_execute(array_merge($this->_bind_param, $fields,$where_bind_fields));
+                        $this->_execute(array_merge($this->_bind_param, $fields, $where_bind_fields));
                     }
-                }else{
+                } else {
                     // echo __FILE__.':'.__LINE__."\n";
                     $where_bind_fields = $this->_values_parse($where_bind);
-                    $this->_execute(array_merge($this->_bind_param,$fields,$where_bind_fields));
+                    $this->_execute(array_merge($this->_bind_param, $fields, $where_bind_fields));
                     foreach ($update_data as &$v) {
                         $where_bind_fields = $this->_values_parse($where_bind);
                         $fields = $this->_values_parse($v);
-                        $this->_execute(array_merge($this->_bind_param, $fields,$where_bind_fields));
+                        $this->_execute(array_merge($this->_bind_param, $fields, $where_bind_fields));
                     }
                 }
-            }else{
+            } else {
                 // echo __FILE__.':'.__LINE__."\n";
-                $this->_execute(array_merge($this->_bind_param,$fields));
+                $this->_execute(array_merge($this->_bind_param, $fields));
                 foreach ($update_data as &$v) {
                     $fields = $this->_values_parse($v);
                     $this->_execute(array_merge($this->_bind_param, $fields));
                 }
             }
         } else {
-            if($where_bind && is_array($where_bind)){
-                if ( array_keys($where_bind) === range(0, count($where_bind) - 1)) {
+            if ($where_bind && is_array($where_bind)) {
+                if (array_keys($where_bind) === range(0, count($where_bind) - 1)) {
                     // echo __FILE__.':'.__LINE__."\n";
-                    foreach ($where_bind as $where_bind_v){
+                    foreach ($where_bind as $where_bind_v) {
                         $where_bind_fields = $this->_values_parse($where_bind_v);
-                        $this->_execute(array_merge($this->_bind_param, $fields,$where_bind_fields));
+                        $this->_execute(array_merge($this->_bind_param, $fields, $where_bind_fields));
                     }
-                }else {
+                } else {
                     // echo __FILE__.':'.__LINE__."\n";
                     $where_bind_fields = $this->_values_parse($where_bind);
-                    $this->_execute(array_merge($this->_bind_param, $fields,$where_bind_fields));
+                    $this->_execute(array_merge($this->_bind_param, $fields, $where_bind_fields));
                 }
-            }else{
+            } else {
                 // echo __FILE__.':'.__LINE__."\n";
                 $this->_execute(array_merge($this->_bind_param, $fields));
             }
@@ -1030,9 +1033,9 @@ class pdo
         if ($this->_is_debug) {
             $this->_stmt->debugDumpParams();
         }
-        try{
+        try {
             $this->_stmt->execute();
-        }catch (\Exception $e){
+        } catch (\Exception $e) {
             print_r([
                 '$this->_last_sql' => $this->_last_sql,
                 '$this->_bind_param' => $this->_bind_param,
@@ -1040,7 +1043,7 @@ class pdo
             ]);
             $this->_stmt->debugDumpParams();
             // echo $this->_stmt->queryString."\n";
-            trigger_error("Sql Error:".$e->getMessage()."\n", E_USER_ERROR);
+            trigger_error("Sql Error:" . $e->getMessage() . "\n", E_USER_ERROR);
         }
     }
 

@@ -432,7 +432,7 @@ class str
      */
     static public function hide_mobile(string $mobile)
     {
-        return '1***' . substr($name, -4);
+        return '1***' . substr($mobile, -4);
     }
 
     /**

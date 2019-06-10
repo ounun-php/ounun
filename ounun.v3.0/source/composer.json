@@ -1,5 +1,5 @@
 {
-  "name": "ounun/v3.0",
+  "name": "ounun-php/ounun-v3.0",
   "description": "the new ounun framework",
   "type": "library",
   "keywords": [
@@ -26,7 +26,7 @@
     "php": ">=7.2"
   },
   "require-dev": {
-    "phpunit/phpunit": "5.4.*"
+    "phpunit/phpunit": "8.1.*"
   },
   "autoload": {
     "psr-4": {

@@ -8,6 +8,12 @@
  */
 class c extends \ounun\mvc\c
 {
+    /** @var int 失败 - 日志状态 */
+    const Logs_No  = 0;
+
+    /** @var int 成功 - 日志状态 */
+    const Logs_Yes = 1;
+
     /** 后台登录,日志状态 */
     const Logs = [0 => "失败", 1 => "成功"];
 

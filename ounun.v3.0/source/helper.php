@@ -665,7 +665,7 @@ function error404(string $msg = ''): void
                     <h1>404 Not Found' . ($msg ? '(' . $msg . ')' : '') . '</h1>
                 </div>
                 <hr>
-                <div align="center"><a href="/">返回网站首页</a></div>
+                <div align="center"><a href="' . \ounun\config::$url_www . '">返回网站首页</a></div>
             </body>
             </html>
             <!-- a padding to disable MSIE and Chrome friendly error page -->
@@ -753,12 +753,16 @@ function environment()
     if (isset($GLOBALS['_environment_'])) {
         return $GLOBALS['_environment_'];
     }
-    $env_file = isset($GLOBALS['_environment_file_']) && $GLOBALS['_environment_file_'] ? $GLOBALS['_environment_file_'] : '/www/wwwroot/release.txt';
-    if (is_file($env_file)) {
+    if (is_file(Dir_Root . 'app/config.prod.php')) {
         $GLOBALS['_environment_'] = '';
     } else {
-        $env_file = Dir_Root . 'environment.txt';
-        $GLOBALS['_environment_'] = (is_file($env_file) && filesize($env_file) >= 1) ? trim(file_get_contents($env_file)) : '';
+        $env_file = isset($GLOBALS['_environment_file_']) && $GLOBALS['_environment_file_'] ? $GLOBALS['_environment_file_'] : '/www/wwwroot/release.txt';
+        if (is_file($env_file)) {
+            $GLOBALS['_environment_'] = '';
+        } else {
+            $env_file = Dir_Root . 'environment.txt';
+            $GLOBALS['_environment_'] = (is_file($env_file) && filesize($env_file) >= 1) ? trim(file_get_contents($env_file)) : '';
+        }
     }
     return $GLOBALS['_environment_'];
 }
@@ -905,8 +909,6 @@ abstract class v
             $this->cache_html($this->page_url);
         }
 
-        // cms
-        $cls = \ounun\config::$app_cms_classname;
         // template
         if (empty(static::$tpl)) {
             static::$tpl = new \ounun\template(\ounun\config::$tpl_style, \ounun\config::$tpl_default, static::$cache_html_trim);
@@ -916,7 +918,12 @@ abstract class v
         if (empty(static::$db_v)) {
             static::$db_v = \ounun\pdo::instance(\ounun\config::database_default_get());
         }
-        static::$cms = new $cls(static::$db_v);
+
+        // cms
+        if (\ounun\config::$app_cms_classname) {
+            $cls = \ounun\config::$app_cms_classname;
+            static::$cms = new $cls(static::$db_v);
+        }
     }
 
     /**
