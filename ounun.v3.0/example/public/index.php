@@ -5,6 +5,8 @@
 // header('P3P: CP="COR NOI CURa ADMa DSP DEVa PSAa PSDa OUR IND UNI PUR NAV"');
 /** 根目录 **/
 define('Dir_Root', realpath(__DIR__ . '/../') . '/');
+/** data目录 **/
+define('Dir_Data', '/www/wwwroot/zqun-data/'.basename(Dir_Root).'/');
 /** template目录 **/
 define('Dir_Template', Dir_Root . 'template/');
 /** libs库文件目录 **/
