@@ -50,10 +50,13 @@ class c
     const Sex_Man = 1;
     /** @var int 女性 */
     const Sex_Woman = 2;
+    /** @var int 保密 */
+    const Sex_Null = 0;
 
     const Sex = [
         self::Sex_Man => '男',
-        self::Sex_Woman => '女'
+        self::Sex_Woman => '女',
+        self::Sex_Null => '保密'
     ];
 
     /** @var int 未婚 1  - 婚姻状况 */

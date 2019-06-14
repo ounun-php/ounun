@@ -16,7 +16,7 @@ class html_base extends core
      * 构建函数
      * @param $cfg
      */
-    public function __construct($cfg, $debug = false)
+    public function __construct(array $cfg,bool $debug = false)
     {
         parent::__construct();
         $type_list = array(self::Type_File, self::Type_Memcache, self::Type_Redis);
@@ -52,10 +52,10 @@ class html_base extends core
         $this->_cache_time = 0;
         if (self::Type_File == $this->_type) {
             $filename = $this->filename();
-            // \debug::header('filename',$filename,$this->_debug,__FUNCTION__,__LINE__);
+            \ounun\debug::header('filename',$filename,$this->_debug,__FUNCTION__,__LINE__);
             if (file_exists($filename)) {
                 $this->_cache_time = filemtime($filename);
-                // \debug::header('cache_time',$this->_cache_time,$this->_debug,__FUNCTION__,__LINE__);
+                \ounun\debug::header('cache_time',$this->_cache_time,$this->_debug,__FUNCTION__,__LINE__);
             }
         } else {
             $this->_cache_time = (int)$this->get('filemtime');
@@ -76,11 +76,11 @@ class html_base extends core
         $this->_cache_time_t = 0;
         if (self::Type_File == $this->_type) {
             $filename = $this->filename() . '.t';
-            // \debug::header('file',$filename,$this->_debug,__FUNCTION__,__LINE__);
+            \ounun\debug::header('file',$filename,$this->_debug,__FUNCTION__,__LINE__);
             if (file_exists($filename)) {
                 $this->_cache_time_t = filemtime($filename);
                 $this->_cache_size_t = filesize($filename);
-                // \debug::header('time',$this->_cache_time_t,$this->_debug,__FUNCTION__,__LINE__);
+                \ounun\debug::header('time',$this->_cache_time_t,$this->_debug,__FUNCTION__,__LINE__);
             }
         } else {
             $this->_cache_time_t = (int)$this->get('filemtime_t');
@@ -105,7 +105,7 @@ class html_base extends core
         $this->_cache_time_t = time();
         if (self::Type_File == $this->_type) {
             $filename = $this->filename() . '.t';
-            // \debug::header('file',$filename,$this->_debug,__FUNCTION__,__LINE__);
+            \ounun\debug::header('file',$filename,$this->_debug,__FUNCTION__,__LINE__);
             if (file_exists($filename)) {
                 touch($filename);
             } else {
@@ -132,10 +132,10 @@ class html_base extends core
         }
         if (self::Type_File == $this->_type) {
             $filename = $this->filename();
-            // \debug::header('file',$filename,$this->_debug,__FUNCTION__,__LINE__);
+            \ounun\debug::header('file',$filename,$this->_debug,__FUNCTION__,__LINE__);
             if (file_exists($filename)) {
                 $this->_cache_size = filesize($filename);
-                // \debug::header('size',$this->_cache_size,$this->_debug,__FUNCTION__,__LINE__);
+                \ounun\debug::header('size',$this->_cache_size,$this->_debug,__FUNCTION__,__LINE__);
             }
             $this->_cache_size = 0;
         } else {
@@ -154,7 +154,7 @@ class html_base extends core
             $this->val($html);
             $this->write();
             $filename = $this->filename() . '.t';
-            // \debug::header('delfile',$filename,$this->_debug,__FUNCTION__,__LINE__);
+            \ounun\debug::header('delfile',$filename,$this->_debug,__FUNCTION__,__LINE__);
             if (file_exists($filename)) {
                 unlink($filename);
             }

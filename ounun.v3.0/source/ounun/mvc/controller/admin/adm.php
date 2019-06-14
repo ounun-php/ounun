@@ -86,12 +86,12 @@ abstract class adm extends \v
                 'nav' => $nav,
                 'uri' => $_SERVER['REQUEST_URI']
             ];
-            $url = url_build_query('/no_access.html', $data);
+            $url = url_build_query(config::url_page('/no_access.html'), $data);
             go_url($url);  // 没权限就跳
         }
 
         if (!self::$auth->session_get(purview::session_google) && 'sys@google' != $key) {
-            go_url('/sys_adm/google.html?nav=' . $nav);
+            go_url(config::url_page('/sys_adm/google.html?nav=' . $nav));
         }
     }
 

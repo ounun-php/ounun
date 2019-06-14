@@ -277,7 +277,7 @@ class config
     static public function template_set(string $tpl_dir, string $tpl_style = '', string $tpl_default = '')
     {
         // 模板根目录
-        if (!in_array($tpl_dir, static::$tpl_dirs)) {
+        if (!in_array($tpl_dir, static::$tpl_dirs) && is_dir($tpl_dir)) {
             static::$tpl_dirs[] = $tpl_dir;
         }
         // 模板
@@ -381,13 +381,19 @@ class config
         ], static::$tpl_replace_str);
     }
 
-    /** @return \ounun\mvc\model\i18n 语言包 */
+    /**
+     * 语言包
+     * @return \ounun\mvc\model\i18n
+     */
     static public function i18n_get()
     {
         return static::$i18n;
     }
 
-    /** @return string 默认 数据库 */
+    /**
+     * 默认 数据库
+     * @return string
+     */
     static public function database_default_get()
     {
         if (empty(static::$database_default)) {
@@ -433,7 +439,10 @@ class config
         return "{$static_root}{$url}";
     }
 
-    /** @return string 当前带http的网站根 */
+    /**
+     * 当前带http的网站根
+     * @return string
+     */
     static public function url_root_curr_get()
     {
         if (static::$tpl_style == '_mip') {
@@ -460,10 +469,61 @@ class config
                 $first = '';
                 $len = 0;
             }
-            if (!static::$maps_paths || !static::$maps_paths[$first] || !in_array($path, static::$maps_paths[$first])) {
+            if (!static::$maps_paths || !static::$maps_paths[$first] || !(is_array(static::$maps_paths[$first]) && in_array($path, array_column(static::$maps_paths[$first], 'path')))) {
                 static::$maps_paths[$first][] = ['path' => $path, 'len' => $len, 'cut' => $cut_path, 'namespace' => $namespace_prefix];
             }
         }
+    }
+
+    /**
+     * 添加App路径(根目录)
+     * @param string $path
+     * @param bool $is_auto_helper
+     * @param bool $is_auto_cmd
+     */
+    static public function add_paths_app_root(string $path, bool $is_auto_helper = false, bool $is_auto_cmd = false)
+    {
+        /** src-0 \         自动加载 */
+        \ounun\config::add_paths($path . 'src/', '', false);
+        /** src-0 \addons   自动加载  */
+        \ounun\config::add_paths($path . 'addons/', 'addons', true);
+
+        /** 加载helper */
+        if ($is_auto_helper) {
+            is_file($path . 'app/helper.php') && require $path . 'app/helper.php';
+        }
+
+        /** 加载cmd */
+        if ($is_auto_cmd) {
+            $cmd = is_file($path . 'app/cmd.php') ? include $path . 'app/cmd.php' : [];
+            if ($cmd) {
+                if (static::$global['cmd'] && is_array(static::$global['cmd'])) {
+                    static::$global['cmd'] = array_merge(static::$global['cmd'], $cmd);
+                } else {
+                    static::$global['cmd'] = $cmd;
+                }
+            }
+        }
+    }
+
+    /**
+     * 添加App路径(具体应用)
+     * @param string $paths_app_root 应用逻辑程序所在的根目录
+     * @param string $paths_template 模板所在目录
+     * @param string $paths_app_curr 当前程序所在目录
+     * @param string $namespace_prefix 加载类前缀 默认 app
+     * @param string $tpl_style 模板当前样式
+     * @param string $tpl_default 模板默认样式
+     * @param bool $is_auto_helper 是否默认加载helper
+     */
+    static public function add_paths_app_instance(string $paths_app_root, string $paths_app_curr, string $paths_template, string $namespace_prefix = 'app', string $tpl_style = '', string $tpl_default = '', bool $is_auto_helper = true)
+    {
+        /** controller add_paths */
+        \ounun\config::add_paths($paths_app_root, $namespace_prefix, true);
+        /** template_set */
+        \ounun\config::template_set($paths_template, $tpl_style, $tpl_default);
+        /** load_config */
+        \ounun\config::load_config($paths_app_curr, $is_auto_helper);
     }
 
     /**
@@ -511,11 +571,6 @@ class config
             }
         }
 
-        //        if(!self::$__load_class_file_exists){
-        //            print_r(['$class'=>$class,'self::$maps_class'=>self::$maps_class,'self::$maps_paths'=>self::$maps_paths]);
-        //            self::$__load_class_file_exists = true;
-        //        }
-
         // 查找 PSR-4 prefix
         $filename = strtr($class, '\\', '/') . '.php';
         $firsts = [explode('\\', $class)[0], ''];
@@ -523,20 +578,21 @@ class config
             if (isset(static::$maps_paths[$first])) {
                 foreach (static::$maps_paths[$first] as $v) {
                     if ('' == $v['namespace']) {
+//                        print_r(static::$maps_paths);
                         $file = $v['path'] . $filename;
-                        //                        echo " load_class2  -> \$class1 :{$class}  \$first:{$first}   \$len:{$v['len']}\n".
-                        //                            "                \t\t\$path:{$v['path']}\n".
-                        //                            "                \t\t\$filename:{$filename}\n".
-                        //                            "                \t\t\$file1:{$file} \n";
+//                                                echo " load_class2  -> \$class1 :{$class}  \$first:{$first}   \$len:{$v['len']}\n".
+//                                                    "                \t\t\$path:{$v['path']}\n".
+//                                                    "                \t\t\$filename:{$filename}\n".
+//                                                    "                \t\t\$file1:{$file} \n";
                         if (is_file($file)) {
                             return $file;
                         }
                     } elseif (0 === strpos($class, $v['namespace'])) {
                         $file = $v['path'] . (($v['cut'] && $v['len']) ? substr($filename, $v['len']) : $filename);
-                        //                        echo " load_class  -> \$class0 :{$class}  \$first:{$first}  \$len:{$v['len']}\n".
-                        //                            "                \t\t\$path:{$v['path']}\n".
-                        //                            "                \t\t\$filename:{$filename}\n".
-                        //                            "                \t\t\$file1:{$file} \n".var_export($v,true);
+//                                                echo " load_class  -> \$class0 :{$class}  \$first:{$first}  \$len:{$v['len']}\n".
+//                                                    "                \t\t\$path:{$v['path']}\n".
+//                                                    "                \t\t\$filename:{$filename}\n".
+//                                                    "                \t\t\$file1:{$file} \n".var_export($v,true);
                         if (is_file($file)) {
                             return $file;
                         }
@@ -563,19 +619,21 @@ class config
                     return $filename;
                 }
             }
-            //$dirs = "\ndirs:[".implode("],[",array_column($controller,'path'))."]";
         }
         return '';
     }
 
     /**
      * 加载Config
-     * @param $dir
+     * @param string $dir
+     * @param bool $is_auto_helper
      */
-    static public function load_config($dir)
+    static public function load_config(string $dir, bool $is_auto_helper = false)
     {
         /** 加载helper */
-        is_file($dir . 'helper.php') && require $dir . 'helper.php';
+        if ($is_auto_helper) {
+            is_file($dir . 'helper.php') && require $dir . 'helper.php';
+        }
         // echo 'load_config0 -> '.__LINE__.':'.(is_file($dir.'helper.php')?'1':'0').' '.$dir.'helper.php'."\n";
         if (Environment) {
             /** 加载config */
@@ -625,7 +683,7 @@ function start(array $mod, string $host)
         $lang = config::$lang ? config::$lang : config::$lang_default;
     }
     // load_config 0 Dir
-    config::load_config(Dir_App);
+    config::load_config(Dir_App, false);
 
     // Routes
     if ($mod && $mod[0] && config::$routes["{$host}/{$mod[0]}"]) {
@@ -638,12 +696,8 @@ function start(array $mod, string $host)
     }
     // apps_domain_set
     config::app_name_path_set(Dir_Ounun, Dir_Root, Dir_Data, (string)$val_0['app'], (string)$val_0['url']);
-    // add_paths
-    config::add_paths(Dir_App, 'app', true);
-    // 模板 template_set
-    config::template_set(Dir_Template . config::$app_name . '/', (string)$val_0['tpl_style'], (string)$val_0['tpl_default']);
-    // load_config 1 scfg::$dir_app
-    config::load_config(config::$dir_app);
+    // add_paths_app_instance
+    config::add_paths_app_instance(Dir_App, Dir_App . config::$app_name . '/', Dir_Template . config::$app_name . '/', 'app', (string)$val_0['tpl_style'], (string)$val_0['tpl_default'], true);
     // lang_set
     config::lang_set($lang);
     // 开始 重定义头

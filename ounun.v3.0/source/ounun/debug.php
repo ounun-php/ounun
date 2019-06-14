@@ -173,7 +173,7 @@ class debug
      * @param string $function
      * @param string $line
      */
-    static public function header(string $k, $v, bool $debug = false, string $function = '', string $line = '')
+    static public function header(string $k, $v, bool $debug = false, string $function = '', int $line = 0)
     {
         // static $idx = 0;
         if ($debug && !headers_sent()) {

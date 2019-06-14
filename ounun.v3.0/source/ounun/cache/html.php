@@ -51,7 +51,7 @@ class html
 
         $this->_cache_time = 0;
 
-        $this->_is_trim = $trim;
+        $this->_is_trim   = $trim;
         $this->_is_debug = $debug;
         // 是否支持gzip
         if (stripos($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip') === false) {
@@ -93,17 +93,16 @@ class html
     public function run_cache_check()
     {
         $this->_cache_time = $this->_cache->cache_time();
-        //exit("\$this->_cache_time:{$this->_cache_time }");
-        // \debug::header('time',  $this->_cache_time,$this->_is_debug,__FUNCTION__,__LINE__);
-        // \debug::header('expire',$this->_expire,    $this->_is_debug,__FUNCTION__,__LINE__);
+        \ounun\debug::header('time',  $this->_cache_time,$this->_is_debug,__FUNCTION__,__LINE__);
+        \ounun\debug::header('expire',$this->_expire,    $this->_is_debug,__FUNCTION__,__LINE__);
         if ($this->_cache_time + $this->_expire > $this->_now_time) {
-            // \debug::header('xypc',$this->_cache->filename(),$this->_is_debug,__FUNCTION__,__LINE__);
+            \ounun\debug::header('xypc',$this->_cache->filename(),$this->_is_debug,__FUNCTION__,__LINE__);
             return true;
         }
         $cache_time_t = $this->_cache->cache_time_tmp();
-        // \debug::header('time_t',$cache_time_t,$this->_is_debug,__FUNCTION__,__LINE__);
+        \ounun\debug::header('time_t',$cache_time_t,$this->_is_debug,__FUNCTION__,__LINE__);
         if ($cache_time_t + self::Cache_Time_Interval > $this->_now_time) {
-            // \debug::header('xypc_t',$this->_cache->filename().'.t time:'.$cache_time_t,true,__FUNCTION__,__LINE__);
+            \ounun\debug::header('xypc_t',$this->_cache->filename().'.t time:'.$cache_time_t,$this->_is_debug,__FUNCTION__,__LINE__);
             return true;
         }
         $this->_cache_time = 0;
@@ -116,7 +115,7 @@ class html
      */
     public function run_execute(bool $output)
     {
-        // \debug::header('xypm',$this->_cache->filename(),$this->_is_debug,__FUNCTION__,__LINE__);
+        \ounun\debug::header('xypm',$this->_cache->filename(),$this->_is_debug,__FUNCTION__,__LINE__);
         $this->stop = false;
         $this->_cache->cache_time_tmp_set();
         // 生成
@@ -166,9 +165,9 @@ class html
         ob_clean();
         ob_implicit_flush(1);
         // 写文件
-        // \debug::header('xypm_size',$filesize,$this->_is_debug,__FUNCTION__,__LINE__);
+        \ounun\debug::header('xypm_size',$filesize,$this->_is_debug,__FUNCTION__,__LINE__);
         if ($filesize > self::Cache_Mini_Size) {
-            // \debug::header('xypm_ok',$this->_cache->filename(),$this->_is_debug,__FUNCTION__,__LINE__);
+            \ounun\debug::header('xypm_ok',$this->_cache->filename(),$this->_is_debug,__FUNCTION__,__LINE__);
 
             $buffer = template::trim($buffer,$this->_is_trim);
             $buffer = gzencode($buffer, 9);
@@ -179,7 +178,7 @@ class html
             }
         } else {
             $this->_cache->delete();
-            // \debug::header('xypm_noc','nocache',$this->_is_debug,__FUNCTION__,__LINE__);
+            \ounun\debug::header('xypm_noc','nocache',$this->_is_debug,__FUNCTION__,__LINE__);
             if ($output) {
                 header('Content-Length: ' . $filesize);
                 exit($buffer);

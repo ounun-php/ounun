@@ -800,7 +800,9 @@ abstract class v
             $cfg = \ounun\config::$global['cache_html'];
             $cfg['mod'] = 'html_' . \ounun\config::$app_name . \ounun\config::$tpl_style;
             $key2 = \ounun\config::$app_name . '_' . \ounun\config::$tpl_style . '_' . $key;
-            static::$cache_html = new \ounun\cache\html($cfg, $key2, static::$cache_html_time, static::$cache_html_trim, '' != Environment);
+            $debug = \ounun\config::$global['debug'];
+            $debug = $debug && isset($debug['header']) ? $debug['header'] : ('' != Environment);
+            static::$cache_html = new \ounun\cache\html($cfg, $key2, static::$cache_html_time, static::$cache_html_trim, $debug);
             static::$cache_html->run(true);
         }
     }
