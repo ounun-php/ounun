@@ -1,17 +1,9 @@
 <?php
+namespace ounun\cmd\task;
 
-namespace ounun\cmd\task\caiji_base;
-
-use ounun\api_sdk\com_showapi;
-use ounun\cmd\console;
-use ounun\cmd\task\manage;
-use ounun\cmd\task\task_base;
-use ounun\config;
 use ounun\mvc\model\admin\purview;
-use ounun\pdo;
-use ounun\tool\time;
 
-abstract class _caiji extends task_base
+abstract class task_base_caiji extends task_base
 {
     /** @var string 分类 */
     public static $tag = 'caiji';
@@ -316,6 +308,7 @@ abstract class _caiji extends task_base
         }
         return $bind;
     }
+
     /**
      * @param array $data
      * @param string $table_name

@@ -24,28 +24,35 @@ class purview
     const session_password = 'p';
 
     /** cookie_key  */
+    const adm_sid = 'adm_sid';
     const adm_cid = 'adm_cid';
     const adm_cid_login = 'adm_cid_login';
-    const adm_sid = 'adm_sid';
+
 
     const adm_hall_id = 'adm_hall';
     const adm_game_id = 'adm_game';
-
     const adm_group_id = 'adm_group';
 
     const adm_zqun_tag = 'adm_zqun';
     const adm_site_tag = 'adm_site';
     const adm_caiji_tag = 'adm_caiji';
+    const adm_biz_tag = 'adm_biz';
 
 
     /** @var string 管理面板 - 应用类型 */
     const app_type_admin = 'admin';
     /** @var string 站点    - 应用类型 */
     const app_type_site = 'site';
+    /** @var string 采集    - 应用类型 */
+    const app_type_caiji = 'caiji';
+    /** @var string 采集    - 应用类型 */
+    const app_type_biz   = 'biz';
     /** @var array 应用类型 */
     const app_type = [
         self::app_type_admin => '后台',
         self::app_type_site  => '站点',
+        self::app_type_caiji => '采集',
+        self::app_type_biz   => '业务',
     ];
 
     /** @var int 导航头 什么都不用显示 */

@@ -8,9 +8,9 @@ namespace ounun\mvc\controller\admin;
  * Time: 10:39
  */
 
-use \ounun\mvc\model\admin\oauth;
+use ounun\mvc\model\admin\oauth;
 use ounun\mvc\model\admin\purview;
-use \ounun\config;
+use ounun\config;
 use ounun\pdo;
 
 /********************************************************************
@@ -71,7 +71,7 @@ abstract class adm extends \v
     }
 
     /** @var string 站点类型 */
-    protected $_site_type = 'admin';
+    protected $_site_type = purview::app_type_admin;
     /** @var array */
     protected $_site_type_only = [];
 

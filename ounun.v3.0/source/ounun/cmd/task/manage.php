@@ -75,8 +75,6 @@ class manage
 
     /** @var string 任务表名 */
     public static $table_task = '';
-    /** @var string 运行中的任务表名 */
-    public static $table_process = '';
 
     /** @var self 单例 */
     protected static $_instance_manage;
@@ -87,6 +85,11 @@ class manage
     /** @var \ounun\pdo */
     protected static $_db_site;
 
+    /** @var string 记日志DB */
+    protected static $_db_logs_tag;
+    /** @var string 记任务DB */
+    protected static $_db_task_tag;
+
     /**
      * 返回数据库连接对像
      * @param pdo|null $db_biz
@@ -94,7 +97,7 @@ class manage
      * @param pdo|null $db_site
      * @return manage
      */
-    public static function instance(pdo $db_biz = null, pdo $db_caiji = null, pdo $db_site = null): self
+    public static function instance(pdo $db_biz = null, pdo $db_caiji = null, pdo $db_site = null, string $db_logs_tag = 'caiji',string $db_task_tag = 'caiji'): self
     {
         if (empty(static::$_instance_manage)) {
             static::$_instance_manage = new static();
@@ -150,18 +153,16 @@ class manage
 
     /**
      * 设定任务表与运行中的任务表
-     * @param string $table_task 任务表
-     * @param string $table_process 运行中的任务表
-     * @param string $logs_table_task 日志的任务表
-     * @param string $logs_table_task_details
+     * @param string $table_task               任务表
+     * @param string $table_task_logs          日志的任务表
+     * @param string $table_task_logs_details  日志详情
      */
-    public static function table_set(string $table_task = '`sys_task`', string $table_process = '`sys_task_process`', string $logs_table_task = '`sys_logs_task`', string $logs_table_task_details = '`sys_logs_task_details`')
+    public static function table_set(string $table_task = '`caiji_task`',
+                                     string $table_task_logs = '`caiji_task_logs`',
+                                     string $table_task_logs_details = '`yst_logs`')
     {
         if ($table_task) {
             self::$table_task = $table_task;
-        }
-        if ($table_process) {
-            self::$table_process = $table_process;
         }
         static::logs_table_set($logs_table_task, $logs_table_task_details);
     }
@@ -350,9 +351,6 @@ class manage
             if ($db) {
                 $db->table(static::$_logs_table_task)->where(' `logs_id` = :logs_id ', ['logs_id' => static::$_logs_id])->update($bind);
             }
-//            if ($over_clean) {
-//                static::logs_init(0);
-//            }
         }
     }
 
@@ -536,9 +534,9 @@ class manage
                 'i:run_status' => manage::Status_Runing,
                 'i:time' => time()
             ];
-            $cc = static::$_db_biz->query('SELECT (SELECT count(`task_id`) FROM `sys_task` WHERE `run_hostname` = :run_hostname and `run_status` = :run_status ) as `run_curr` , ' .
-                ' (SELECT count(`task_id`) FROM `sys_task` WHERE `run_status` = :run_status ) as `run_curr_all` , ' .
-                ' (SELECT count(`task_id`) FROM `sys_task` WHERE `time_ignore` <= :time and `time_begin` <= :time and `time_end` >= :time ) as `task_count`;', $cc_bind)->column_one();
+            $cc = static::$_db_biz->query('SELECT (SELECT count(`task_id`) FROM `caiji_task` WHERE `run_hostname` = :run_hostname and `run_status` = :run_status ) as `run_curr` ,  
+                                                       (SELECT count(`task_id`) FROM `caiji_task` WHERE `run_status` = :run_status ) as `run_curr_all` , 
+                                                       (SELECT count(`task_id`) FROM `caiji_task` WHERE `time_ignore` <= :time and `time_begin` <= :time and `time_end` >= :time ) as `task_count`;', $cc_bind)->column_one();
             $rs = static::$_db_biz->table(static::$table_task)->field('*')->where($where, $param)->column_all();
             // static::$_db_biz->stmt()->debugDumpParams();
             // print_r(['static::$_db_task->stmt()->queryString'=>static::$_db_biz->stmt()->queryString,'$rs'=>$rs]);

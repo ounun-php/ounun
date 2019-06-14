@@ -1,9 +1,6 @@
 <?php
-
 namespace ounun\cmd\task;
 
-
-use extend\config_cache;
 use ounun\cmd\console;
 use ounun\config;
 use ounun\mvc\model\admin\purview;
@@ -207,7 +204,7 @@ abstract class task_base
             }
             // site
             if($is_db_site && $this->_task_struct->site_tag){
-                $site_info = config_cache::instance(\c::Cache_Tag_Site, manage::db_biz())->site_info($this->_task_struct->site_tag);
+                $site_info = $this->_site_info_get();
                 if ($site_info['config_db']) {
                     $db_cfg = json_decode($site_info['config_db'], true);
                     if ($db_cfg && $db_cfg['host']) {
@@ -216,6 +213,13 @@ abstract class task_base
                 }
             }
         }
+    }
+
+    /** 通过site_tag获得$site_info */
+    protected function _site_info_get()
+    {
+       // $site_info = config_cache::instance(c::Cache_Tag_Site, manage::db_biz())->site_info($this->_task_struct->site_tag);
+        return [];
     }
 
     /**

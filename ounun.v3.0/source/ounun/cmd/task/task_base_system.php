@@ -1,16 +1,10 @@
 <?php
+namespace ounun\cmd\task;
 
-namespace ounun\cmd\task\system_base;
-
-use extend\config_cache;
 use ounun\api_sdk\com_baidu;
-use ounun\cmd\task\manage;
-use ounun\cmd\task\task_base;
-use ounun\config;
 use ounun\mvc\model\admin\purview;
-use ounun\pdo;
 
-abstract class _system extends task_base
+abstract class task_base_system extends task_base
 {
     /** @var string 分类 */
     public static $tag = 'system';
@@ -71,7 +65,7 @@ abstract class _system extends task_base
 
     protected function _config_set()
     {
-        $site_info = config_cache::instance(\c::Cache_Tag_Site, manage::db_biz())->site_info($this->_task_struct->site_tag);
+        $site_info = $this->_site_info_get();
         if ($site_info['dns']) {
             $dns = json_decode($site_info['dns'], true);
             if ($dns && is_array($dns)) {

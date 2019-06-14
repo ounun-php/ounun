@@ -1,14 +1,11 @@
 <?php
+namespace ounun\cmd\task;
 
-namespace ounun\cmd\task\post_base;
-
-use ounun\cmd\task\manage;
-use ounun\cmd\task\task_base;
 use ounun\mvc\c;
 use ounun\mvc\model\admin\purview;
 use ounun\pdo;
 
-abstract class _post extends task_base
+abstract class task_base_post extends task_base
 {
     /** @var string 分类 */
     public static $tag = 'post';
