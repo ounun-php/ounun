@@ -109,7 +109,7 @@ class http
      * @param $referer
      * @return bool|string
      */
-    public static function file_get_contents(string $url, string $referer = '')
+    public static function file_get_contents(string $url, string $referer = '',$is_unzip = false)
     {
         $referer = $referer ? $referer : $url;
         $opts = [
@@ -128,7 +128,16 @@ class http
             ],
         ];
         $context = stream_context_create($opts);
-        return file_get_contents($url, false, $context);
+        $cc      = file_get_contents($url, false, $context);
+        if($cc){
+            if($is_unzip){
+                if(strpos($cc,'html') === false ){
+                    return gzdecode($cc);
+                }
+            }
+            return $cc;
+        }
+        return $cc;
     }
 
 

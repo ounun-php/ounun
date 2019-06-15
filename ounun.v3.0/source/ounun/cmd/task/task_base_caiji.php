@@ -6,6 +6,20 @@ use ounun\tool\db;
 
 abstract class task_base_caiji extends task_base
 {
+    /** @var int 默认(等待处理) */
+    const Status_Data_Null = 0;
+    /** @var int 正常 */
+    const Status_Data_Ok = 1;
+    /** @var int 出错(问题URL) */
+    const Status_Data_Fail =   101;
+
+    /** @var array 1:空置(等待) 2:运行中... 99:满载(过载) */
+    const Status = [
+        self::Status_Data_Null => '默认',
+        self::Status_Data_Ok   => '正常',
+        self::Status_Data_Fail => '出错',
+    ];
+
     /** @var string 分类 */
     public static $tag = 'caiji';
     /** @var string 子分类 */
@@ -145,53 +159,64 @@ abstract class task_base_caiji extends task_base
      * 捡查指定字段数据是否存在
      * @param int $data_id
      * @param string $table_name
-     * @param string $fields_name
+     * @param int $origin_level
      * @return bool
      */
-    protected function _data_check(int $data_id, string $table_name, string $fields_name = 'data_id')
+    protected function _data_check(int $data_id, string $table_name, int $origin_level = 0)
     {
-        return manage::db_caiji()->table($table_name)->is_repeat($fields_name, $data_id, \PDO::PARAM_INT);
+        $cc = manage::db_caiji()->table($table_name)->where(' `origin_level` =:origin_level  and  `data_id` =:data_id ',['origin_level'=>$origin_level,'data_id'=>$data_id])->count_value();
+        if($cc){
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param int $id
+     * @param string $table_name
+     * @return bool
+     */
+    protected function _data_check_id(int $id, string $table_name)
+    {
+        $cc = manage::db_caiji()->table($table_name)->where(' `id` =:id ',['id'=>$id])->count_value();
+        if($cc){
+            return true;
+        }
+        return false;
     }
 
     /**
      * @param string $table_name
-     * @param string $fields_name
      * @return int  最后的data_id
      */
-    protected function _data_last_id_get(string $table_name, string $fields_name = 'data_id')
+    protected function _data_last_id_get(string $table_name)
     {
-        $rs = manage::db_caiji()->query("SELECT `{$fields_name}` FROM {$table_name} ORDER BY `{$fields_name}` DESC limit 0,1;")->column_one();
-        if ($rs && $rs[$fields_name]) {
-            return (int)$rs[$fields_name];
+        $rs = manage::db_caiji()->query("SELECT `data_id` FROM {$table_name} ORDER BY `data_id` DESC limit 0,1;")->column_one();
+        if ($rs && $rs['data_id']) {
+            return (int)$rs['data_id'];
         }
         return 0;
     }
 
     /**
-     * @param int $id             自增ID
-     * @param int $data_id        数据id
-     * @param string $origin_url  目标URL
-     * @param string $origin_key  目标Key
-     * @param string $origin_tag  目标Tag(json)
-     * @param string $origin_title 目标标题
-     * @param array $origin_data   目标数据(json)
-     * @param array $origin_extend 扩展(json)
-     * @param int $caiji_count     采集次数
-     * @param int $is_wget_attachment 附件-是否采集
-     * @param int $is_wget_data       内容-是否采集
-     * @param int $is_done     是否完成
-     * @param int $time_add    添加时间
-     * @param int $time_update 更新时间
+     * @param array $data        数据
+     * @param int $data_id       数据id
+     * @param int $task_id       任务ID
+     * @param string $origin_url   目标URL
+     * @param string $origin_key   目标Key
+     * @param bool $is_update         true :更新   false:插入
+     * @param bool $is_update_default 数据插入 -> 本字段无效，
+     *                                           数据更新 -> true:已默认字段数据为主  false:已字段数据为主
      * @return array
      */
-    protected function _data_bind_caiji(array $data,int $id = 0,int $data_id = 0,int $task_id = 0, string $origin_url = '', string $origin_key = '',
-                                        bool $is_update_force = false, bool $is_update_default = false)
+    protected function _data_bind_caiji(array $data,int $data_id = 0,int $task_id = 0, string $origin_url = '', string $origin_key = '',
+                                        bool $is_update = false, bool $is_update_default = false)
     {
         // print_r($data);
         $bind_default = [
          // 'id'            => ['default' => 0, 'type' => db::Type_Int], // 自增ID
             'data_id'       => ['default' => 0 , 'type' => db::Type_Int], // 数据id
-            'task_id'       => ['default' => 0,  'type' => db::Type_Int], //任务ID
+            'task_id'       => ['default' => 0,  'type' => db::Type_Int], // 任务ID
             'origin_url'    => ['default' => '', 'type' => db::Type_String], // 目标URL
             'origin_level'  => ['default' => 0 , 'type' => db::Type_Int],    // 级别
 
@@ -228,29 +253,70 @@ abstract class task_base_caiji extends task_base
         if($origin_key){
             $data['origin_key'] = $origin_key;
         }
-        return db::bind($data,$bind_default,$is_update_force,$is_update_default);
+        return db::bind($data,$bind_default,$is_update,$is_update_default);
     }
 
     /**
      * @param array $data
      * @param string $table_name
-     * @param string $fields_name
+     * @param bool $is_update
      */
-    protected function _data_insert(array $data, string $table_name, string $fields_name = 'data_id',bool $is_replace = false)
+    protected function _data_insert(array $data, string $table_name,bool $is_update = false)
     {
-        $data_id = $data[$fields_name];
-        $rs = $this->_data_check($data_id, $table_name, $fields_name);
-        if (!$rs) {
-            manage::db_caiji()->table($table_name)->insert($data);
-            // echo $this->_db->sql()."\n";
-            $is_insert = $this->_data_check($data_id, $table_name, $fields_name);
-            if ($is_insert) {
-                manage::logs_msg("ok->[成功][{$table_name}]{$fields_name}:{$data_id}");
-            } else {
-                manage::logs_msg("error->[失败]数据插入[{$table_name}]{$fields_name}:{$data_id}", manage::Logs_Fail);
+        if($is_update){
+            $id      = (int)$data['id'];
+            if($id){
+                $is = $this->_data_check_id($id, $table_name);
+                if($is){
+                    $data = $this->_data_bind_caiji($data,0,0,'','',true,false);
+                    unset($data['id']);
+                    manage::db_caiji()->table($table_name)->where(' `id` =:id ',['id'=>$id])->update($data);
+                }else{
+                    manage::logs_msg("warn->不已存在[{$table_name}]\$id:{$id}", manage::Logs_Warning);
+                }
+            }else{
+                $data_id      = (int)$data['data_id'];
+                $origin_level = (int)$data['origin_level'];
+                if($data_id){
+                    $is = $this->_data_check($data_id,$table_name,$origin_level);
+                    if($is){
+                        $data = $this->_data_bind_caiji($data,0,0,'','',true,false);
+                        unset($data['id'],$data['data_id'],$data['origin_level']);
+                        manage::db_caiji()->table($table_name)->where(' `origin_level` =:origin_level and `data_id` =:data_id ',['origin_level'=>$origin_level,'data_id'=>$data_id])->update($data);
+                    }else{
+                        manage::logs_msg("warn->不已存在[{$table_name}]\$data_id:{$data_id} \$origin_level:{$origin_level}", manage::Logs_Warning);
+                    }
+                }else{
+                    manage::logs_msg("warn->数据有误[{$table_name}]\$data_id:{$data_id} \$origin_level:{$origin_level}", manage::Logs_Warning);
+                }
             }
-        } else {
-            manage::logs_msg("warn->已存在[{$table_name}]{$fields_name}:{$data_id}", manage::Logs_Warning);
+        }else{
+            $id = (int)$data['id'];
+            if($id){
+                $is = $this->_data_check_id($id, $table_name);
+                if($is){
+                    manage::logs_msg("warn->已存在[{$table_name}]\$id:{$id}", manage::Logs_Warning);
+                }else{
+                    $data = $this->_data_bind_caiji($data,0,0,'','',true,false);
+                    unset($data['id']);
+                    manage::db_caiji()->table($table_name)->insert($data);
+                }
+            }else{
+                $data_id      = (int)$data['data_id'];
+                $origin_level = (int)$data['origin_level'];
+                if($data_id){
+                    $is = $this->_data_check($data_id,$table_name,$origin_level);
+                    if($is){
+                        manage::logs_msg("warn->已存在[{$table_name}]\$data_id:{$data_id} \$origin_level:{$origin_level}", manage::Logs_Warning);
+                    }else{
+                        $data = $this->_data_bind_caiji($data,0,0,'','',true,false);
+                        unset($data['id']);
+                        manage::db_caiji()->table($table_name)->insert($data);
+                    }
+                }else{
+                    manage::logs_msg("warn->数据有误[{$table_name}]\$data_id:{$data_id} \$origin_level:{$origin_level}", manage::Logs_Warning);
+                }
+            }
         }
     }
 

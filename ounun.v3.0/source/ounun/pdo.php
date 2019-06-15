@@ -819,7 +819,7 @@ class pdo
     public function is_repeat(string $field, string $value, int $param = \PDO::PARAM_STR): bool
     {
         if ($field) {
-            $k = $this->_param2types($param);
+            $k  = $this->_param2types($param);
             $rs = $this->where(" {$field} = :field ", [$k . ':field' => $value])->count()->column_one();
             if ($rs && $rs['count']) {
                 return true;
