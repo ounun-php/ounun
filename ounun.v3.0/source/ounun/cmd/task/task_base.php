@@ -22,6 +22,11 @@ abstract class task_base
     /** @var string 类型 */
     public static $site_type = purview::app_type_admin;
 
+    /** @var string 表名日志 */
+    public static $table_task_logs = '';
+    /** @var string 表名日志（详情） */
+    public static $table_task_logs_details = '';
+
 
     /** @var struct 任务数据结构 */
     protected $_task_struct;
@@ -123,7 +128,7 @@ abstract class task_base
         $this->_run_is = true;
         // init
         $this->_db_init();
-        manage::logs_init();
+        manage::logs_init(0,static::$table_task_logs,static::$table_task_logs_details);
         $this->_db_update(manage::Status_Runing);
         // logs
         console::echo("↓↓↓ 任务开始 ↓↓↓ --> task_id:{$this->struct_get()->task_id} name:{$this->tag_get()}/{$this->struct_get()->task_name}", console::Color_Green, __FILE__, __LINE__, time(), ' ');
@@ -239,7 +244,7 @@ abstract class task_base
             ];
             $this->_run_is = false;
             manage::logs_extend_set(['count' => $this->_task_struct->count]);
-            manage::db_biz()->query("UPDATE ".manage::$table_task." SET `run_hostname` = :run_hostname ,`run_status` = :run_status ,`time_ignore` = :time_ignore ,`time_last` = :time_last ,`count` = `count` + 1 WHERE `task_id` = :task_id; ", $bind)->affected();
+            manage::db_caiji()->query("UPDATE ".manage::$table_task." SET `run_hostname` = :run_hostname ,`run_status` = :run_status ,`time_ignore` = :time_ignore ,`time_last` = :time_last ,`count` = `count` + 1 WHERE `task_id` = :task_id; ", $bind)->affected();
         }
         manage::logs_write($this->_logs_status, $this->run_time_get(),true);
     }
@@ -259,7 +264,7 @@ abstract class task_base
                 'run_hostname' => gethostname(),
                 'run_status'   => $run_status,
             ];
-            manage::db_biz()->query("UPDATE ".manage::$table_task." SET `run_hostname` = :run_hostname ,`run_status` = :run_status ,`time_ignore` = :time_ignore ,`time_last` = :time_last  WHERE `task_id` = :task_id; ", $bind)->affected();
+            manage::db_caiji()->query("UPDATE ".manage::$table_task." SET `run_hostname` = :run_hostname ,`run_status` = :run_status ,`time_ignore` = :time_ignore ,`time_last` = :time_last  WHERE `task_id` = :task_id; ", $bind)->affected();
         }
     }
 }

@@ -86,18 +86,22 @@ class manage
     protected static $_db_site;
 
     /** @var string 记日志DB */
-    protected static $_db_logs_tag;
+    protected static $_tag_db_logs;
     /** @var string 记任务DB */
-    protected static $_db_task_tag;
+    protected static $_tag_db_task;
+    /** @var string 采集Tag */
+    protected static $_tag;
 
     /**
      * 返回数据库连接对像
      * @param pdo|null $db_biz
      * @param pdo|null $db_caiji
      * @param pdo|null $db_site
+     * @param string $tag_db_logs
+     * @param string $tag_db_task
      * @return manage
      */
-    public static function instance(pdo $db_biz = null, pdo $db_caiji = null, pdo $db_site = null, string $db_logs_tag = 'caiji',string $db_task_tag = 'caiji'): self
+    public static function instance(string $tag ,pdo $db_biz = null, pdo $db_caiji = null, pdo $db_site = null, string $tag_db_logs = 'caiji', string $tag_db_task = 'caiji'): self
     {
         if (empty(static::$_instance_manage)) {
             static::$_instance_manage = new static();
@@ -111,6 +115,9 @@ class manage
         if ($db_site) {
             static::$_db_site = $db_site;
         }
+        static::$_tag         = $tag;
+        static::$_tag_db_logs = $tag_db_logs;
+        static::$_tag_db_task = $tag_db_task;
         return static::$_instance_manage;
     }
 
@@ -139,7 +146,6 @@ class manage
     }
 
     /**
-     * @param string $db_tag
      * @param array $db_config
      * @return pdo 站点 数据库
      */
@@ -149,6 +155,36 @@ class manage
             static::$_db_site = pdo::instance('site', $db_config);
         }
         return static::$_db_site;
+    }
+
+    /**
+     * @return pdo
+     */
+    public static function db_logs()
+    {
+        if('caiji' == static::$_tag_db_logs){
+            return static::db_caiji();
+        }elseif('biz' == static::$_tag_db_logs){
+            return static::db_biz();
+        }elseif('site' == static::$_tag_db_logs){
+            return static::db_site();
+        }
+        return static::db_caiji();
+    }
+
+    /**
+     * @return pdo
+     */
+    public static function db_task()
+    {
+        if('caiji' == static::$_tag_db_task){
+            return static::db_caiji();
+        }elseif('biz' == static::$_tag_db_task){
+            return static::db_biz();
+        }elseif('site' == static::$_tag_db_task){
+            return static::db_site();
+        }
+        return static::db_caiji();
     }
 
     /**
@@ -164,7 +200,7 @@ class manage
         if ($table_task) {
             self::$table_task = $table_task;
         }
-        static::logs_table_set($logs_table_task, $logs_table_task_details);
+        static::logs_table_set($table_task_logs, $table_task_logs_details);
     }
 
     /**
@@ -185,9 +221,9 @@ class manage
     }
 
     /** @var string 表名 */
-    static protected $_logs_table_task = '';
+    static protected $_table_task_logs = '';
     /** @var string 表名 */
-    static protected $_logs_table_task_details = '';
+    static protected $_table_task_logs_details = '';
 
     /** @var array 日志数据logs_data */
     static protected $_logs_data = [];
@@ -203,11 +239,13 @@ class manage
     static protected $_logs_id = 0;
 
     /**
-     * 初始化任务日志
      * @param int $time_add
+     * @param string $table_task_logs
+     * @param string $table_task_logs_details
      */
-    static public function logs_init(int $time_add = 0)
+    static public function logs_init(int $time_add = 0,string $table_task_logs = '`caiji_task_logs`', string $table_task_logs_details = '`yst_logs`')
     {
+        static::logs_table_set($table_task_logs, $table_task_logs_details);
         static::$_logs_data = [];
         static::$_logs_data_important = [];
         static::$_logs_time_add = $time_add == 0 ? time() : $time_add;
@@ -235,16 +273,16 @@ class manage
     }
 
     /**
-     * @param string $logs_table_task
-     * @param string $logs_table_task_details
+     * @param string $table_task_logs,
+     * @param string $table_task_logs_details
      */
-    static public function logs_table_set(string $logs_table_task = '', string $logs_table_task_details = '')
+    static public function logs_table_set(string $table_task_logs = '', string $table_task_logs_details = '')
     {
-        if ($logs_table_task) {
-            static::$_logs_table_task = $logs_table_task;
+        if ($table_task_logs) {
+            static::$_table_task_logs = $table_task_logs;
         }
-        if ($logs_table_task_details) {
-            static::$_logs_table_task_details = $logs_table_task_details;
+        if ($table_task_logs_details) {
+            static::$_table_task_logs_details = $table_task_logs_details;
         }
     }
 
@@ -312,9 +350,9 @@ class manage
         }
         static::$_logs_data[] = $data;
         if (static::$_logs_id) {
-            $db = static::db_biz();
+            $db = static::db_logs();
             if ($db) {
-                $db->table(static::$_logs_table_task_details)->insert(array_merge(['logs_id' => static::$_logs_id], $data));
+                $db->table(static::$_table_task_logs_details)->insert(array_merge(['logs_id' => static::$_logs_id], $data));
             }
         }
         if (static::Logs_Fail == $status) {
@@ -347,9 +385,9 @@ class manage
                 'time_run' => $run_time,
                 'extend' => json_encode(static::$_logs_extend, JSON_UNESCAPED_UNICODE),
             ];
-            $db = static::db_biz();
+            $db = static::db_logs();
             if ($db) {
-                $db->table(static::$_logs_table_task)->where(' `logs_id` = :logs_id ', ['logs_id' => static::$_logs_id])->update($bind);
+                $db->table(static::$_table_task_logs)->where(' `logs_id` = :logs_id ', ['logs_id' => static::$_logs_id])->update($bind);
             }
         }
     }
@@ -363,7 +401,7 @@ class manage
         if (static::$_logs_id) {
             return;
         }
-        $manage = static::instance();
+        $manage = static::instance(static::$_tag);
         if ($manage && $manage->task_curr_get() && $manage->task_curr_get()->struct_get()) {
             $task_id = $manage->task_curr_get()->struct_get()->task_id;
             $task_curr = $manage->task_curr_get();
@@ -379,9 +417,9 @@ class manage
                     'time_run' => 0,
                     'extend' => json_encode(static::$_logs_extend, JSON_UNESCAPED_UNICODE),
                 ];
-                $db = static::db_biz();
+                $db = static::db_logs();
                 if ($db) {
-                    static::$_logs_id = $db->table(static::$_logs_table_task)->insert($bind);
+                    static::$_logs_id = $db->table(static::$_table_task_logs)->insert($bind);
                 }
             }
         }
@@ -423,17 +461,8 @@ class manage
     protected $_argc_task_id = 0;
     /** @var int 模式 */
     protected $_argc_mode = self::Mode_Dateup;
-
     /** @var int 间隔(秒,默认5秒) */
-    protected $_time_argc_sleep = 5;
-    /** @var int 寿命(秒,默认300秒) */
-    protected $_time_argc_live = 59;
-    /** @var int 当前时间 */
-    protected $_time_curr = 0;
-    /** @var int 过去的时间 */
-    protected $_time_past = 0;
-    /** @var int 执行次数 */
-    protected $_time_run_count = 0;
+    protected $_argc_sleep_time = 5;
 
     /**  */
     public function init()
@@ -455,25 +484,19 @@ class manage
 
     /**
      * 执行任务
-     * @param int $argc_task_id 任务
-     * @param int $argc_mode 运行模式
-     * @param int $argc_time_sleep
-     * @param int $argc_time_live
+     * @param int $argc_task_id     任务
+     * @param int $argc_mode        运行模式
+     * @param int $argc_sleep_time
      * @param array $argc_input
+     * @return int
      */
-    public function execute(int $argc_task_id, int $argc_mode, int $argc_time_sleep, int $argc_time_live, array $argc_input = [])
+    public function execute(int $argc_task_id, int $argc_mode,int $argc_sleep_time, array $argc_input = [])
     {
-        $argc_time_sleep = $argc_time_sleep <= 5 ? 5 : $argc_time_sleep;
-        $argc_time_live = $argc_time_live <= 60 ? 60 : $argc_time_live;
         $is_pass_check = ($argc_task_id && $argc_mode) ? true : false;
 
         $this->_argc_task_id = $argc_task_id;
         $this->_argc_mode = $argc_mode;
-        $this->_time_argc_sleep = $argc_time_sleep;
-        $this->_time_argc_live = $argc_time_live;
-        $this->_time_curr = time();
-        $this->_time_past = 0;
-        $this->_time_run_count = 0;
+        $this->_argc_sleep_time = $argc_sleep_time;
 
         /**
          * 1. 同主机 最高任务并发为 config::$global['task_parallel_max']
@@ -481,26 +504,21 @@ class manage
          * 3. 每次只执行一次任务
          */
         $this->init();
-        $do = 0;
-        do {
-            $tasks = $this->tasks();
-            console::echo("Start   host:" . gethostname() . "  task_parallel_max:" . config::$global['task_parallel_max'] . "    \$tasks_count:" . str_pad(count($tasks), 5) .
-                "\$sleep:" . str_pad($argc_time_sleep, 5) . " \$count:" . str_pad($this->_time_run_count, 5) . "  " .
-                "\$past:" . str_pad($this->_time_past, 5) . " \$live:" . str_pad($argc_time_live, 5) . ' ----------------- ', console::Color_Purple, __FILE__, __LINE__);
-            /** @var task_base $task */
-            foreach ($tasks as $task) {
-                // var_dump(['$task'=>$task]);
-                if (0 == $do && $task && is_subclass_of($task, "ounun\\cmd\\task\\task_base")) {
-                    $this->_task_curr = $task;
-                    $do = $this->_task_curr->execute_do($argc_input, $this->_argc_mode, $is_pass_check);
+        $tasks = $this->tasks();
+        console::echo("Start   host:" . gethostname() . "  task_parallel_max:" . config::$global['task_parallel_max'] . "    \$tasks_count:" . str_pad(count($tasks), 5) .
+                           ' ----------------- ', console::Color_Purple, __FILE__, __LINE__);
+        /** @var task_base $task */
+        foreach ($tasks as $task) {
+            // var_dump(['$task'=>$task]);
+            if ($task && is_subclass_of($task, "ounun\\cmd\\task\\task_base")) {
+                $this->_task_curr = $task;
+                $do = $this->_task_curr->execute_do($argc_input, $this->_argc_mode, $is_pass_check);
+                if($do){
+                    return $do;
                 }
             }
-            $this->_time_run_count++;
-            if (0 == $do) {
-                sleep($argc_time_sleep);
-            }
-            $this->_time_past = time() - $this->_time_curr;
-        } while ($this->_time_past < $this->_time_argc_live && 0 == $do);
+        }
+        return 0;
     }
 
     /**
@@ -519,7 +537,7 @@ class manage
         if (empty($this->_tasks)
             || empty($this->_task_status)
             || $force_refresh
-            || ($this->_task_status && (time() - $this->_task_status['time_create'] > $this->_time_argc_sleep))) {
+            || ($this->_task_status && (time() - $this->_task_status['time_create'] > $this->_argc_sleep_time))) {
             // --------------------------------------------------------------------
             $this->_tasks = [];
             if (0 < $this->_argc_task_id) {
@@ -534,10 +552,11 @@ class manage
                 'i:run_status' => manage::Status_Runing,
                 'i:time' => time()
             ];
-            $cc = static::$_db_biz->query('SELECT (SELECT count(`task_id`) FROM `caiji_task` WHERE `run_hostname` = :run_hostname and `run_status` = :run_status ) as `run_curr` ,  
+            $db = static::db_task();
+            $cc = $db->query('SELECT (SELECT count(`task_id`) FROM `caiji_task` WHERE `run_hostname` = :run_hostname and `run_status` = :run_status ) as `run_curr` ,  
                                                        (SELECT count(`task_id`) FROM `caiji_task` WHERE `run_status` = :run_status ) as `run_curr_all` , 
                                                        (SELECT count(`task_id`) FROM `caiji_task` WHERE `time_ignore` <= :time and `time_begin` <= :time and `time_end` >= :time ) as `task_count`;', $cc_bind)->column_one();
-            $rs = static::$_db_biz->table(static::$table_task)->field('*')->where($where, $param)->column_all();
+            $rs = $db->table(static::$table_task)->field('*')->where($where, $param)->column_all();
             // static::$_db_biz->stmt()->debugDumpParams();
             // print_r(['static::$_db_task->stmt()->queryString'=>static::$_db_biz->stmt()->queryString,'$rs'=>$rs]);
             foreach ($rs as $v) {
@@ -560,8 +579,10 @@ class manage
             }
             // --------------------------------------------------------------------
             $this->_task_status = [
+                'tag' => static::$_tag,
                 'argc_mode' => $this->_argc_mode,
                 'argc_task_id' => $this->_argc_task_id,
+                'argc_sleep_time' => $this->_argc_sleep_time,
                 'time_create' => time(),
                 'task_count' => $cc['task_count'],
                 'run_curr' => $cc['run_curr'],

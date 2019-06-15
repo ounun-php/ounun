@@ -2,6 +2,7 @@
 namespace ounun\cmd\task;
 
 use ounun\mvc\model\admin\purview;
+use ounun\tool\db;
 
 abstract class task_base_caiji extends task_base
 {
@@ -22,6 +23,11 @@ abstract class task_base_caiji extends task_base
     public static $site_type = purview::app_type_admin;
     /** @var string 采集  库标识（采集数据录入的数据库） */
     public static $caiji_libs = 'caiji_no1';
+    /** @var string 采集  库标识(outs) 输出     （采集数据录入的数据库） */
+    public static $caiji_libs_table_outs = '<tag>_outs';
+    /** @var string 采集  库标识(data) 采集的数据（采集数据录入的数据库） */
+    public static $caiji_libs_table_data = '<tag>_<domain>_<data>';
+
     /** @var string  列表01 - 表名 */
     public static $caiji_libs_table_list01 = 'libs_pics_list01';
     /** @var string  列表02 - 表名 */
@@ -162,100 +168,6 @@ abstract class task_base_caiji extends task_base
     }
 
     /**
-     * 获取网络文件，并保存
-     * @param string $url
-     * @param string $save_filename
-     * @param string $referer
-     */
-    protected function _wget_attachment_save(string $url, string $save_filename, string $referer = '')
-    {
-        if (empty($referer)) {
-            $referer = static::$caiji_src_url;
-            if (empty($referer)) {
-                $referer = $url;
-            }
-        }
-        $do = static::$wget_loop_max;
-        do {
-            $do--;
-            $c = \plugins\curl\http::file_get_contents($url, $referer);
-            if ($c && strlen($c) > static::$wget_file_mini_size) {
-                $do = 0;
-                file_put_contents($save_filename, $c);
-            }
-        } while ($do);
-    }
-
-    /**
-     * @param int $data_id
-     * @param int $list_id
-     * @param int $task_id
-     * @param string $origin_url
-     * @param int $origin_level
-     * @param array $origin_data
-     * @param int $is_status
-     * @param int $is_wget_again
-     * @param int $is_done
-     * @param int $time_add
-     * @param int $time_last
-     * @param float $execution_time
-     * @param array $extend
-     * @return array
-     */
-    protected function _fields_data(int $data_id , int $list_id , int $task_id = 0, string $origin_url = '', int $origin_level = 0, array $origin_data = [], int $is_status = 0, int $is_wget_again = 0, int $is_done = 0, int $time_add = 0, int $time_last = 0, float $execution_time = 0, array $extend = [])
-    {
-        $bind = $this->_fields_list($list_id ,  $task_id , $origin_url, $origin_level ,  $origin_data ,  $is_status ,  $is_wget_again ,  $is_done ,  $time_add ,  $time_last ,  $execution_time , $extend);
-        if ($data_id) {
-            $bind['data_id'] = $data_id;
-        }
-        return $bind;
-    }
-
-    /**
-     * @param int $list_id
-     * @param int $task_id
-     * @param string $origin_url
-     * @param int $origin_level
-     * @param array $origin_data
-     * @param int $is_status
-     * @param int $is_wget_again
-     * @param int $is_done
-     * @param int $time_add
-     * @param int $time_last
-     * @param float $execution_time
-     * @param array $extend
-     * @return array
-     */
-    protected function _bind_list_biz(int $list_id , int $task_id = 0, string $origin_url = '', int $origin_level = 0,
-                                           array $origin_data = [], int $is_status = 0, int $is_wget_again = 0, int $is_done = 0,
-                                           int $time_add = 0, int $time_last = 0, float $execution_time = 0, array $extend = [])
-    {
-        if (empty($time_last)) {
-            $time_last = \time();
-        }
-        if (empty($time_add)) {
-            $time_add = \time();
-        }
-        $bind = [
-            'task_id' => $task_id, // 任务ID
-            'origin_url' => $origin_url, // 源地址
-            'origin_level' => $origin_level, // 级别
-            'origin_data' => json_encode_unescaped($origin_data), // 数据(json)
-            'is_status' => $is_status, // 状态
-            'is_wget_again' => $is_wget_again, // 重试-是否每天
-            'is_done' => $is_done, // 是否完成
-            'time_add' => $time_add, // 添加时间
-            'time_last' => $time_last, // 完成时间
-            'execution_time' => $execution_time, // 执行时间(秒)
-            'extend' => json_encode_unescaped($extend), // 任务参数paras/扩展json
-        ];
-        if ($list_id) {
-            $bind['list_id'] = $list_id;
-        }
-        return $bind;
-    }
-
-    /**
      * @param int $id             自增ID
      * @param int $data_id        数据id
      * @param string $origin_url  目标URL
@@ -272,41 +184,51 @@ abstract class task_base_caiji extends task_base
      * @param int $time_update 更新时间
      * @return array
      */
-    protected function _bind_data_caiji(int $id = 0,int $data_id = 0, string $origin_url = '',
-                                  string $origin_key = '', string $origin_tag = '',string $origin_title = '',
-                                  array $origin_data = [], array  $origin_extend = [],
-                                  int $caiji_count = 1,int $is_wget_attachment = 0,int $is_wget_data = 0,int $is_done = 0,int $time_add = 0,int $time_update = 0)
+    protected function _data_bind_caiji(array $data,int $id = 0,int $data_id = 0,int $task_id = 0, string $origin_url = '', string $origin_key = '',
+                                        bool $is_update_force = false, bool $is_update_default = false)
     {
-        if (empty($time_add)) {
-            $time_add = \time();
-        }
-        if (empty($time_update)) {
-            $time_update = \time();
-        }
-        $bind = [
-            //  'list_id' => $list_id,
-            'data_id' => $data_id,
-            'origin_url' => $origin_url,
-            'origin_key' => $origin_key,
-            'origin_tag' => $origin_tag,
-            'origin_title' => $origin_title,
+        // print_r($data);
+        $bind_default = [
+         // 'id'            => ['default' => 0, 'type' => db::Type_Int], // 自增ID
+            'data_id'       => ['default' => 0 , 'type' => db::Type_Int], // 数据id
+            'task_id'       => ['default' => 0,  'type' => db::Type_Int], //任务ID
+            'origin_url'    => ['default' => '', 'type' => db::Type_String], // 目标URL
+            'origin_level'  => ['default' => 0 , 'type' => db::Type_Int],    // 级别
 
-            'origin_data' => json_encode_unescaped($origin_data),
-            'origin_extend' => json_encode_unescaped($origin_extend),
+            'origin_key'       => ['default' => '',      'type' => db::Type_String], // 目标Key
+            'origin_tag'       => ['default' => [],      'type' => db::Type_Json],   // 目标Tag(json)
+            'origin_title'     => ['default' => '',      'type' => db::Type_Int],    // 目标标题
+            'origin_data'      => ['default' => [],      'type' => db::Type_Json],   // 目标数据(json)
+            'origin_extend'    => ['default' => [],      'type' => db::Type_Json],   // 扩展(json)
 
-            'caiji_count' => $caiji_count,
+            'caiji_count'         => ['default' => 0, 'type' => db::Type_Int], // 采集次数
+            'is_status'           => ['default' => 0, 'type' => db::Type_Int], // 状态
+            'is_wget_again'       => ['default' => 0, 'type' => db::Type_Int], // 重试-是否每天
+            'is_wget_attachment'  => ['default' => 0, 'type' => db::Type_Int], // 附件-是否采集
+            'is_wget_data'        => ['default' => 0, 'type' => db::Type_Int], // 内容-是否采集
 
-            'is_wget_attachment' => $is_wget_attachment,
-            'is_wget_data' => $is_wget_data,
-            'is_done' => $is_done,
+            'is_done'      => ['default' => 0,     'type' => db::Type_Int], // 是否完成
+            'is_del'       => ['default' => 0,     'type' => db::Type_Int], // 是否删除 1已删
+            'time_add'     => ['default' => time(),'type' => db::Type_Int], // 添加时间
+            'time_update'  => ['default' => 0,     'type' => db::Type_Int], // 更新时间
+            'time_last'    => ['default' => 0,     'type' => db::Type_Int], // 完成时间
 
-            'time_add' => $time_add,
-            'time_update' => $time_update,
+            'execution_time' => ['default' => 0, 'type' => db::Type_Float], // 执行时间(秒)
+            'extend'         => ['extend' => [], 'type' => db::Type_Json],  // 任务参数paras/扩展json
         ];
-        if ($id) {
-            $bind['id'] = $id;
+        if($data_id){
+            $data['data_id'] = $data_id;
         }
-        return $bind;
+        if($task_id){
+            $data['task_id'] = $task_id;
+        }
+        if($origin_url){
+            $data['origin_url'] = $origin_url;
+        }
+        if($origin_key){
+            $data['origin_key'] = $origin_key;
+        }
+        return db::bind($data,$bind_default,$is_update_force,$is_update_default);
     }
 
     /**
@@ -330,5 +252,30 @@ abstract class task_base_caiji extends task_base
         } else {
             manage::logs_msg("warn->已存在[{$table_name}]{$fields_name}:{$data_id}", manage::Logs_Warning);
         }
+    }
+
+    /**
+     * 获取网络文件，并保存
+     * @param string $url
+     * @param string $save_filename
+     * @param string $referer
+     */
+    protected function _wget_attachment_save(string $url, string $save_filename, string $referer = '')
+    {
+        if (empty($referer)) {
+            $referer = static::$caiji_src_url;
+            if (empty($referer)) {
+                $referer = $url;
+            }
+        }
+        $do = static::$wget_loop_max;
+        do {
+            $do--;
+            $c = \plugins\curl\http::file_get_contents($url, $referer);
+            if ($c && strlen($c) > static::$wget_file_mini_size) {
+                $do = 0;
+                file_put_contents($save_filename, $c);
+            }
+        } while ($do);
     }
 }

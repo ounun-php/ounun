@@ -59,7 +59,7 @@ abstract class cmd
 
     /**
      * 执行指令
-     * @param array $input
+     * @param array $argc_input
      * @return null|int
      * @throws \LogicException
      */
