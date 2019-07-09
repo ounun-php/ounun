@@ -168,7 +168,7 @@ class pdo
      */
     public function table(string $table = ''): self
     {
-        if ($this->_table && $table) {
+        if ($this->_table || $table) {
             $this->_clean();
         }
         $this->_table = $table;
@@ -426,9 +426,14 @@ class pdo
      */
     public function delete(int $limit = 1): int
     {
-        $this->limit($limit)
-            ->_prepare('DELETE ' . $this->_option . ' FROM ' . $this->_table . ' ' . $this->_where . ' ' . $this->_limit . ';')
-            ->_execute($this->_bind_param);
+        if($limit === 0 ){
+            $this->_prepare('DELETE ' . $this->_option . ' FROM ' . $this->_table . ' ' . $this->_where . ';')
+                 ->_execute($this->_bind_param);
+        }else{
+            $this->limit($limit)
+                 ->_prepare('DELETE ' . $this->_option . ' FROM ' . $this->_table . ' ' . $this->_where . ' ' . $this->_limit . ';')
+                 ->_execute($this->_bind_param);
+        }
         return $this->_stmt->rowCount(); //取得前一次 MySQL 操作所影响的记录行数
     }
 
@@ -1043,7 +1048,7 @@ class pdo
             ]);
             $this->_stmt->debugDumpParams();
             // echo $this->_stmt->queryString."\n";
-            trigger_error("Sql Error:" . $e->getMessage() . "\n", E_USER_ERROR);
+            trigger_error("Sql Error:" . $e->getMessage() . "\nTrace:".$e->getTraceAsString()."\n", E_USER_ERROR);
         }
     }
 

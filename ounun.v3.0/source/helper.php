@@ -503,7 +503,7 @@ function extend_decode_json(string $extend_string)
 {
     $extend = [];
     if ($extend_string) {
-        $extend = json_decode($extend_string);
+        $extend = json_decode($extend_string,true);
     }
     return $extend;
 }
@@ -781,6 +781,15 @@ abstract class v
     /** @var \ounun\pdo DB */
     public static $db_v;
 
+    /** @return \ounun\pdo DB */
+    public static function db_v_get()
+    {
+        if (empty(static::$db_v)) {
+            static::$db_v = \ounun\pdo::instance(\ounun\config::database_default_get());
+        }
+        return static::$db_v;
+    }
+
     /** @var int cache_html_time */
     public static $cache_html_time = 2678400; // 31天
 
@@ -882,10 +891,10 @@ abstract class v
     }
 
     /** @var string 当前面页(网址) */
-    public $page_url = '';
+    // public $page_url = '';
 
     /** @var string 当前面页(文件名) */
-    public $page_file = '';
+    // public $page_file = '';
 
     /**
      * 初始化Page
@@ -899,16 +908,19 @@ abstract class v
     public function init_page(string $page_file = '', bool $is_cache_html = true, bool $ext_req = true, string $domain = '', int $cache_html_time = 0, bool $cache_html_trim = true)
     {
         // url_check
-        $this->page_file = $page_file;
-        $this->page_url = \ounun\config::url_page($this->page_file);
-
-        url_check($this->page_url, $ext_req, $domain);
+        \ounun\config::url_page($page_file);
+        url_check(ounun\config::$page_url, $ext_req, $domain);
 
         // cache_html
-        static::$cache_html_trim = '' == Environment ? $cache_html_trim : false;
+        if('' == Environment ){
+            $debug = \ounun\config::$global['debug'];
+            static::$cache_html_trim = $debug && isset($debug['html_trim']) ? $debug['html_trim'] : $cache_html_trim;
+        }else{
+            static::$cache_html_trim = false;
+        }
         if ($is_cache_html) {
             static::$cache_html_time = $cache_html_time > 300 ? $cache_html_time : static::$cache_html_time;
-            $this->cache_html($this->page_url);
+            $this->cache_html(ounun\config::$page_url);
         }
 
         // template

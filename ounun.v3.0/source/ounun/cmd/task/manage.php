@@ -23,7 +23,7 @@ class manage
     /** @var string 发布 - 运行类型 */
     const Run_Type_Post = 'post';
     /** @var string 系统 - 运行类型 */
-    const Run_Type_System = 'system';
+    const Run_Type_System = 'site';
     /** @var array 运行类型(采集/发布/系统) */
     const Run_Type = [
         self::Run_Type_Caiji => '采集',
@@ -482,6 +482,25 @@ class manage
         return $this->_task_status;
     }
 
+
+    /**
+     * @param string $task_class
+     * @param array $argc_input
+     */
+    public function execute_single(string $task_class,array $argc_input = [])
+    {
+        // 实例对像
+        $struct = new struct([]);
+        /** @var task_base $task */
+        $task = new $task_class($struct);
+        if (is_subclass_of($task, "ounun\\cmd\\task\\task_base")) {
+            $this->_task_curr = $task;
+            $task->execute_do($argc_input);
+        }else{
+            console::echo("error --> class:{$task_class} not subclass:task\\task_base", console::Color_Red, __FILE__, __LINE__, time());
+        }
+    }
+
     /**
      * 执行任务
      * @param int $argc_task_id     任务
@@ -553,9 +572,9 @@ class manage
                 'i:time' => time()
             ];
             $db = static::db_task();
-            $cc = $db->query('SELECT (SELECT count(`task_id`) FROM `caiji_task` WHERE `run_hostname` = :run_hostname and `run_status` = :run_status ) as `run_curr` ,  
-                                                       (SELECT count(`task_id`) FROM `caiji_task` WHERE `run_status` = :run_status ) as `run_curr_all` , 
-                                                       (SELECT count(`task_id`) FROM `caiji_task` WHERE `time_ignore` <= :time and `time_begin` <= :time and `time_end` >= :time ) as `task_count`;', $cc_bind)->column_one();
+            $cc = $db->query('SELECT (SELECT count(`task_id`) FROM '.static::$table_task.' WHERE `run_hostname` = :run_hostname and `run_status` = :run_status ) as `run_curr` ,  
+                                                       (SELECT count(`task_id`) FROM '.static::$table_task.' WHERE `run_status` = :run_status ) as `run_curr_all` , 
+                                                       (SELECT count(`task_id`) FROM '.static::$table_task.' WHERE `time_ignore` <= :time and `time_begin` <= :time and `time_end` >= :time ) as `task_count`;', $cc_bind)->column_one();
             $rs = $db->table(static::$table_task)->field('*')->where($where, $param)->column_all();
             // static::$_db_biz->stmt()->debugDumpParams();
             // print_r(['static::$_db_task->stmt()->queryString'=>static::$_db_biz->stmt()->queryString,'$rs'=>$rs]);

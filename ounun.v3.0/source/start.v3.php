@@ -39,12 +39,24 @@ class config
     /** @var string 根目录(App) */
     static public $dir_app = '';
 
+    /** @var string 当前面页(文件名)  Page Base */
+    static public $page_base_file = '';
+    /** @var string 当前面页(网址)    Page URL */
+    static public $page_url = '';
+    /** @var string Www Page */
+    static public $page_www = '';
+    /** @var string Mobile Page */
+    static public $page_wap = '';
+    /** @var string Mip Page */
+    static public $page_mip = '';
+
     /** @var string Www URL */
     static public $url_www = '';
     /** @var string Mobile URL */
     static public $url_wap = '';
     /** @var string Mip URL */
     static public $url_mip = '';
+
     /** @var string Api URL */
     static public $url_api = '';
     /** @var string Res URL */
@@ -215,6 +227,7 @@ class config
         static::$url_wap = $url_wap;
         /** Mip URL */
         static::$url_mip = $url_mip;
+
         /** Api URL */
         static::$url_api = $url_api;
         /** Res URL */
@@ -354,28 +367,34 @@ class config
      */
     static public function template_replace_str_get()
     {
-        $url_base = substr(static::$view->page_url, 1);
+
         return array_merge([
-            '{$page_url}' => static::$view->page_url,
-            '{$page_file}' => static::$view->page_file,
+            '{$page_url}' => static::$page_url, // static::$view->page_url,
+            '{$page_file}' => static::$page_base_file,//static::$view->page_file,
 
             '{$url_www}' => static::$url_www,
             '{$url_wap}' => static::$url_wap,
             '{$url_mip}' => static::$url_mip,
             '{$url_api}' => static::$url_api,
-            '{$url_page}' => static::url_page(),
 
-            '{$canonical_www}' => static::$url_www . $url_base,
-            '{$canonical_mip}' => static::$url_mip . $url_base,
-            '{$canonical_wap}' => static::$url_wap . $url_base,
+            //  '{$url_page}' => static::url_page(),
+
+            '{$canonical_www}' => static::$page_www, // static::$url_www . $url_base,
+            '{$canonical_mip}' => static::$page_mip, // static::$url_mip . $url_base,
+            '{$canonical_wap}' => static::$page_wap, // static::$url_wap . $url_base,
 
             '{$app}' => static::$app_name,
             '{$domain}' => static::$app_domain,
 
             '{$res}' => static::$url_res,
+
             '{$static}' => static::$url_static,
             '{$upload}' => static::$url_upload,
             '{$static_g}' => static::$url_static_g,
+
+            '{$sitename}' => i18n()::title,
+
+            '/public/static_g/' => static::$url_static_g,
             '/public/static/' => static::$url_static,
             '/public/upload/' => static::$url_upload,
         ], static::$tpl_replace_str);
@@ -413,16 +432,49 @@ class config
             $lang = static::$lang;
         }
         if ($url !== '' && $url[0] == '/') {
+            $page_base_file = $url;
             if ($lang == static::$lang_default) {
-                return static::$app_path . substr($url, 1);
+                $page_lang = '';
+                $page_url = static::$app_path . substr($url, 1);
+            }else{
+                $page_lang = '/' . $lang;
+                $page_url = $page_lang. static::$app_path . substr($url, 1);
             }
-            return '/' . $lang . static::$app_path . substr($url, 1);
         } else {
+            $page_base_file = '/'.$url;
             if ($lang == static::$lang_default) {
-                return static::$app_path . $url;
+                $page_lang = '';
+                $page_url = static::$app_path . $url;
+            }else{
+                $page_lang = '/' . $lang;
+                $page_url =  $page_lang. static::$app_path . $url;
             }
-            return '/' . $lang . static::$app_path . $url;
         }
+        if(empty(static::$page_url)){
+            static::url_page_set($page_base_file,$page_url,$page_lang);
+        }
+        return $page_url;
+    }
+
+    static public function url_page_set(string $page_base_file,string $page_url,string $page_lang)
+    {
+        /** @var string Base Page */
+        static::$page_base_file = $page_base_file;
+        /** @var string URL Page */
+        static::$page_url = $page_url;
+        
+        /** @var string Www Page */
+        $a = explode('/',static::$url_www,5);
+        $p = $a[3]?"/{$a[3]}":'';
+        static::$page_www = "{$a[0]}//{$a[2]}{$page_lang}{$p}{$page_base_file}";
+        /** @var string Mobile Page */
+        $a = explode('/',static::$url_wap,5);
+        $p = $a[3]?"/{$a[3]}":'';
+        static::$page_wap = "{$a[0]}//{$a[2]}{$page_lang}{$p}{$page_base_file}";
+        /** @var string Mip Page */
+        $a = explode('/',static::$url_mip,5);
+        $p = $a[3]?"/{$a[3]}":'';
+        static::$page_mip = "{$a[0]}//{$a[2]}{$page_lang}{$p}{$page_base_file}";
     }
 
     /**

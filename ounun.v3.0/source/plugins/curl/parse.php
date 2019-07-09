@@ -92,6 +92,35 @@ class parse
     }
 
     /**
+     * 获取目录内容
+     * @param string $content 所在内容
+     * @param string $middle  目标内容分格点
+     * @param array  $rules   分析规则 ['key'=> 主键, 'type' => <'left'默认,'right'> , 'left' => $left, 'right'=>$right]
+     */
+    static public function list(string $content, string $middle, array $rules)
+    {
+        $rs = [];
+        $c2 = explode($middle, $content);
+        $key0 = $rules[0]['key'];
+        foreach ($c2 as $v2) {
+            if($v2){
+                $rs2 = [];
+                foreach ($rules as ['key'=> $key, 'type' => $type , 'left' => $left, 'right'=>$right]){
+                    if('right' == $type){
+                        $rs2[$key] = self::right($v2, $right, $left);
+                    }else{
+                        $rs2[$key] = self::left($v2, $left, $right);
+                    }
+                }
+                if($rs2[$key0]){
+                    $rs[] = $rs2;
+                }
+            }
+        }
+        return $rs;
+    }
+
+    /**
      * 取出正则数据
      * @param  $pattern string
      *      网址: <a href="(http://:any)">(:any)</a>
@@ -106,16 +135,16 @@ class parse
         return $matches;
     }
 
-
     /**
      * 正则提取正文里指定的第几张图片地址
      * @param string $content
      * @return array
      */
-    static function img_urls(string $content): array
+    static public function img_urls(string $content): array
     {
-        preg_match_all('/<img(.*?)src="(.*?)(?=")/si', $content, $imgarr);///(?<=img.src=").*?(?=")/si
-        preg_match_all('/(?<=src=").*?(?=")/si', implode('" ', $imgarr[0]) . '" ', $imgarr);
-        return $imgarr[0];
+        preg_match_all('/<img.*?src="(.*?)"/si', $content, $imgarr);///(?<=img.src=").*?(?=")/si
+        // print_r($imgarr[1]);
+        // preg_match_all('/(?<=src=").*?(?=")/si', implode('" ', $imgarr[0]) . '" ', $imgarr);
+        return $imgarr[1];
     }
 }

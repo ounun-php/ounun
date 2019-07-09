@@ -32,7 +32,7 @@ class struct
     /** @var int 任务组id */
     public $group_id = 0;
     /** @var int 类型 0:指定日期时间 1:间隔时间 */
-    public $type = 0;
+    public $type = 1;
     /** @var string 分类标识 */
     public $tag = '';
     /** @var string 子分类 */
@@ -41,7 +41,7 @@ class struct
     public $crontab = '';
 
     /** @var int 最小间隔 */
-    public $interval_min = 59;
+    public $interval_min = 29;
     /** @var int 执行次数 */
     public $count = 0;
     /** @var array 数据json ["任务tag","方法","参数1","参数2",...] */

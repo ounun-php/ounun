@@ -82,7 +82,8 @@ class db
      * @return array|int
      */
     static public function update(pdo $db, string $table, string $field, $id, array $bind_data, array $bind_default,
-                                  bool $is_update_force = false, bool $is_update_default = false, bool $is_not_auto_increment = false,string $field2 = '')
+                                  bool $is_update_force = false, bool $is_update_default = false,
+                                  bool $is_not_auto_increment = false,string $field2 = '')
     {
         $is_update = true;
         if ($id) {

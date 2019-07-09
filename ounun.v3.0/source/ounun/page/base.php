@@ -16,15 +16,22 @@ class base
     /** @var array   默认页 */
     protected $_config_default = ['<li>', '</li>'];
     /** @var array   当前页面时 */
-    protected $_config_now = ['<li class="now">', '</li>'];
+    protected $_config_tag_now = ['<li class="now">', '</li>'];
     /** @var array   第一页 上一页 下一页 最后一页   ['|&lt;','&lt;','&gt;','&gt;|']; */
-    protected $_cfg_tag = ['第一页', '上一页', '下一页', '最后一页'];
+    protected $_config_tag = ['第一页', '上一页', '下一页', '最后一页'];
     /** @var int     最多显示几页 */
-    protected $_cfg_max = 7;
+    protected $_config_show_max = 9;
     /** @var int     一页显示几条数据 */
-    protected $_cfg_rows = 20;
+    protected $_config_rows = 20;
     /** @var array   第一页 */
-    protected $_cfg_index = [];
+    protected $_config_index = [];
+    /** @var string  获取数据总数 */
+    protected $_config_count_sql = 'count(*)';
+
+    /** @var string */
+    protected $_where_str = '';
+    /** @var array */
+    protected $_where_bind = [];
 
     /** @var \ounun\pdo */
     protected $_db;
@@ -32,18 +39,12 @@ class base
     protected $_table;
     /** @var string */
     protected $_url;
-    /** @var string */
-    protected $_where_str = '';
-    /** @var array */
-    protected $_where_bind = [];
-    /** @var string */
-    protected $_sql_count;
-
 
     /** @var int 数量总量 */
     protected $_total;
     /** @var int 页数总量 */
     protected $_total_page = 1;
+
     /** @var int 当前所在页数 */
     protected $_page = 1;
     /** @var bool 翻页排序  false:1...max  true:max...1 */
@@ -55,77 +56,55 @@ class base
      * @param \ounun\pdo $db
      * @param string $table
      * @param string $url
-     * @param string $where_str
-     * @param array $where_bind
-     * @param string $sql_count
+     * @param string $where
      * @param array $config
      */
-    public function __construct(\ounun\pdo $db, string $table, string $url, string $where_str = '', array $where_bind = [], string $sql_count = 'count(*)', array $config = [], int $rows = 0)
+    public function __construct(\ounun\pdo $db, string $table, string $url, array $where = [], array $config = [])
     {
         $this->_db = $db;
         $this->_table = $table;
         $this->_url = $url;
-        $this->_where_str = $where_str;
-        $this->_where_bind = $where_bind;
-        $this->_sql_count = $sql_count;
 
-        if ($config) {
-            $this->config_set($config);
+        if($where && is_array($where)){
+            foreach (['str','bind'] as $key){
+                if($where[$key]){
+                    $m = "_where_{$key}";
+                    $this->$m = $where[$key];
+                }
+            }
         }
 
-        if ($rows) {
-            $this->_cfg_rows = $rows;
-        }
+        $this->config_set($config);
     }
 
     /**
      * 设定总接口
-     * @param string|array $key
-     * @param string $value
+     * @param array $config
      */
     public function config_set(array $config)
     {
-        // 提示串
-        if ($config['note']) {
-            $this->_config_note = $config['note'];
-        }
-        // 默认页
-        if ($config['default']) {
-            $this->_config_default = $config['default'];
-        }
-        // 当前页面时
-        if ($config['now']) {
-            $this->_config_now = $config['now'];
-        }
-        // 第一页 上一页 下一页 最后一页
-        if ($config['tag']) {
-            $this->_cfg_tag = $config['tag'];
-        }
-        // 最多显示几页
-        if ($config['max']) {
-            $this->_cfg_max = $config['max'];
-        }
-        // 一页显示几条数据
-        if ($config['rows']) {
-            $this->_cfg_rows = $config['rows'];
-        }
-        // 第一页
-        if ($config['index']) {
-            $this->_cfg_index = $config['index'];
+        if($config && is_array($config)){
+            foreach (['note','default','tag_now','tag','show_max','rows','index','count_sql'] as $key){
+                if($config[$key]){
+                    $m = "_config_{$key}";
+                    $this->$m = $config[$key];
+                }
+            }
         }
     }
 
     /**
      * 得到分页数据
      * @param int $page
-     * @param array $config
+     * @param string $title
+     * @param bool $default_end
      * @return array
      */
     public function init(int $page = 0, string $title = "", bool $default_end = false): array
     {
         $page_default = $this->_config_default;
-        $page_now = $this->_config_now;
-        $cfg_tag = $this->_cfg_tag;
+        $page_now = $this->_config_tag_now;
+        $cfg_tag = $this->_config_tag;
         $title = $title ? "{$title}-" : '';
 
         $rs_page = [];
@@ -172,24 +151,24 @@ class base
      */
     public function data(int $page = 0, bool $default_end = false): array
     {
-        $m = ceil($this->_cfg_max / 2);
+        $m = ceil($this->_config_show_max / 2);
         $this->_total = $this->total();
-        $this->_total_page = ceil($this->_total / $this->_cfg_rows);
+        $this->_total_page = ceil($this->_total / $this->_config_rows);
         $page = $default_end
             ? ($page < 1 ? $this->_total_page : $page)
             : ($page < 1 ? 1 : $page);
         $this->_page = $page;
         $this->_page_max = $default_end;
 
-        if ($this->_total_page > $this->_cfg_max) {
-            $sub_total = $this->_cfg_max;
+        if ($this->_total_page > $this->_config_show_max) {
+            $sub_total = $this->_config_show_max;
             $sub_begin = true;
             $sub_end = true;
             if ($page <= $m) {
                 $sub_start = 1;
                 $sub_begin = false;
             } elseif ($this->_total_page - $page < $m) {
-                $sub_start = $this->_total_page - $this->_cfg_max + 1;
+                $sub_start = $this->_total_page - $this->_config_show_max + 1;
                 $sub_end = false;
             } else {
                 $sub_start = $page - $m + 1;
@@ -259,7 +238,7 @@ class base
      */
     public function limit_rows(): int
     {
-        return $this->_cfg_rows;
+        return $this->_config_rows;
     }
 
     /**
@@ -268,9 +247,9 @@ class base
     public function limit_start(): int
     {
         if ($this->_page_max && $this->_page == $this->_total_page) {
-            $start = $this->_total - $this->_cfg_rows;
+            $start = $this->_total - $this->_config_rows;
         } else {
-            $start = ($this->_page - 1) * $this->_cfg_rows;
+            $start = ($this->_page - 1) * $this->_config_rows;
         }
         return $start < 0 ? 0 : $start;
     }
@@ -293,20 +272,20 @@ class base
     protected function _url_set(int $page): string
     {
         $url = str_replace('{page}', $page, $this->_url);
-        if ($this->_cfg_index) {
+        if ($this->_config_index) {
             if ($this->_page_max && $page == $this->_total_page) {
-                if (is_array($this->_cfg_index)) {
-                    $cfg_index = str_replace('{total_page}', $page, $this->_cfg_index[0]);
-                    $url = str_replace($cfg_index, $this->_cfg_index[1], $url);
+                if (is_array($this->_config_index)) {
+                    $cfg_index = str_replace('{total_page}', $page, $this->_config_index[0]);
+                    $url = str_replace($cfg_index, $this->_config_index[1], $url);
                 } else {
-                    $cfg_index = str_replace('{total_page}', $page, $this->_cfg_index);
+                    $cfg_index = str_replace('{total_page}', $page, $this->_config_index);
                     $url = str_replace($cfg_index, '', $url);
                 }
             } elseif (1 == $page) {
-                if (is_array($this->_cfg_index)) {
-                    $url = str_replace($this->_cfg_index[0], $this->_cfg_index[1], $url);
+                if (is_array($this->_config_index)) {
+                    $url = str_replace($this->_config_index[0], $this->_config_index[1], $url);
                 } else {
-                    $url = str_replace($this->_cfg_index, '', $url);
+                    $url = str_replace($this->_config_index, '', $url);
                 }
             }
         }
@@ -320,7 +299,7 @@ class base
     protected function _total_get(): int
     {
         $rs = $this->_db->table($this->_table)
-            ->field(' ' . $this->_sql_count . ' as `cc` ')
+            ->field(' ' . $this->_config_count_sql . ' as `cc` ')
             ->where($this->_where_str, $this->_where_bind)->column_one();
         //  ->row("select {$this->_sql_count} as `cc` from {$this->_table} {$this->_where_str}", $this->_where_bind);
         if ($rs && $rs['cc']) {

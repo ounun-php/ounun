@@ -2,6 +2,8 @@
 
 namespace plugins\qqwry;
 
+use ounun\mvc\model\cms;
+
 /** 本插件所在目录 */
 define('Dir_Plugins_QQWry', realpath(__DIR__) . '/');
 
@@ -28,6 +30,20 @@ define('Dir_Plugins_QQWry', realpath(__DIR__) . '/');
  */
 class ip
 {
+    /** @var self 实例 */
+    protected static $instance;
+
+    /**
+     * 返回数据库连接对像
+     */
+    public static function i($charset = 'gbk'): self
+    {
+        if (empty(static::$instance)) {
+            static::$instance = new static($charset);
+        }
+        return static::$instance;
+    }
+
     /**
      * QQWry.Dat文件指针
      * @var resource

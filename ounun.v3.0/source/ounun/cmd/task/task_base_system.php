@@ -48,9 +48,9 @@ abstract class task_base_system extends task_base
     protected $_url_root_wap = '';
 
     /**  @var string  表格 所有的URL  网站地图 */
-    protected $_table_sitemap_urls = ' `v1_core_sitemap` ';
+    protected $_table_sitemap_urls = ' `v1_seo_sitemap` ';
     /**  @var string  表格 URL提交 */
-    protected $_table_sitemap_push = ' `v1_core_sitemap_push` ';
+    protected $_table_sitemap_push = ' `v1_seo_sitemap_push` ';
 
     /** @var int 单次提交数据 */
     protected $_push_step = 1000;

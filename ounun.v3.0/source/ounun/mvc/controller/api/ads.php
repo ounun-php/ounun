@@ -1,4 +1,5 @@
 <?php
+
 namespace ounun\mvc\controller\api;
 
 class ads extends \v
@@ -7,12 +8,12 @@ class ads extends \v
     static protected $ads = [];
 
     /**
-     * 广告 PC
+     * 广告  Www - PC
      * @param $mod array
      */
-    public function pc($mod)
+    public function www($mod)
     {
-        exit('var $__m_g_com=' . json_encode(self::$ads['pc']) . "\n");
+        exit('var $__m_g_com=' . json_encode(self::$ads['www']) . ";\n");
     }
 
     /**
@@ -21,6 +22,6 @@ class ads extends \v
      */
     public function wap($mod)
     {
-        exit('var $__m_g_com=' . json_encode(self::$ads['wap']) . "\n");
+        exit('var $__m_g_com=' . json_encode(self::$ads['wap']) . ";\n");
     }
 }
