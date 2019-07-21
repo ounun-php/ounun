@@ -203,4 +203,20 @@ class purview
         }
         return $purview;
     }
+
+    /**
+     * 添加菜单
+     * @param string $addon_tag
+     * @param array $data
+     */
+    public function menu(string $addon_tag , array $data = [])
+    {
+        if($addon_tag && $data){
+            if(empty($this->purview[$addon_tag])){
+                $this->purview[$addon_tag] = $data;
+            }else{
+                trigger_error("already exist menu:{$addon_tag}", E_USER_ERROR);
+            }
+        }
+    }
 }

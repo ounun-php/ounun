@@ -113,7 +113,13 @@ abstract class cms
         if($where && is_array($where) && $where['str']){
             $db->where($where['str'],$where['bind']);
         }
-        $rs = $db->limit($count,$start)->column_all();
+        if($count > 0 || $start > 0 ){
+            $rs = $db->limit($count,$start)->column_all();
+        }else
+        {
+            $rs = $db->column_all();
+        }
+
         // echo $this->db->sql()."\n";
         // $rs = [];
         $this->_lists_decode($rs);
