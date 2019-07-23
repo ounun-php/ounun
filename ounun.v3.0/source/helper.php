@@ -834,10 +834,14 @@ abstract class v
     /**
      * (兼容)返回一个 模板文件地址(绝对目录,相对root)
      * @param string $filename
+     * @param string $addon_tag
      * @return string
      */
-    static public function tpl_fixed(string $filename): string
+    static public function tpl_fixed(string $filename,string $addon_tag = ''): string
     {
+        if($addon_tag){
+            return static::$tpl->tpl_fixed_addon($filename,$addon_tag);
+        }
         return static::$tpl->tpl_fixed($filename);
     }
 

@@ -41,6 +41,27 @@ class template
     /**
      * (兼容)返回一个 模板文件地址(绝对目录,相对root)
      * @param string $filename
+     * @return string
+     */
+    public function tpl_fixed_addon(string $filename,string $addon_tag): string
+    {
+        $addons = config::$maps_paths['addons'];
+        if ($addons && is_array($addons)) {
+            foreach ($addons as $v) {
+                $filename1 = $v['path'] . $addon_tag . '/template/' . $filename;
+                // echo "\$filename:{$filename1}\n";
+                if (is_file($filename1)) {
+                    return $filename1;
+                }
+            }
+        }
+        $this->error($filename);
+        return '';
+    }
+
+    /**
+     * (兼容)返回一个 模板文件地址(绝对目录,相对root)
+     * @param string $filename
      * @param array $styles
      * @return string
      */

@@ -600,7 +600,7 @@ class config
      */
     static public function load_class($class)
     {
-        // echo __FILE__.':'.__LINE__.' $class:'."{$class}\n";
+        //  echo __FILE__.':'.__LINE__.' $class:'."{$class}\n";
         $file = static::load_class_file_exists($class);
         if ($file) {
             require $file;
@@ -657,18 +657,32 @@ class config
 
     /**
      * 加载controller
-     * @param $controller_file
+     * @param string  $class_filename
+     * @param string  $addon_tag
      * @return string
      */
-    static public function load_controller($controller_file)
+    static public function load_controller(string $class_filename, string $addon_tag = '')
     {
-        $controller = static::$maps_paths['app'];
-        if ($controller && is_array($controller)) {
-            foreach ($controller as $v) {
-                $filename = $v['path'] . static::$app_name . '/' . $controller_file;
-                // echo "\$filename:{$filename}\n";
-                if (is_file($filename)) {
-                    return $filename;
+        if($addon_tag){
+            $paths = static::$maps_paths['addons'];
+            if ($paths && is_array($paths)) {
+                foreach ($paths as $v) {
+                    $filename = $v['path'] . $class_filename;
+                    // echo "\$filename:{$filename}\n";
+                    if (is_file($filename)) {
+                        return $filename;
+                    }
+                }
+            }
+        }else{
+            $paths = static::$maps_paths['app'];
+            if ($paths && is_array($paths)) {
+                foreach ($paths as $v) {
+                    $filename = $v['path'] . static::$app_name . '/' . $class_filename;
+                    // echo "\$filename:{$filename}\n";
+                    if (is_file($filename)) {
+                        return $filename;
+                    }
                 }
             }
         }
@@ -756,58 +770,71 @@ function start(array $mod, string $host)
     // header('X-Powered-By: Ounun.org');
     // 设定 模块与方法
     if (is_array($mod) && $mod[0]) {
-        $filename = config::load_controller("controller/{$mod[0]}.php");
-        if ($filename) {
-            $module = $mod[0];
-            if ($mod[1]) {
-                array_shift($mod);
-            } else {
+        /** 插件 */
+        if($mod[0] && $mod[1] && 'addons' == $mod[0]){
+            array_shift($mod);
+            $addon_tag = array_shift($mod);
+            $classname = config::$app_name == 'api' || config::$app_name == 'control' ? config::$app_name : 'web';
+            $filename  = config::load_controller("{$addon_tag}/{$classname}.php",$addon_tag);
+            $module    = "\\addons\\{$addon_tag}\\{$classname}";
+            if(empty($mod[0])){
                 $mod = [config::def_method];
             }
-        } else {
-            if ($mod[1]) {
-                $filename = config::load_controller("controller/{$mod[0]}/{$mod[1]}.php");
-                if ($filename) {
-                    $module = $mod[0] . '\\' . $mod[1];
-                    if ($mod[2]) {
-                        array_shift($mod);
-                        array_shift($mod);
+        }else{
+            $filename = config::load_controller("controller/{$mod[0]}.php");
+            if ($filename) {
+                $module = $mod[0];
+                if ($mod[1]) {
+                    array_shift($mod);
+                } else {
+                    $mod = [config::def_method];
+                }
+            } else {
+                if ($mod[1]) {
+                    $filename = config::load_controller("controller/{$mod[0]}/{$mod[1]}.php");
+                    if ($filename) {
+                        $module = $mod[0] . '\\' . $mod[1];
+                        if ($mod[2]) {
+                            array_shift($mod);
+                            array_shift($mod);
+                        } else {
+                            $mod = [config::def_method];
+                        }
                     } else {
-                        $mod = [config::def_method];
+                        $filename = config::load_controller("controller/{$mod[0]}/index.php");
+                        if ($filename) {
+                            $module = "{$mod[0]}\\index";
+                            array_shift($mod);
+                        } else {
+                            $module = config::def_module;
+                            $filename = config::load_controller("controller/index.php");
+                        }
                     }
                 } else {
                     $filename = config::load_controller("controller/{$mod[0]}/index.php");
                     if ($filename) {
                         $module = "{$mod[0]}\\index";
-                        array_shift($mod);
+                        $mod = [config::def_method];
+                        // array_shift($mod);
                     } else {
+                        // 默认模块
                         $module = config::def_module;
                         $filename = config::load_controller("controller/index.php");
                     }
-                }
-            } else {
-                $filename = config::load_controller("controller/{$mod[0]}/index.php");
-                if ($filename) {
-                    $module = "{$mod[0]}\\index";
-                    $mod = [config::def_method];
-                    // array_shift($mod);
-                } else {
-                    // 默认模块
-                    $module = config::def_module;
-                    $filename = config::load_controller("controller/index.php");
-                }
-            }
-        } // end \Dir_App . "module/" . $mod[0] . '.php';
+                } // end --------- if ($mod[1])
+            } // end ------------- \Dir_App . "module/" . $mod[0] . '.php';
+            $module = '\\app\\' . config::$app_name . '\\controller\\' . $module;
+        } // end ----------------- if($mod[0] && $mod[1] && 'addons' == $mod[0])
     } else {
         // 默认模块 与 默认方法
-        $mod = [config::def_method];
-        $module = config::def_module;
+        $mod      =[config::def_method];
+        $module   = config::def_module;
+        $module   = '\\app\\' . config::$app_name . '\\controller\\' . $module;
         $filename = config::load_controller("controller/index.php");
     }
     // 包括模块文件
     if ($filename) {
         require $filename;
-        $module = '\\app\\' . config::$app_name . '\\controller\\' . $module;
         if (class_exists($module, false)) {
             new $module($mod);
             exit();
