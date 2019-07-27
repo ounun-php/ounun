@@ -185,8 +185,11 @@ class pdo
     public function query(string $sql = '', $param = [], bool $check_active = true)
     {
         if (strpos($sql, '?') !== false) {
+            if ($check_active) {
+                $this->active();
+            }
             $sql = str_replace('?', $this->quote($param), $sql);
-            $this->_prepare($sql, $check_active);
+            $this->_prepare($sql, false);
             if ($this->_is_debug) {
                 $this->_stmt->debugDumpParams();
             }
