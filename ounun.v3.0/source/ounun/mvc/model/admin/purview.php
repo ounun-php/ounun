@@ -215,7 +215,29 @@ class purview
             if(empty($this->purview[$addon_tag])){
                 $this->purview[$addon_tag] = $data;
             }else{
-                trigger_error("already exist menu:{$addon_tag}", E_USER_ERROR);
+                // $sub = $this->purview[$addon_tag]['sub'];
+                if($this->purview[$addon_tag]['sub'] && $data){
+                    foreach ($data['sub'] as $k => $v){
+                        // data
+                        if($this->purview[$addon_tag]['sub'][$k]['data'] && $v['data']){
+
+                            if($this->purview[$addon_tag]['sub'][$k]['name'] == $v['name']){
+                                foreach ($v['data'] as $k2 => $v2){
+                                    if($v2){
+                                        $this->purview[$addon_tag]['sub'][$k]['data'][$k2] = $v2;
+                                    }
+                                }
+                            }else{
+                                $this->purview[$addon_tag]['sub'][] = $v;
+                            }
+                        // sub
+                        }elseif ($this->purview[$addon_tag]['sub'] && $v){
+                            $this->purview[$addon_tag]['sub'][$k] = $v;
+                        }
+                    }
+                }else{
+                    trigger_error("already exist menu:{$addon_tag}", E_USER_ERROR);
+                }
             }
         }
     }

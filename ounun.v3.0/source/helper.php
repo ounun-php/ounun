@@ -969,6 +969,21 @@ abstract class v
     }
 
     /**
+     * 默认 ads.txt文件    google.com
+     * @param array $mod
+     */
+    public function ads($mod)
+    {
+        url_check('/ads.txt');
+        header('Content-Type: text/plain');
+        if (file_exists(\ounun\config::$dir_app . 'ads.txt')) {
+            readfile(\ounun\config::$dir_app . 'ads.txt');
+        } else {
+            exit("google.com, pub-7081168645550959, DIRECT, f08c47fec0942fa0");
+        }
+    }
+
+    /**
      * /favicon.ico
      */
     public function favicon($mod)

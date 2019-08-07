@@ -49,7 +49,7 @@ class template
         if ($addons && is_array($addons)) {
             foreach ($addons as $v) {
                 $filename1 = $v['path'] . $addon_tag . '/template/' . $filename;
-                // echo "\$filename:{$filename1}\n";
+             // echo "\$filename:{$filename1}\n";
                 if (is_file($filename1)) {
                     return $filename1;
                 }
