@@ -52,7 +52,8 @@ class debug
                 mkdir($dirname,0777,true);
             }
         }
-        ob_start();
+        // ob_start();
+        template::ob_start();
         register_shutdown_function(array($this, 'callback'));
 
         $this->_filename = $filename;

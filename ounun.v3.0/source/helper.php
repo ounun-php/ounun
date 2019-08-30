@@ -241,40 +241,6 @@ function go_msg(string $msg, string $url = ''): void
 }
 
 /**
- * 返回一个错误
- * @param string $message
- * @param int $error_code
- * @param mixed $data
- * @param array $extend 延伸数据
- * @return array
- */
-function error(string $message = '', int $error_code = 1, $data = null, $extend = [])
-{
-    $rs = ['message' => $message, 'error_code' => $error_code];
-    if ($data) {
-        $rs['data'] = $data;
-    }
-    if ($extend) {
-        $rs = array_merge($extend, $rs);
-    }
-    return $rs;
-}
-
-/**
- * 确认是否错误 数据
- * @param $data
- * @return bool
- */
-function error_is($data)
-{
-    if (empty($data) || !is_array($data) || !array_key_exists('error_code', $data) || (array_key_exists('error_code', $data) && $data['error_code'] == 0)) {
-        return false;
-    } else {
-        return true;
-    }
-}
-
-/**
  * 判断服务器是否是HTTPS连接
  * @return bool
  */
@@ -291,13 +257,50 @@ function https_is()
 }
 
 /**
+ * 返回一个错误
+ * @param string $message
+ * @param int $error_code
+ * @param mixed $data
+ * @param array $extend 延伸数据
+ * @return array
+ */
+function error(string $message = '', int $error_code = 1, $data = null, $extend = [])
+{
+    $rs = [
+        'message' => $message,       'msg'    => $message,
+        'error_code' => $error_code, 'status' => $error_code,
+    ];
+    if ($data) {
+        $rs['data'] = $data;
+    }
+    if ($extend) {
+        $rs = array_merge($extend, $rs);
+    }
+    return $rs;
+}
+
+/**
+ * 确认是否错误 数据
+ * @param $data
+ * @return bool
+ */
+function error_is($data)
+{
+    if (empty($data) || !is_array($data) || !array_key_exists('status', $data) || (array_key_exists('status', $data) && $data['status'] == 0)) {
+        return false;
+    } else {
+        return true;
+    }
+}
+
+/**
  * 返回错误提示信息
  * @param $data
  * @return string
  */
 function error_message($data): string
 {
-    return $data['message'];
+    return $data['msg'];
 }
 
 /**
@@ -307,7 +310,7 @@ function error_message($data): string
  */
 function error_code($data): int
 {
-    return $data['error_code'];
+    return $data['status'];
 }
 
 /**
@@ -319,9 +322,17 @@ function error_code($data): int
 function succeed($data, string $message = '', $extend = [])
 {
     if ($extend) {
-        return array_merge($extend, ['message' => $message, 'error_code' => 0, 'data' => $data]);
+        return array_merge($extend, [
+            'message' => $message,  'msg'    => $message,
+            'error_code' => 0,      'status' => 0,
+            'data' => $data
+        ]);
     }
-    return ['message' => $message, 'error_code' => 0, 'data' => $data];
+    return [
+        'message'    => $message, 'msg'    => $message,
+        'error_code' => 0,        'status' => 0,
+        'data' => $data
+    ];
 }
 
 /**
@@ -859,6 +870,21 @@ abstract class v
     public static $debug;
 
     /**
+     * @param string $filename
+     * @param bool $is_out_buffer
+     * @param bool $is_out_get
+     * @param bool $is_out_post
+     * @param bool $is_out_url
+     * @param bool $is_run_time
+     * @param bool $is_bof
+     */
+    public static function debug_init($filename='404',$is_out_buffer = true, $is_out_get = false, $is_out_post = false, $is_out_url = false, $is_run_time = false, $is_bof = false){
+        if (empty(static::$debug)) {
+            static::$debug = new \ounun\debug(\ounun\config::$dir_data . 'logs/'.$filename.'_' . date('Ymd') . '.txt', $is_out_buffer, $is_out_get, $is_out_post, $is_out_url,$is_run_time,$is_bof);
+        }
+    }
+
+    /**
      * 调试日志
      * @param $k
      * @param $log
@@ -999,9 +1025,7 @@ abstract class v
     public function __call($method, $arguments)
     {
         header('HTTP/1.1 404 Not Found');
-        if (empty(static::$debug)) {
-            static::$debug = new \ounun\debug(\ounun\config::$dir_data . 'logs/error_404_' . date('Ymd') . '.txt', false, false, false, true);
-        }
+        $this->debug_init('404');
         error404("\$method:{$method} \$args:" . json_encode($arguments) . "");
     }
 }

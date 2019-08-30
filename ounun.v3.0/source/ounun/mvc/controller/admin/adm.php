@@ -8,6 +8,7 @@ namespace ounun\mvc\controller\admin;
  * Time: 10:39
  */
 
+use addons\control\apps;
 use ounun\mvc\model\admin\oauth;
 use ounun\mvc\model\admin\purview;
 use ounun\config;
@@ -90,7 +91,7 @@ abstract class adm extends \v
             go_url($url);  // 没权限就跳
         }
 
-        if (!self::$auth->session_get(purview::session_google) && 'sys@google' != $key) {
+        if (!self::$auth->session_get(purview::session_google) && apps::Menu_Tag.'@google' != $key) {
             go_url(config::url_page('/sys_adm/google.html?nav=' . $nav));
         }
     }

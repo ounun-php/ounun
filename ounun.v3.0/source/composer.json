@@ -23,7 +23,8 @@
     "ext-redis": "*",
     "ext-gd": "*",
     "ext-imagick": "*",
-    "php": ">=7.2"
+    "php": ">=7.2",
+    "ext-simplexml": "*"
   },
   "require-dev": {
     "phpunit/phpunit": "8.1.*"

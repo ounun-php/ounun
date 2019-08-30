@@ -44,6 +44,7 @@ class session implements \SessionHandlerInterface, \SessionUpdateTimestampHandle
      */
     public function open($save_path, $session_name)
     {
+        // print_r([$save_path, $session_name]);
         return true;
     }
 
@@ -52,6 +53,7 @@ class session implements \SessionHandlerInterface, \SessionUpdateTimestampHandle
      */
     public function close()
     {
+        // session_write_close();
         return true;
     }
 
@@ -62,12 +64,42 @@ class session implements \SessionHandlerInterface, \SessionUpdateTimestampHandle
     public function read($session_id)
     {
         $rs = $this->_db->table($this->_session_table)
-            ->where('', '')
+            ->where(' `session_id` =:session_id ', ['session_id'=>$session_id])
             ->column_one();
-        if ($rs) {
-            return json_decode($rs['data'], true);
+        if ($rs && $rs['data']) {
+            return json_decode_array($rs['data']);
         }
-        return null;
+        return '';
+
+//        if (!isset($session_id)) {
+//            $session_id='';
+//        }
+//
+//        try {
+//            $sql="
+//                SELECT
+//                    sess_data
+//                FROM
+//                    ue_user_session
+//                WHERE
+//                    sess_id = :sess_id
+//            ";
+//            $stmt = $this->db->prepare($sql);
+//            $stmt->bindParam(':sess_id', $session_id);
+//            $stmt->execute();
+//            $res = $stmt->fetchAll(PDO::FETCH_ASSOC);
+//            if (count($res) <> 1 ) {
+//                return false;
+//            } else {
+//                return $res[0]['sess_data'];
+//            }
+//        }
+//        catch (PDOException $e) {
+//            error_log('Error reading the session data table in the session reading method.',3,"C:\wamp\www\universal_empires\test_log.txt");
+//            error_log(" Query with error: $sql",3,"C:\wamp\www\universal_empires\test_log.txt");
+//            error_log(" Reason given: $e->getMessage()",3,"C:\wamp\www\universal_empires\test_log.txt");
+//            return false;
+//        }
     }
 
     /**
@@ -77,9 +109,133 @@ class session implements \SessionHandlerInterface, \SessionUpdateTimestampHandle
      */
     public function write($session_id, $data)
     {
+        // print_r(['$data'=>$data]);
         $time = time() + 3600;
-        $rs = $this->_db->replace('', []);
+        $uid  = $data?(int)$data['uid']:0;
+        $data = $data?json_encode_unescaped($data):'';
+        $bind = [
+            'session_id'=>$session_id,
+            'uid'=> $uid,
+            'expires'=>$time,
+            'data'=>$data
+        ];
+        $rs = $this->_db->table($this->_session_table)->replace(true)->insert($bind);
         return $rs ? true : false;
+
+//        if (isset($_SESSION['user_id'])) {
+//            $user_id = (int) $_SESSION['user_id'];
+//        } else {
+//            $user_id= (int) 0;
+//        }
+//
+//        try {
+//            $sql="
+//                SELECT
+//                    sess_data
+//                FROM
+//                    ue_user_session
+//                WHERE
+//                    sess_id = :sess_id
+//            ";
+//            $stmt = $this->db->prepare($sql);
+//            $stmt->bindParam(':sess_id', $session_id);
+//            $stmt->execute();
+//            $res = $stmt->fetchAll(PDO::FETCH_ASSOC);
+//
+//        }
+//        catch (PDOException $e) {
+//            error_log('Error reading the session data table in the session reading method.',3,"C:\wamp\www\universal_empires\test_log.txt");
+//            error_log(" Query with error: $sql",3,"C:\wamp\www\universal_empires\test_log.txt");
+//            error_log(" Reason given: $e->getMessage()",3,"C:\wamp\www\universal_empires\test_log.txt");
+//            return false;
+//        }
+//
+//        if (empty($res)) {
+//            try {
+//                if (count($res) === 0) {
+//
+//                    $sql="
+//                        INSERT INTO
+//                            ue_user_session
+//                        (
+//                              sess_id
+//                            , user
+//                            , start
+//                            , last_activity
+//                            , expires
+//                            , sess_data
+//                        )
+//                        VALUES
+//                            (
+//                                  :sess_id
+//                                , 0
+//                                , NOW()
+//                                , NOW()
+//                                , DATE_ADD(NOW(), INTERVAL 30 MINUTE)
+//                                , :sess_data
+//                            )
+//                    ";
+//
+//                    $stmt = $this->db->prepare($sql);
+//                    $stmt->bindParam(':sess_id', $session_id);
+//                    $stmt->bindParam(':sess_data', $session_data);
+//                    $stmt->execute();
+//                }
+//            }
+//            catch (PDOException $e) {
+//                error_log('Error reading the session data table in the session reading method.',3,"C:\wamp\www\universal_empires\test_log.txt");
+//                error_log(" Query with error: $sql",3,"C:\wamp\www\universal_empires\test_log.txt");
+//                error_log(" Reason given: $e->getMessage()",3,"C:\wamp\www\universal_empires\test_log.txt");
+//                return false;
+//            }
+//        } else {
+//
+//            try {
+//                $sql="
+//                    UPDATE
+//                        ue_user
+//                    SET
+//                        last_activity = NOW()
+//                    WHERE
+//                        id =  :user_id
+//                ";
+//                $stmt = $this->db->prepare($sql);
+//                $stmt->bindParam(':user_id', $user_id);
+//                $stmt->execute();
+//            }
+//            catch (PDOException $e) {
+//                error_log('Error reading the session data table in the session reading method.',3,"C:\wamp\www\universal_empires\test_log.txt");
+//                error_log(" Query with error: $sql",3,"C:\wamp\www\universal_empires\test_log.txt");
+//                error_log(" Reason given: $e->getMessage()",3,"C:\wamp\www\universal_empires\test_log.txt");
+//                return false;
+//            }
+//            try {
+//                $sql="
+//                    UPDATE
+//                        ue_user_session
+//                    SET
+//                          last_activity = NOW()
+//                        , expires = DATE_ADD(NOW(), INTERVAL 30 MINUTE)
+//                        , sess_data = :sess_data
+//                        , user = :user_id
+//                    WHERE
+//                        sess_id = :sess_id
+//                ";
+//
+//                $stmt = $this->db->prepare($sql);
+//                $stmt->bindParam(':sess_data', $session_data);
+//                $stmt->bindParam(':user_id', $user_id);
+//                $stmt->bindParam(':sess_id', $session_id);
+//                $stmt->execute();
+//                return true;
+//            }
+//            catch (PDOException $e) {
+//                error_log('Error reading the session data table in the session reading method.',3,"C:\wamp\www\universal_empires\test_log.txt");
+//                error_log(" Query with error: $sql",3,"C:\wamp\www\universal_empires\test_log.txt");
+//                error_log(" Reason given: $e->getMessage()",3,"C:\wamp\www\universal_empires\test_log.txt");
+//                return false;
+//            }
+//        }
     }
 
     /**
@@ -88,7 +244,24 @@ class session implements \SessionHandlerInterface, \SessionUpdateTimestampHandle
      */
     public function destroy($session_id)
     {
-        return $this->_db->delete('');
+        try {
+//            $sql="
+//                DELETE FROM
+//                    ue_user_session
+//                WHERE
+//                    sess_id = :sess_id
+//            ";
+//            $stmt = $this->db->prepare($sql);
+//            $stmt->bindParam(':sess_id', $session_id);
+//            $stmt->execute();
+            return true;
+        }
+        catch (PDOException $e) {
+//            error_log('Error reading the session data table in the session reading method.',3,"C:\wamp\www\universal_empires\test_log.txt");
+//            error_log(" Query with error: $sql",3,"C:\wamp\www\universal_empires\test_log.txt");
+//            error_log(" Reason given: $e->getMessage()",3,"C:\wamp\www\universal_empires\test_log.txt");
+            return false;
+        }
     }
 
     /**
@@ -97,7 +270,24 @@ class session implements \SessionHandlerInterface, \SessionUpdateTimestampHandle
      */
     public function gc($maxlifetime)
     {
-        $this->_db->delete('');
+//        // $this->_db->table($this->_session_table);
+//        try {
+//            $sql="
+//                DELETE FROM
+//                    ue_user_session
+//                WHERE
+//                    last_activity < expires
+//            ";
+//            $stmt = $this->db->prepare($sql);
+//            $stmt->execute();
+//        }
+//        catch (PDOException $e) {
+//            error_log('Error reading the session data table in the session reading method.',3,"C:\wamp\www\universal_empires\test_log.txt");
+//            error_log(" Query with error: $sql",3,"C:\wamp\www\universal_empires\test_log.txt");
+//            error_log(" Reason given: $e->getMessage()",3,"C:\wamp\www\universal_empires\test_log.txt");
+//            return false;
+//        }
+
         return true;
     }
 
@@ -113,27 +303,7 @@ class session implements \SessionHandlerInterface, \SessionUpdateTimestampHandle
         } elseif ($_COOKIE[$this->_session_name] && 32 == strlen($_COOKIE[$this->_session_name])) {
             $this->_session_id = $_COOKIE[$this->_session_name];
         } else {
-//            $uniqid_prefix     = '';
-//            $uniqid_filename   = '/tmp/php_session_uniqid.txt';
-//            if(!file_exists($uniqid_filename))
-//            {
-//                $uniqid_prefix = \substr(\uniqid('',false),3);
-//                @file_put_contents($uniqid_filename,$uniqid_prefix);
-//            }
-//            if(!$uniqid_prefix)
-//            {
-//                if(file_exists($uniqid_filename))
-//                {
-//                    $uniqid_prefix = @file_get_contents($uniqid_filename);
-//                }
-//                if(!$uniqid_prefix)
-//                {
-//                    $uniqid_prefix = \substr(\uniqid('',false),3);
-//                }
-//            }
-//            $session_id        = \uniqid($uniqid_prefix,true);
-//            $this->_session_id = \substr($session_id,0,24).\substr($session_id,25);
-            $this->_session_id = string\util::uniqid();
+            $this->_session_id = tool\str::uniqid();
         }
         return $this->_session_id;
     }
@@ -157,6 +327,12 @@ class session implements \SessionHandlerInterface, \SessionUpdateTimestampHandle
         // available since PHP 7.0
         // return value should be true for success or false for failure
         // ...
+        return true;
+    }
+
+    public function __destruct()
+    {
+        session_write_close();
     }
 
     /**
@@ -165,11 +341,34 @@ class session implements \SessionHandlerInterface, \SessionUpdateTimestampHandle
      * @param string $session_name
      * @return session
      */
-    public static function start(pdo $db, string $session_table = 'session', string $session_name = 'PHPSESSID'): session
+    public static function start(?pdo $db = null, string $session_table = 'v1_system_session', string $session_name = 'PHPSESSID'): session
     {
+        if(empty($db)){
+            $db  = \v::db_v_get();
+        }
+        session_write_close();
         $handler = new session($db, $session_table, $session_name);
-        session_set_save_handler($handler, true);
+        session_set_save_handler($handler,true);
+        //
+        // Warning: session_write_close(): Failed to write session data using user defined save handler. (session.save_path: ) in Unknown on line
+        // register_shutdown_function( [$handler, 'close']);
+
         session_start();
         return $handler;
+    }
+
+    /**
+     * @return string
+     */
+    public static function start_simple()
+    {
+        session_start();
+        $session_id = $_REQUEST['session_id'];
+        if($session_id){
+            session_id($session_id);
+        }else{
+            $session_id = session_id();
+        }
+        return $session_id;
     }
 }

@@ -60,6 +60,8 @@ class db
             } elseif ($value) {
                 if (static::Type_Json == $value['type']) {
                     $bind[$field] = json_encode_unescaped($value['default']);
+                }elseif(null === $value['default']){
+                    unset($bind[$field]);
                 } else {
                     $bind[$field] = $value['default'];
                 }

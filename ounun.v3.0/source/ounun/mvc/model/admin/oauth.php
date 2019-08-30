@@ -269,11 +269,16 @@ class oauth
         if ($adm_id == $this->session_get(purview::session_id)) {
             return error('提示：不能删除自己[account_id]!');
         }
-        $rs = adm::$db_adm->table(adm::$purview->table_admin_user)->field('`cid`,`account`')->limit(1)->where('`adm_id` = :adm_id', ['adm_id' => $adm_id])->column_one();
+        $rs = adm::$db_adm->table(adm::$purview->table_admin_user)->field('`cid`,`account`,`type`')->limit(1)->where('`adm_id` = :adm_id', ['adm_id' => $adm_id])->column_one();
         //$rs		 = $this->_db->row("SELECT `cid`,`account` FROM {$this->purview->db_adm} where `adm_id` = :adm_id limit 0,1;",['adm_id'=>$adm_id]);
         if ($rs['cid'] == $this->session_get(purview::adm_cid) &&
             $rs['account'] == $this->session_get(purview::session_account)) {
             return error('提示：不能删除自己[account]!');
+        }elseif (
+            ($rs['type'] <= $this->session_get(purview::session_type)  &&  $rs['type'] > 10)  ||
+             $rs['type'] < $this->session_get(purview::session_type)
+        ){
+            return error('提示：只能删除等级别低于自己的用户[type:'.$rs['type'].']!');
         }
         $bind = ['adm_id' => $adm_id, 'cid' => $rs['cid'], 'account' => $rs['account']];
         $rs = adm::$db_adm->table(adm::$purview->table_admin_user)->where('`adm_id`= :adm_id ', $bind)->delete(1);

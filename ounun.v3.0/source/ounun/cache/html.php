@@ -119,7 +119,8 @@ class html
         $this->stop = false;
         $this->_cache->cache_time_tmp_set();
         // 生成
-        ob_start();
+        // ob_start();
+        template::ob_start();
         register_shutdown_function(array($this, 'callback'), $output);
     }
 

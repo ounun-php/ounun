@@ -4,6 +4,9 @@ namespace ounun;
 
 class template
 {
+    /** @var bool 是否开启ob_start */
+    static protected $_ob_start = false;
+
     /** @var string 模板目录(当前) */
     protected $_dir_current;
 
@@ -131,7 +134,8 @@ class template
     public function replace()
     {
         if (empty(\v::$cache_html) || \v::$cache_html->stop) {
-            ob_start();
+            // ob_start();
+            static::ob_start();
             register_shutdown_function([$this, 'callback'], false);
         }
     }
@@ -178,5 +182,14 @@ class template
 
         // 替换
         return strtr($buffer, config::template_replace_str_get());
+    }
+
+    /** */
+    static public function ob_start(){
+        if(empty(static::$_ob_start)){
+            ob_start();
+            static::$_ob_start = true;
+        }
+        return;
     }
 }
