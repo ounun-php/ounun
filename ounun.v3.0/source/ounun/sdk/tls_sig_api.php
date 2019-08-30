@@ -1,6 +1,5 @@
 <?php
-
-namespace plugins\qqyun;
+namespace ounun\sdk;
 
 if (!extension_loaded('openssl')) {
     trigger_error('need openssl extension', E_USER_ERROR);

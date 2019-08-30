@@ -1,6 +1,6 @@
 <?php
 
-namespace ounun\api_sdk;
+namespace ounun\sdk;
 
 class com_showapi
 {

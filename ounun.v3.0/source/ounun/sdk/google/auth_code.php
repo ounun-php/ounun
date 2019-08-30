@@ -1,6 +1,5 @@
 <?php
-
-namespace plugins\google;
+namespace ounun\sdk\google;
 /**
  * PHP Class for handling Google Authenticator 2-factor authentication
  *

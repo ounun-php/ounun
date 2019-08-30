@@ -248,7 +248,7 @@ class converter
             $this->bodyWidth = false;
         }
 
-        $this->parser = new Parser;
+        $this->parser = new converter_parser;
         $this->parser->noTagsInCode = true;
 
         // we don't have to do this every time

@@ -2,10 +2,10 @@
 
 namespace plugins;
 
-class parsedown
+class md_parse
 {
     # ~
-    const version = '1.8.0-beta-3';
+    const Version = '1.8.0-beta-3';
 
     # ~
     public function text($text)

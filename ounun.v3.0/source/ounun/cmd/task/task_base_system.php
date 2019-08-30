@@ -1,7 +1,7 @@
 <?php
 namespace ounun\cmd\task;
 
-use ounun\api_sdk\com_baidu;
+use ounun\sdk\com_baidu;
 use ounun\mvc\model\admin\purview;
 
 abstract class task_base_system extends task_base

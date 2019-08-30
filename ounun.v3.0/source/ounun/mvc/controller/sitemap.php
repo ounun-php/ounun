@@ -2,7 +2,7 @@
 
 namespace ounun\mvc\controller;
 
-use ounun\api_sdk\com_baidu;
+use ounun\sdk\com_baidu;
 use ounun\config;
 
 class sitemap extends \v

@@ -209,7 +209,7 @@ html;
     echo 'Done';
  */
 
-class markdown
+class md
 {
     public function md2html($doc)
     {

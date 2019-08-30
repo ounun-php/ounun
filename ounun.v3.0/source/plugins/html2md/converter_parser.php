@@ -2,7 +2,7 @@
 
 namespace plugins\html2markdown;
 
-class parser
+class converter_parser
 {
     public static $skipWhitespace = true;
     public static $a_ord;

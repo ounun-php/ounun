@@ -2,11 +2,6 @@
 
 namespace plugins\qqwry;
 
-use ounun\mvc\model\cms;
-
-/** 本插件所在目录 */
-define('Dir_Plugins_QQWry', realpath(__DIR__) . '/');
-
 /**
  * IP 地理位置查询类
  *
@@ -30,7 +25,10 @@ define('Dir_Plugins_QQWry', realpath(__DIR__) . '/');
  */
 class ip
 {
-    /** @var self 实例 */
+    /** @var string  本插件所在目录 */
+    const Dir_Plugins =  __DIR__ . '/';
+
+    /** @var self    实例 */
     protected static $instance;
 
     /**
@@ -250,7 +248,7 @@ class ip
      */
     function __construct($charset = 'gbk')
     {
-        $filename = Dir_Plugins_QQWry . 'res/qqwryip.dat';
+        $filename = static::Dir_Plugins . 'res/qqwryip.dat';
         if (($this->fp = @fopen($filename, 'rb')) !== false) {
             $this->firstip = $this->long();
             $this->lastip = $this->long();

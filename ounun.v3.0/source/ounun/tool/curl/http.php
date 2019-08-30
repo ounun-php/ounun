@@ -1,6 +1,5 @@
 <?php
-
-namespace plugins\curl;
+namespace ounun\tool\curl;
 
 class http
 {

@@ -65,7 +65,7 @@ echo $bitcoin->status;
 
 */
 
-namespace plugins\bitcoin;
+namespace blockchain;
 
 class bitcoin
 {
